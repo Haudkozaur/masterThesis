@@ -1,20 +1,61 @@
-// masterThesis.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include <vector>
+#include "matrixHandler.h"
+
+using namespace std;
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    cout << "Hello World!\n";
+    int rows, cols;
+
+    // Get the size of the matrix
+    cout << "Enter the number of rows: ";
+    cin >> rows;
+
+    cout << "Enter the number of columns: ";
+    cin >> cols;
+
+    // Create a vector of vectors to create the matrix
+    MatrixHandler testMatrix(rows, cols);
+
+    // Print the matrix 
+    testMatrix.printMatrix();
+    testMatrix.matrix[1][1] = 69;
+    cout << endl;
+    testMatrix.printMatrix();
+    cout << endl;
+    MatrixHandler secMatrix(3, 3);
+
+    //secMatrix.printMatrix();
+    //cout << endl;
+    //testMatrix.addMatrices(secMatrix.matrix);
+    //testMatrix.printMatrix();
+    //cout << endl;
+    //testMatrix.subtractMatrices(secMatrix.matrix);
+    //testMatrix.printMatrix();
+
+    //cout << testMatrix.matrix.size();
+    //cout << endl;
+    //cout << testMatrix.matrix[0].size();
+    //cout << endl;
+    testMatrix.fillRandom(-10, 10);
+    testMatrix.printMatrix();
+    cout << endl;
+    secMatrix.fillRandom(-10, 10);
+    secMatrix.printMatrix();
+    cout << endl;
+    //testMatrix= testMatrix + secMatrix;
+    //testMatrix.printMatrix();
+    //cout << endl;
+    //testMatrix = testMatrix * (-1);
+    //testMatrix.printMatrix();
+
+    testMatrix.printMatrix();
+    cout << endl;
+    secMatrix = secMatrix * testMatrix;
+    secMatrix.printMatrix();
+    cout << endl;
+
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

@@ -128,6 +128,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="masterThesis.cpp" />
+    <ClCompile Include="matrixHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="matrixHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
