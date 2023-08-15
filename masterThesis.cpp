@@ -27,29 +27,12 @@ int main()
     cout << endl;
     MatrixHandler secMatrix(3, 3);
 
-    //secMatrix.printMatrix();
-    //cout << endl;
-    //testMatrix.addMatrices(secMatrix.matrix);
-    //testMatrix.printMatrix();
-    //cout << endl;
-    //testMatrix.subtractMatrices(secMatrix.matrix);
-    //testMatrix.printMatrix();
-
-    //cout << testMatrix.matrix.size();
-    //cout << endl;
-    //cout << testMatrix.matrix[0].size();
-    //cout << endl;
     testMatrix.fillRandom(-10, 10);
     testMatrix.printMatrix();
     cout << endl;
     secMatrix.fillRandom(-10, 10);
     secMatrix.printMatrix();
     cout << endl;
-    //testMatrix= testMatrix + secMatrix;
-    //testMatrix.printMatrix();
-    //cout << endl;
-    //testMatrix = testMatrix * (-1);
-    //testMatrix.printMatrix();
 
     testMatrix.printMatrix();
     cout << endl;

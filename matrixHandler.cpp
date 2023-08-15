@@ -19,7 +19,7 @@ void MatrixHandler::transposeMatrix() {
     }
 }
 
-//Print object-matrix
+//Print object-matrix 
 
 void MatrixHandler::printMatrix() {
     for (int i = 0; i < rows; ++i) {

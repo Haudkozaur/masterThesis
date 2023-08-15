@@ -5,7 +5,7 @@ using namespace std;
 
 class MatrixHandler {
 public:
-    MatrixHandler(int initialRows, int initialCols);  // Constructor
+    MatrixHandler(int initialRows, int initialCols);  // Constructor 
 
     //Basic math
     void transposeMatrix();
