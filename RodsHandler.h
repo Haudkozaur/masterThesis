@@ -12,7 +12,7 @@ public:
     double youngs_Modulus, length, crossSectionalArea;
     vector<vector<int>> stiffnessMatrix;
     
-    
+    //void stiffnessMatrixAggregation(vector<vector<int>> K, vector<vector<int>> k, int i, int j);
 
 };
 

@@ -11,10 +11,12 @@ RodsHandler::RodsHandler(double E, double L, double A) : youngs_Modulus(E), leng
 	stiffnessMatrix.matrix[0][1] = -1;
 	stiffnessMatrix.matrix[1][0] = -1;
 	stiffnessMatrix.matrix[1][1] = 1;
-	double helpful = ((youngs_Modulus * crossSectionalArea) / length);
-	cout << helpful << endl;
-	stiffnessMatrix = stiffnessMatrix * helpful;
+	stiffnessMatrix = stiffnessMatrix * ((youngs_Modulus * crossSectionalArea) / length);
 	cout << "stiffnessMatrix"<< endl;
 	stiffnessMatrix.printMatrix();
 	cout << endl;
 }
+
+//void RodsHandler::stiffnessMatrixAggregation(vector<vector<int>> K, vector<vector<int>> k, int i, int j) : globalStiffnessMatrix(K),  {
+//
+//}
