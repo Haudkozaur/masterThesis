@@ -21,9 +21,15 @@
     <ClCompile Include="matrixHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RodsHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrixHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RodsHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

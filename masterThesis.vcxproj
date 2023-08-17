@@ -129,9 +129,11 @@
   <ItemGroup>
     <ClCompile Include="masterThesis.cpp" />
     <ClCompile Include="matrixHandler.cpp" />
+    <ClCompile Include="RodsHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrixHandler.h" />
+    <ClInclude Include="RodsHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

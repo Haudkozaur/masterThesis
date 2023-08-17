@@ -1,4 +1,3 @@
-// matrixHandler.cpp
 #include <iostream>
 #include "vector"
 #include "matrixHandler.h"
@@ -24,9 +23,9 @@ void MatrixHandler::transposeMatrix() {
 void MatrixHandler::printMatrix() {
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            cout << matrix[i][j] << "\t";
+            cout << matrix[i][j] << endl;
         }
-        cout << "\n";
+        
     }
 }
 //Create random matrix for tests
@@ -83,7 +82,7 @@ MatrixHandler MatrixHandler::operator-(const MatrixHandler& secMatrix) const {
 
     }
 }
-MatrixHandler MatrixHandler::operator*(int scalar) const {
+MatrixHandler MatrixHandler::operator*(double scalar) const {
     MatrixHandler result(rows, cols);
 
     for (int i = 0; i < rows; ++i) {
@@ -91,11 +90,14 @@ MatrixHandler MatrixHandler::operator*(int scalar) const {
             result.matrix[i][j] = matrix[i][j] * scalar;
         }
     }
+    cout << "Matrix multiplied" << endl;
 
     return result;
 }
 MatrixHandler MatrixHandler::operator*(const MatrixHandler& secMatrix) const {
     if (cols == secMatrix.matrix.size()) {
+        cout << "Matrices can be multiplied";
+        cout << endl;
         MatrixHandler result(rows, secMatrix.cols);
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < secMatrix.cols; ++j) {

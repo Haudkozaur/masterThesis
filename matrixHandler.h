@@ -17,8 +17,8 @@ public:
     //Operators overloading
     MatrixHandler operator+(const MatrixHandler& secMatrix) const;
     MatrixHandler operator-(const MatrixHandler& secMatrix) const;
-    MatrixHandler operator*(int scalar) const;
-    MatrixHandler operator*(const MatrixHandler& otherMatrix) const;
+    MatrixHandler operator*(double scalar) const;
+    MatrixHandler operator*(const MatrixHandler& secMatrix) const;
 
     //Variables
     vector<vector<int>> matrix;
