@@ -1,8 +1,11 @@
 #include <iostream>
 #include <vector>
+
 #include "matrixHandler.h"
 #include "RodsHandler.h"
 #include "MatrixAggregator.h"
+#include "sqlite/sqlite3.h"
+
 #include <tuple>
 #include <cmath>
 using namespace std;
@@ -10,47 +13,16 @@ using namespace std;
 int main()
 {
     cout << "Hello World!\n";
-    //int rows, cols;
 
-    //// Get the size of the matrix
-    //cout << "Enter the number of rows: ";
-    //cin >> rows;
-
-    //cout << "Enter the number of columns: ";
-    //cin >> cols;
-
-    //// Create a vector of vectors to create the matrix
-    //MatrixHandler testMatrix(rows, cols);
-
-    //// Print the matrix 
-    //testMatrix.printMatrix();
-    //testMatrix.matrix[1][1] = 69;
-    //cout << endl;
-    //testMatrix.printMatrix();
-    //cout << endl;
-    //MatrixHandler secMatrix(3, 3);
-
-    //testMatrix.fillRandom(-10, 10);
-    //testMatrix.printMatrix();
-    //cout << endl;
-    //secMatrix.fillRandom(-10, 10);
-    //secMatrix.printMatrix();
-    //cout << endl;
-
-    //testMatrix = testMatrix*(-1);
-    //testMatrix.printMatrix();
-    //cout << endl;
+    //eksperymenty z baz¹ danych sqlite
+    sqlite3* DB;
+    sqlite3_stmt* stmt;
+    sqlite3_open("test.db", &DB);
 
 
-    //secMatrix = secMatrix * testMatrix;
-    //secMatrix.printMatrix();
-    //cout << endl;
-    //secMatrix = secMatrix + testMatrix;
-    //secMatrix.printMatrix();
-    //cout << endl;
-    //secMatrix = secMatrix - testMatrix;
-    //secMatrix.printMatrix();
-    //cout << endl;
+
+
+
 
 
     //liczba elementów 
@@ -62,7 +34,7 @@ int main()
         K = MatrixHandler(elements + 1, elements + 1); //globalna macierz sztywnoœci
     }
     else {
-        //why? idk
+        //why? IDK
         K = MatrixHandler(2, 2);
     }
 
