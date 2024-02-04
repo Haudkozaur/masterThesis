@@ -2,15 +2,17 @@
 #include "vector"
 #include "matrixHandler.h"
 #include "random"
-using namespace std;
 
-MatrixHandler::MatrixHandler(int initialRows, int initialCols) : rows(initialRows), cols(initialCols), matrix(initialRows, vector<int>(initialCols)) {
-    vector<vector<int>> matrix(rows, vector<int>(cols));
+using namespace std;
+MatrixHandler::MatrixHandler() : rows(0), cols(0), matrix() {
+}
+MatrixHandler::MatrixHandler(int initialRows, int initialCols) : rows(initialRows), cols(initialCols), matrix(initialRows, vector<double>(initialCols)) {
+    vector<vector<double>> matrix(rows, vector<double>(cols));
 }
 
 //Tranposing
 void MatrixHandler::transposeMatrix() {
-    vector<vector<int>> transposedMatrix(cols, vector<int>(rows));
+    vector<vector<double>> transposedMatrix(cols, vector<double>(rows));
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             transposedMatrix[j][i] = matrix[i][j];
