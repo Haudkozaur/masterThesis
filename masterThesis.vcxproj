@@ -128,10 +128,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="masterThesis.cpp" />
+    <ClCompile Include="MatrixAggregator.cpp" />
     <ClCompile Include="matrixHandler.cpp" />
     <ClCompile Include="RodsHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MatrixAggregator.h" />
     <ClInclude Include="matrixHandler.h" />
     <ClInclude Include="RodsHandler.h" />
   </ItemGroup>

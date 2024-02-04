@@ -5,8 +5,9 @@ using namespace std;
 
 class MatrixHandler {
 public:
+    MatrixHandler();
     MatrixHandler(int initialRows, int initialCols);  // Constructor 
-
+    
     //Basic math
     void transposeMatrix();
 
@@ -21,7 +22,7 @@ public:
     MatrixHandler operator*(const MatrixHandler& secMatrix) const;
 
     //Variables
-    vector<vector<int>> matrix;
+    vector<vector<double>> matrix;
 
 private:
     int rows;
