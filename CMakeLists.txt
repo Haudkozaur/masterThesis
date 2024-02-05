@@ -15,4 +15,7 @@ add_executable(masterThesis
         RodsHandler.cpp
         RodsHandler.h
         sqlite/sqlite3.h
-        sqlite/sqlite3.c)
+        sqlite/sqlite3.c
+        DateBaseStarter.h
+        DateBaseStarter.cpp
+)
