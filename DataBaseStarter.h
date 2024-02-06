@@ -9,10 +9,10 @@ using namespace std;
 
 //Class to start project model database
 
-class DateBaseStarter {
+class DataBaseStarter {
 
 public:
-    DateBaseStarter(string dateBaseName);
+    DataBaseStarter(string dateBaseName);
     //Methods
     void startDateBase();
 

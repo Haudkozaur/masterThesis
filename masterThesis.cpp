@@ -1,11 +1,12 @@
 #include <iostream>
 #include <vector>
-
 #include "matrixHandler.h"
 #include "RodsHandler.h"
 #include "MatrixAggregator.h"
-#include "DateBaseStarter.h"
+#include "DataBaseStarter.h"
 #include "sqlite/sqlite3.h"
+#include "DataBasePointsManager.h"
+#include "DataBaseModelObjectsManager.h"
 
 #include <tuple>
 #include <cmath>
@@ -16,12 +17,19 @@ int main() {
     cout << "WELCOME IN MES-OS-OIC Project\n";
 
     //eksperymenty z baz¹ danych sqlite
+
     string dateBaseName = "Project.db";
-    DateBaseStarter dateBaseStarter = DateBaseStarter(dateBaseName);
+    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
     dateBaseStarter.startDateBase();
     dateBaseStarter.createPointsTable();
     dateBaseStarter.createLinesTable();
     dateBaseStarter.createSurfacesTable();
+
+    DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
+    dateBasePointsManager.AddObjectToDataBase(69, 420);
+
+
+
 //
 //    for (int i = 0; i < 10; i++) {
 //        string sql = "INSERT INTO points (y_cord, z_cord) VALUES (1, 2)";
