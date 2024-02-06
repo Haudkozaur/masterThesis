@@ -22,4 +22,6 @@ add_executable(masterThesis
         DataBaseModelObjectsManager.h
         DataBasePointsManager.cpp
         DataBasePointsManager.h
+        DataBaseLinesManager.cpp
+        DataBaseLinesManager.h
 )

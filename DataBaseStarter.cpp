@@ -27,7 +27,7 @@ void DataBaseStarter::createPointsTable() {
 void DataBaseStarter::createLinesTable() {
     sqlite3_open(dateBaseNameAsChar, &DB);
     int rc = sqlite3_exec(DB,
-                          "CREATE TABLE IF NOT EXISTS lines (id INTEGER PRIMARY KEY AUTOINCREMENT, point1 INTEGER, point2 INTEGER,FOREIGN KEY (point1) REFERENCES points(id),FOREIGN KEY (point2) REFERENCES points(id))",
+                          "CREATE TABLE IF NOT EXISTS lines (id INTEGER PRIMARY KEY AUTOINCREMENT, start_point INTEGER, end_point INTEGER,FOREIGN KEY (start_point) REFERENCES points(id),FOREIGN KEY (end_point) REFERENCES points(id))",
                           nullptr, nullptr, &zErrMsg);
     if (rc != SQLITE_OK) {
         cout << "Error: " << zErrMsg << endl;
@@ -38,7 +38,7 @@ void DataBaseStarter::createLinesTable() {
 void DataBaseStarter::createSurfacesTable() {
     sqlite3_open(dateBaseNameAsChar, &DB);
     int rc = sqlite3_exec(DB,
-                          "CREATE TABLE IF NOT EXISTS surfaces (id INTEGER PRIMARY KEY AUTOINCREMENT, linesSet ARRAY INTEGER)",
+                          "CREATE TABLE IF NOT EXISTS surfaces (id INTEGER PRIMARY KEY AUTOINCREMENT, lines_set ARRAY INTEGER)",
                           nullptr, nullptr, &zErrMsg);
     if (rc != SQLITE_OK) {
         cout << "Error: " << zErrMsg << endl;

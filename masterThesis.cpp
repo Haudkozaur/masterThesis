@@ -7,6 +7,7 @@
 #include "sqlite/sqlite3.h"
 #include "DataBasePointsManager.h"
 #include "DataBaseModelObjectsManager.h"
+#include "DataBaseLinesManager.h"
 
 #include <tuple>
 #include <cmath>
@@ -19,14 +20,18 @@ int main() {
     //eksperymenty z baz¹ danych sqlite
 
     string dateBaseName = "Project.db";
-    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
-    dateBaseStarter.startDateBase();
-    dateBaseStarter.createPointsTable();
-    dateBaseStarter.createLinesTable();
-    dateBaseStarter.createSurfacesTable();
+//    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
+//    dateBaseStarter.startDateBase();
+//    dateBaseStarter.createPointsTable();
+//    dateBaseStarter.createLinesTable();
+//    dateBaseStarter.createSurfacesTable();
 
     DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
     dateBasePointsManager.AddObjectToDataBase(69, 420);
+
+    DataBaseLinesManager dateBaseLinesManager = DataBaseLinesManager(dateBaseName);
+    dateBaseLinesManager.AddObjectToDataBase(1, 2);
+    dateBaseLinesManager.AddObjectToDataBase(10, 20);
 
 
 
