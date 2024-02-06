@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-
 #include "matrixHandler.h"
 #include "RodsHandler.h"
 #include "MatrixAggregator.h"
