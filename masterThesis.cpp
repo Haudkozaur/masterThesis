@@ -20,11 +20,11 @@ int main() {
     //eksperymenty z baz¹ danych sqlite
 
     string dateBaseName = "Project.db";
-//    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
-//    dateBaseStarter.startDateBase();
-//    dateBaseStarter.createPointsTable();
-//    dateBaseStarter.createLinesTable();
-//    dateBaseStarter.createSurfacesTable();
+    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
+    dateBaseStarter.startDateBase();
+    dateBaseStarter.createPointsTable();
+    dateBaseStarter.createLinesTable();
+    dateBaseStarter.createSurfacesTable();
 
     DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
     dateBasePointsManager.AddObjectToDataBase(69, 420);
@@ -35,7 +35,7 @@ int main() {
 
 
 
-//
+
 //    for (int i = 0; i < 10; i++) {
 //        string sql = "INSERT INTO points (y_cord, z_cord) VALUES (1, 2)";
 //        rc = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &zErrMsg);
