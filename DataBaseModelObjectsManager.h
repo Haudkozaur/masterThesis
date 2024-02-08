@@ -10,16 +10,19 @@ class DataBaseModelObjectsManager {
 public:
     explicit DataBaseModelObjectsManager(string dateBaseName);
 
-    //virtual void AddObjectToDataBase();
+    virtual void addObjectToDataBase();
     //virtual void DeleteObjectFromDataBase();
     //virtual void EditObjectInDataBase();
 
+    bool validate(int id, const string& tableName) const;
 
     //Variables
     string dateBaseName;
     const char *dateBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
+    sqlite3_stmt *stmt;
+
 };
 
 

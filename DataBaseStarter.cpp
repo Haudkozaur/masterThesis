@@ -3,7 +3,7 @@
 
 using namespace std;
 
-DataBaseStarter::DataBaseStarter(string dateBaseName) {
+DataBaseStarter::DataBaseStarter(const string& dateBaseName) {
     this->dateBaseName = dateBaseName;
     this->dateBaseNameAsChar = dateBaseName.c_str();
     sqlite3 *DB;
@@ -45,5 +45,6 @@ void DataBaseStarter::createSurfacesTable() {
     } else {
         cout << "Surfaces Table created successfully" << endl;
     }
+    cout << "\n";
 }
 
