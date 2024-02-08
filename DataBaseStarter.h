@@ -12,7 +12,7 @@ using namespace std;
 class DataBaseStarter {
 
 public:
-    DataBaseStarter(string dateBaseName);
+    DataBaseStarter(const string& dateBaseName);
     //Methods
     void startDateBase();
 

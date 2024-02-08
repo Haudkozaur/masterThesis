@@ -9,9 +9,9 @@ using namespace std;
 class DataBaseLinesManager : public DataBaseModelObjectsManager{
 public:
 
-    explicit DataBaseLinesManager(string dateBaseName);
+    explicit DataBaseLinesManager(const string& dateBaseName);
 
-    void AddObjectToDataBase(int startPointID, int endPointID);
+    void addObjectToDataBase(int startPointID, int endPointID);
 
 };
 

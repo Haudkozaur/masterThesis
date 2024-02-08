@@ -15,7 +15,7 @@
 using namespace std;
 
 int main() {
-    cout << "WELCOME IN MES-OS-OIC Project\n";
+    cout << "WELCOME IN MES-OS-OIC Project" << "\n";
 
     //eksperymenty z baz¹ danych sqlite
 
@@ -28,10 +28,11 @@ int main() {
 
     DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
     dateBasePointsManager.AddObjectToDataBase(69, 420);
+    dateBasePointsManager.AddObjectToDataBase(1, 2);
 
     DataBaseLinesManager dateBaseLinesManager = DataBaseLinesManager(dateBaseName);
-    dateBaseLinesManager.AddObjectToDataBase(1, 2);
-    dateBaseLinesManager.AddObjectToDataBase(10, 20);
+    dateBaseLinesManager.addObjectToDataBase(1, 2);
+    dateBaseLinesManager.addObjectToDataBase(10, 20);
 
 
 
