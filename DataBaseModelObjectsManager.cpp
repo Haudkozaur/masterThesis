@@ -1,5 +1,6 @@
 #include "DataBaseModelObjectsManager.h"
 
+
 DataBaseModelObjectsManager::DataBaseModelObjectsManager(string dateBaseName) {
     this->dateBaseName = dateBaseName;
     this->dateBaseNameAsChar = this->dateBaseName.c_str();
@@ -12,10 +13,11 @@ void DataBaseModelObjectsManager::addObjectToDataBase() {
 }
 
 
-bool DataBaseModelObjectsManager::validate(int objectID, const string &tableName) const {
-    cout <<"Validating object with ID = " << objectID << " in table " << tableName << endl;
+bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableName) const {
+    cout <<"Validating object with ID = " << objectID << " in table " << tableTypesMap.at(tableName) << endl;
     bool isObjectExist = true;
-    string QueryCheckObject = "SELECT * FROM " + tableName + " WHERE id = " + to_string(objectID);
+    string QueryCheckObject = "SELECT * FROM " + tableTypesMap.at(tableName) + " WHERE id = " + to_string(objectID);
+
 //    cout << QueryCheckObject << endl;
 
 

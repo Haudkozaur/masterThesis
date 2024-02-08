@@ -15,7 +15,7 @@
 using namespace std;
 
 int main() {
-    cout << "WELCOME IN MES-OS-OIC Project" << "\n";
+    cout << "WELCOME IN MES-OS-OIC Project" << "\n" << endl;
 
     //eksperymenty z baz¹ danych sqlite
 
