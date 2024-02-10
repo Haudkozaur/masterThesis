@@ -25,4 +25,8 @@ add_executable(masterThesis
         DataBaseLinesManager.cpp
         DataBaseLinesManager.h
         TableTypes.h
+        DateBaseCrossSectionsManager.cpp
+        DataBaseCrossSectionsManager.h
+        DataBaseMaterialsManager.cpp
+        DataBaseMaterialsManager.h
 )

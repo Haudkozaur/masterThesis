@@ -8,6 +8,8 @@
 #include "DataBasePointsManager.h"
 #include "DataBaseModelObjectsManager.h"
 #include "DataBaseLinesManager.h"
+#include "DataBaseMaterialsManager.h"
+#include "DataBaseCrossSectionsManager.h"
 
 #include <tuple>
 #include <cmath>
@@ -20,11 +22,23 @@ int main() {
     //eksperymenty z baz¹ danych sqlite
 
     string dateBaseName = "Project.db";
+
     DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
     dateBaseStarter.startDateBase();
     dateBaseStarter.createPointsTable();
     dateBaseStarter.createLinesTable();
     dateBaseStarter.createSurfacesTable();
+    dateBaseStarter.createMaterialsTable();
+    dateBaseStarter.createCrossSectionsTable();
+
+
+    DataBaseMaterialsManager dataBaseMaterialsManager = DataBaseMaterialsManager(dateBaseName);
+    dataBaseMaterialsManager.addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
+    dataBaseMaterialsManager.addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
+
+    DataBaseCrossSectionsManager dataBaseCrossSectionsManager = DataBaseCrossSectionsManager(dateBaseName);
+    dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3*pow(10.0,-4.0), 81.1* pow(10.0,-8));
+    dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
     DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
     dateBasePointsManager.AddObjectToDataBase(69, 420);
@@ -34,11 +48,9 @@ int main() {
     dateBaseLinesManager.addObjectToDataBase(1, 2);
     dateBaseLinesManager.addObjectToDataBase(10, 20);
 
-    dateBasePointsManager.deleteObjectFromDataBase(1);
+    //dateBasePointsManager.deleteObjectFromDataBase(1);
 
-    dateBaseLinesManager.deleteObjectFromDataBase(1);
-
-
+    //dateBaseLinesManager.deleteObjectFromDataBase(1);
 
 //    for (int i = 0; i < 10; i++) {
 //        string sql = "INSERT INTO points (y_cord, z_cord) VALUES (1, 2)";

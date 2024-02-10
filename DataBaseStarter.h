@@ -22,6 +22,10 @@ public:
 
     void createSurfacesTable();
 
+    void createMaterialsTable();
+
+    void createCrossSectionsTable();
+
     //Variables
     string dateBaseName;
     const char *dateBaseNameAsChar;

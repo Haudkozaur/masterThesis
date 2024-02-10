@@ -45,6 +45,29 @@ void DataBaseStarter::createSurfacesTable() {
     } else {
         cout << "Surfaces Table created successfully" << endl;
     }
-    cout << "\n";
+
 }
 
+void DataBaseStarter::createMaterialsTable() {
+    sqlite3_open(dateBaseNameAsChar, &DB);
+    int rc = sqlite3_exec(DB,
+                          "CREATE TABLE IF NOT EXISTS materials (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, E REAL, v REAL, ro REAL)",
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Materials Table created successfully" << endl;
+    }
+}
+void DataBaseStarter::createCrossSectionsTable() {
+    sqlite3_open(dateBaseNameAsChar, &DB);
+    int rc = sqlite3_exec(DB,
+                          "CREATE TABLE IF NOT EXISTS cross_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, material_id INTEGER, name TEXT, A REAL, I REAL, FOREIGN KEY (material_id) REFERENCES materials(id))",
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Cross-Sections Table created successfully" << endl;
+    }
+    cout << "\n";
+}
