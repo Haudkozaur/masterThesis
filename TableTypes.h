@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+
 using namespace std;
 
 #ifndef TABLETYPE_H

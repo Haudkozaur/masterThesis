@@ -34,6 +34,9 @@ int main() {
     dateBaseLinesManager.addObjectToDataBase(1, 2);
     dateBaseLinesManager.addObjectToDataBase(10, 20);
 
+    dateBasePointsManager.deleteObjectFromDataBase(1);
+
+    dateBaseLinesManager.deleteObjectFromDataBase(1);
 
 
 
