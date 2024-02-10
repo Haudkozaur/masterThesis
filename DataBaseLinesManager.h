@@ -13,6 +13,8 @@ public:
 
     void addObjectToDataBase(int startPointID, int endPointID);
 
+    void deleteObjectFromDataBase(int id);
+
 };
 
 

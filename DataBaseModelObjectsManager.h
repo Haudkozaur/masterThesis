@@ -1,8 +1,12 @@
 #include <iostream>
 #include "sqlite/sqlite3.h"
+#include "TableTypes.h"
+
 using namespace std;
+
 #ifndef MASTERTHESIS_DATABASEMODELOBJECTSMANAGER_H
 #define MASTERTHESIS_DATABASEMODELOBJECTSMANAGER_H
+
 
 //abstract class to create model objects in the database
 
@@ -11,10 +15,10 @@ public:
     explicit DataBaseModelObjectsManager(string dateBaseName);
 
     virtual void addObjectToDataBase();
-    //virtual void DeleteObjectFromDataBase();
-    //virtual void EditObjectInDataBase();
+    virtual void deleteObjectFromDataBase();
+    //virtual void editObjectInDataBase();
 
-    bool validate(int id, const string& tableName) const;
+    bool validate(int id, const TableType& tableName);
 
     //Variables
     string dateBaseName;

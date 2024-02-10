@@ -9,6 +9,7 @@ DataBasePointsManager::DataBasePointsManager(string dateBaseName) : DataBaseMode
 
 
 void DataBasePointsManager::AddObjectToDataBase(int YCoordinate, int ZCoordinate) {
+
     string QueryInsertPoint = "INSERT INTO points (id, y_cord, z_cord) VALUES (NULL, " + to_string(YCoordinate) + ", " +
                               to_string(ZCoordinate) + ")";
 
@@ -18,5 +19,26 @@ void DataBasePointsManager::AddObjectToDataBase(int YCoordinate, int ZCoordinate
     } else {
         cout  << "Point added successfully" << endl << "\n";
     }
-}
 
+
+
+}
+void DataBasePointsManager::deleteObjectFromDataBase(int id) {
+
+    string queryDeletePoint = "DELETE FROM points WHERE id = " + to_string(id);
+    int rc = sqlite3_exec(this->DB, queryDeletePoint.c_str(), nullptr, nullptr, &this->zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Point deleted successfully" << endl;
+    }
+    string queryDeleteLine = "DELETE FROM lines WHERE start_point = " + to_string(id) + " OR end_point = " + to_string(id);
+    rc = sqlite3_exec(this->DB, queryDeleteLine.c_str(), nullptr, nullptr, &this->zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Lines defined by point " + to_string(id) + " deleted successfully" << endl;
+    }
+
+    cout << "\n";
+}
