@@ -10,6 +10,9 @@
 #include "DataBaseLinesManager.h"
 #include "DataBaseMaterialsManager.h"
 #include "DataBaseCrossSectionsManager.h"
+#include "DataBaseSupportsManager.h"
+#include "DataBaseNodalLoadsManager.h"
+
 
 #include <tuple>
 #include <cmath>
@@ -30,6 +33,8 @@ int main() {
     dateBaseStarter.createSurfacesTable();
     dateBaseStarter.createMaterialsTable();
     dateBaseStarter.createCrossSectionsTable();
+    dateBaseStarter.createSupportsTable();
+    dateBaseStarter.createNodalLoadsTable();
 
 
     DataBaseMaterialsManager dataBaseMaterialsManager = DataBaseMaterialsManager(dateBaseName);
@@ -37,7 +42,7 @@ int main() {
     dataBaseMaterialsManager.addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
     DataBaseCrossSectionsManager dataBaseCrossSectionsManager = DataBaseCrossSectionsManager(dateBaseName);
-    dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3*pow(10.0,-4.0), 81.1* pow(10.0,-8));
+    dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3*pow(10.0,-4.0), 171.000000000000*pow(10.0,-8));
     dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
     DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
@@ -48,18 +53,24 @@ int main() {
     dateBaseLinesManager.addObjectToDataBase(1, 2);
     dateBaseLinesManager.addObjectToDataBase(10, 20);
 
+    DataBaseSupportsManager dataBaseSupportsManager = DataBaseSupportsManager(dateBaseName);
+    dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
+    dataBaseSupportsManager.addObjectToDataBase(2, false, true, false);
+
+    DataBaseNodalLoadsManager dataBaseNodalLoadsManager = DataBaseNodalLoadsManager(dateBaseName);
+    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420);
+    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137, 690, 0);
+    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137);
+
+    dataBaseNodalLoadsManager.deleteObjectFromDataBase(3);
+
+    dataBaseSupportsManager.deleteObjectFromDataBase(1);
+
     //dateBasePointsManager.deleteObjectFromDataBase(1);
 
     //dateBaseLinesManager.deleteObjectFromDataBase(1);
 
-//    for (int i = 0; i < 10; i++) {
-//        string sql = "INSERT INTO points (y_cord, z_cord) VALUES (1, 2)";
-//        rc = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &zErrMsg);
-//        if(rc != SQLITE_OK) {
-//            cout << "Error: " << zErrMsg << endl;
-//        } else {
-//            cout << "Record created successfully" << endl;
-//        }
+
 //    }
 //    //liczba elementów
 //    const int elements = 3;

@@ -12,7 +12,7 @@ using namespace std;
 class DataBaseStarter {
 
 public:
-    DataBaseStarter(const string& dateBaseName);
+    DataBaseStarter(const string& dataBaseName);
     //Methods
     void startDateBase();
 
@@ -26,9 +26,13 @@ public:
 
     void createCrossSectionsTable();
 
+    void createSupportsTable();
+
+    void createNodalLoadsTable();
+
     //Variables
-    string dateBaseName;
-    const char *dateBaseNameAsChar;
+    string dataBaseName;
+    const char *dataBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
 };

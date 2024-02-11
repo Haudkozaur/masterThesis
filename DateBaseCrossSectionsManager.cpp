@@ -5,6 +5,8 @@ DataBaseCrossSectionsManager::DataBaseCrossSectionsManager(const string &dateBas
 
 }
 void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int materialID, double A, double I) {
+    cout << I << endl;
+    cout << to_string(I) << endl;
     string queryAddCrossSection = "INSERT INTO cross_sections (name, material_id, A, I) VALUES ('" + name + "', " + to_string(materialID) + ", " + to_string(A) + ", " + to_string(I) + ");";
 
     if (validate(materialID, TableType::MATERIALS)) {
@@ -20,3 +22,4 @@ void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int m
     }
     cout << "\n";
 }
+
