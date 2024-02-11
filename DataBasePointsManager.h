@@ -12,7 +12,7 @@ public:
 
     explicit DataBasePointsManager(string dateBaseName);
 
-    void AddObjectToDataBase(int YCoordinate, int ZCoordinate);
+    void AddObjectToDataBase(int XCoordinate, int ZCoordinate);
     void deleteObjectFromDataBase(int id);
 
 

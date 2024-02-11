@@ -1,11 +1,22 @@
 
 #include "DataBaseCrossSectionsManager.h"
 
-DataBaseCrossSectionsManager::DataBaseCrossSectionsManager(const string &dateBaseName) : DataBaseModelObjectsManager(dateBaseName) {
+using namespace std;
+
+#include <iostream>
+#include <sstream>
+
+DataBaseCrossSectionsManager::DataBaseCrossSectionsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
+        dateBaseName) {
 
 }
+
 void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int materialID, double A, double I) {
-    string queryAddCrossSection = "INSERT INTO cross_sections (name, material_id, A, I) VALUES ('" + name + "', " + to_string(materialID) + ", " + to_string(A) + ", " + to_string(I) + ");";
+
+    string queryAddCrossSection =
+            "INSERT INTO cross_sections (name, material_id, A, I) VALUES ('" + name + "', " + to_string(materialID) +
+            ", " + toStringWithPrecision(A) + ", " + toStringWithPrecision(I) + ");";
+
 
     if (validate(materialID, TableType::MATERIALS)) {
         cout << "Material exists" << endl;
@@ -20,3 +31,4 @@ void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int m
     }
     cout << "\n";
 }
+

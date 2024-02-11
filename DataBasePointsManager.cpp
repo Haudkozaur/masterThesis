@@ -8,9 +8,9 @@ DataBasePointsManager::DataBasePointsManager(string dateBaseName) : DataBaseMode
         std::move(dateBaseName)) {}
 
 
-void DataBasePointsManager::AddObjectToDataBase(int YCoordinate, int ZCoordinate) {
+void DataBasePointsManager::AddObjectToDataBase(int XCoordinate, int ZCoordinate) {
 
-    string QueryInsertPoint = "INSERT INTO points (id, y_cord, z_cord) VALUES (NULL, " + to_string(YCoordinate) + ", " +
+    string QueryInsertPoint = "INSERT INTO points (id, x_cord, z_cord) VALUES (NULL, " + to_string(XCoordinate) + ", " +
                               to_string(ZCoordinate) + ")";
 
     int rc = sqlite3_exec(this->DB, QueryInsertPoint.c_str(), nullptr, nullptr, &this->zErrMsg);

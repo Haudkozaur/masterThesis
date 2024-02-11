@@ -1,6 +1,7 @@
 #include "DataBaseModelObjectsManager.h"
 #include "sqlite/sqlite3.h"
 
+
 DataBaseModelObjectsManager::DataBaseModelObjectsManager(string dateBaseName) {
     this->dateBaseName = dateBaseName;
     this->dateBaseNameAsChar = this->dateBaseName.c_str();

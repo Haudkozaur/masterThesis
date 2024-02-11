@@ -29,4 +29,9 @@ add_executable(masterThesis
         DataBaseCrossSectionsManager.h
         DataBaseMaterialsManager.cpp
         DataBaseMaterialsManager.h
+        DataBaseSupportsManager.cpp
+        DataBaseSupportsManager.h
+        DataBaseNodalLoadsManager.cpp
+        DataBaseNodalLoadsManager.h
+        toStringWithPrecision.h
 )

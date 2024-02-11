@@ -1,6 +1,3 @@
-//
-// Created by Julian Haudek on 10/02/2024.
-//
 
 #include "DataBaseMaterialsManager.h"
 
@@ -11,8 +8,9 @@ DataBaseMaterialsManager::DataBaseMaterialsManager(const string &dateBaseName) :
 
 void DataBaseMaterialsManager::addObjectToDataBase(const string &name, double E, double v, double ro) {
     string queryInsertMaterial =
-            "INSERT INTO Materials (name, E, v, ro) VALUES ('" + name + "', '" + to_string(E) + "', '" + to_string(v) +
-            "', '" + to_string(ro) + "')";
+            "INSERT INTO Materials (name, E, v, ro) VALUES ('" + name + "', '" + toStringWithPrecision(E) + "', '" +
+            to_string(v) +
+            "', '" + toStringWithPrecision(ro) + "')";
     int rc = sqlite3_exec(this->DB, queryInsertMaterial.c_str(), nullptr, nullptr, &this->zErrMsg);
     if (rc != SQLITE_OK) {
         cout << "Error: " << zErrMsg << endl;
