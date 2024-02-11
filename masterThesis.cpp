@@ -58,9 +58,9 @@ int main() {
     dataBaseSupportsManager.addObjectToDataBase(2, false, true, false);
 
     DataBaseNodalLoadsManager dataBaseNodalLoadsManager = DataBaseNodalLoadsManager(dateBaseName);
-    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420);
-    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137, 690, 0);
-    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137);
+    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420.0);
+    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137.0, 690.0, 0);
+    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137.0);
 
     dataBaseNodalLoadsManager.deleteObjectFromDataBase(3);
 

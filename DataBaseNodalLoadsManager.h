@@ -7,7 +7,7 @@ class DataBaseNodalLoadsManager : public DataBaseModelObjectsManager{
 public:
     explicit DataBaseNodalLoadsManager(const string& dateBaseName);
 
-    void addObjectToDataBase(int pointID, int My, int Fz, int Fx);
+    void addObjectToDataBase(int pointID, double My, double Fz, double Fx);
     void deleteObjectFromDataBase(int id);
 };
 

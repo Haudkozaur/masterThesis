@@ -3,10 +3,10 @@
 DataBaseNodalLoadsManager::DataBaseNodalLoadsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
         dateBaseName) {}
 
-void DataBaseNodalLoadsManager::addObjectToDataBase(int pointID, int My, int Fz, int Fx) {
+void DataBaseNodalLoadsManager::addObjectToDataBase(int pointID, double My, double Fz, double Fx) {
     string queryAddNodalLoad =
-            "INSERT INTO nodal_loads (point_id, My, Fz, Fx) VALUES (" + to_string(pointID) + ", " + to_string(My) + ", " +
-            to_string(Fz) + ", " + to_string(Fx) + ")";
+            "INSERT INTO nodal_loads (point_id, My, Fz, Fx) VALUES (" + to_string(pointID) + ", " + toStringWithPrecision(My) + ", " +
+            toStringWithPrecision(Fz) + ", " + toStringWithPrecision(Fx) + ")";
 
     if (validate(pointID, TableType::POINTS)) {
         cout << "Point exists" << endl;

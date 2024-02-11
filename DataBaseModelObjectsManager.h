@@ -1,6 +1,7 @@
 #include <iostream>
 #include "sqlite/sqlite3.h"
 #include "TableTypes.h"
+#include "toStringWithPrecision.h"
 
 using namespace std;
 
