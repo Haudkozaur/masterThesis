@@ -34,4 +34,6 @@ add_executable(masterThesis
         DataBaseNodalLoadsManager.cpp
         DataBaseNodalLoadsManager.h
         toStringWithPrecision.h
+        DataBaseLineLoadsManager.cpp
+        DataBaseLineLoadsManager.h
 )
