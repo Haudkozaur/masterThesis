@@ -3,8 +3,8 @@
 
 DataBaseMaterialsManager::DataBaseMaterialsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
         dateBaseName) {
-
 }
+
 
 void DataBaseMaterialsManager::addObjectToDataBase(const string &name, double E, double v, double ro) {
     string queryInsertMaterial =
