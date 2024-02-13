@@ -4,7 +4,6 @@
 #ifndef MASTERTHESIS_TOSTRINGWITHPRECISION_H
 #define MASTERTHESIS_TOSTRINGWITHPRECISION_H
 
-
 using namespace std;
 
 inline string toStringWithPrecision(double value) {

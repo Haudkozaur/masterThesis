@@ -5,17 +5,14 @@ DataBaseNodalLoadsManager::DataBaseNodalLoadsManager(const string &dateBaseName)
 
 void DataBaseNodalLoadsManager::addObjectToDataBase(int pointID, double My, double Fz, double Fx) {
     string queryAddNodalLoad =
-            "INSERT INTO nodal_loads (point_id, My, Fz, Fx) VALUES (" + to_string(pointID) + ", " + toStringWithPrecision(My) + ", " +
+            "INSERT INTO " + tableTypesMap.at(TableType::NODAL_LOADS) + " (point_id, My, Fz, Fx) VALUES (" +
+            to_string(pointID) + ", " +
+            toStringWithPrecision(My) + ", " +
             toStringWithPrecision(Fz) + ", " + toStringWithPrecision(Fx) + ")";
 
     if (validate(pointID, TableType::POINTS)) {
         cout << "Point exists" << endl;
-        int rc = sqlite3_exec(this->DB, queryAddNodalLoad.c_str(), nullptr, nullptr, &this->zErrMsg);
-        if (rc != SQLITE_OK) {
-            cout << "Error: " << zErrMsg << endl;
-        } else {
-            cout << "Nodal Load added successfully" << endl;
-        }
+        executeAndCheckIfSQLOk(queryAddNodalLoad, TableType::NODAL_LOADS);
     } else {
         cout << "Error: " << "point doesn't exist in DB" << endl;
         return;
@@ -24,12 +21,8 @@ void DataBaseNodalLoadsManager::addObjectToDataBase(int pointID, double My, doub
 }
 
 void DataBaseNodalLoadsManager::deleteObjectFromDataBase(int id) {
-    string queryDeleteNodalLoad = "DELETE FROM nodal_loads WHERE id = " + to_string(id);
-    int rc = sqlite3_exec(this->DB, queryDeleteNodalLoad.c_str(), nullptr, nullptr, &this->zErrMsg);
-    if (rc != SQLITE_OK) {
-        cout << "Error: " << zErrMsg << endl;
-    } else {
-        cout << "Nodal Load deleted successfully" << endl;
-    }
+    string queryDeleteNodalLoad =
+            "DELETE FROM " + tableTypesMap.at(TableType::NODAL_LOADS) + " WHERE id = " + to_string(id);
+    executeAndCheckIfSQLOk(queryDeleteNodalLoad, TableType::NODAL_LOADS);
     cout << "\n";
 }

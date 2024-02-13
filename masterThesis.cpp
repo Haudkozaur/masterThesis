@@ -12,7 +12,7 @@
 #include "DataBaseCrossSectionsManager.h"
 #include "DataBaseSupportsManager.h"
 #include "DataBaseNodalLoadsManager.h"
-
+#include "DataBaseLineLoadsManager.h"
 
 #include <tuple>
 #include <cmath>
@@ -35,7 +35,7 @@ int main() {
     dateBaseStarter.createCrossSectionsTable();
     dateBaseStarter.createSupportsTable();
     dateBaseStarter.createNodalLoadsTable();
-
+    dateBaseStarter.createLineLoadsTable();
 
     DataBaseMaterialsManager dataBaseMaterialsManager = DataBaseMaterialsManager(dateBaseName);
     dataBaseMaterialsManager.addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
@@ -62,10 +62,16 @@ int main() {
     dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137.0, 690.0, 0);
     dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137.0);
 
+    DataBaseLineLoadsManager dataBaseLineLoadsManager = DataBaseLineLoadsManager(dateBaseName);
+    dataBaseLineLoadsManager.addObjectToDataBase(1, 0, -420.0);
+    dataBaseLineLoadsManager.addObjectToDataBase(20, 20.0, -69.0);
+    dataBaseLineLoadsManager.addObjectToDataBase(2, 69.0, -420.0);
+
     dataBaseNodalLoadsManager.deleteObjectFromDataBase(3);
 
     dataBaseSupportsManager.deleteObjectFromDataBase(1);
 
+    dataBaseLineLoadsManager.deleteObjectFromDataBase(2);
     //dateBasePointsManager.deleteObjectFromDataBase(1);
 
     //dateBaseLinesManager.deleteObjectFromDataBase(1);

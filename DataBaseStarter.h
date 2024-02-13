@@ -30,6 +30,8 @@ public:
 
     void createNodalLoadsTable();
 
+    void createLineLoadsTable();
+
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;

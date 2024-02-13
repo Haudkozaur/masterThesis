@@ -11,7 +11,8 @@ public:
 
     void addObjectToDataBase(const string &name, double E, double v, double ro);
 
-    void deleteObjectFromDataBase(int id);
+    //TODO: implement deleteObjectFromDataBase after making decision what to do with cross section with material that is deleted
+    //void deleteObjectFromDataBase(int id);
 
 };
 #endif //MASTERTHESIS_DATEBASEMATERIALSMANAGER_H

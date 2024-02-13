@@ -115,5 +115,20 @@ void DataBaseStarter::createNodalLoadsTable() {
     } else {
         cout << "Nodal loads Table created successfully" << endl;
     }
+
+}
+
+void DataBaseStarter::createLineLoadsTable() {
+    sqlite3_open(dataBaseNameAsChar, &DB);
+    string queryToCreateLineLoadsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::LINE_LOADS) +
+                                         " (id INTEGER PRIMARY KEY AUTOINCREMENT, line_id INTEGER, Fx REAL, Fz REAL, FOREIGN KEY (line_id) REFERENCES lines(id))";
+    int rc = sqlite3_exec(DB,
+                          queryToCreateLineLoadsTable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Line loads Table created successfully" << endl;
+    }
     cout << "\n";
 }

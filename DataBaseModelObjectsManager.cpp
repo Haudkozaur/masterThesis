@@ -48,3 +48,12 @@ bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableN
     sqlite3_finalize(stmt);
     return isObjectExist;
 }
+void DataBaseModelObjectsManager::executeAndCheckIfSQLOk(const string& query, TableType tableName) {
+    int rc = sqlite3_exec(this->DB, query.c_str(), nullptr, nullptr, &this->zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Operation on table " + tableTypesMap.at(tableName)+" completed successfully" << endl;
+    }
+
+}
