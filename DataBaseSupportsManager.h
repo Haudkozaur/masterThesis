@@ -5,7 +5,7 @@
 
 #include "DataBaseModelObjectsManager.h"
 
-class DataBaseSupportsManager : DataBaseModelObjectsManager{
+class DataBaseSupportsManager : public DataBaseModelObjectsManager{
 
 public:
 

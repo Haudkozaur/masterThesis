@@ -45,13 +45,13 @@ int main() {
     dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3*pow(10.0,-4.0), 171.000000000000*pow(10.0,-8));
     dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
-    DataBasePointsManager dateBasePointsManager = DataBasePointsManager(dateBaseName);
-    dateBasePointsManager.AddObjectToDataBase(69, 420);
-    dateBasePointsManager.AddObjectToDataBase(1, 2);
+    DataBasePointsManager dataBasePointsManager = DataBasePointsManager(dateBaseName);
+    dataBasePointsManager.AddObjectToDataBase(69, 420);
+    dataBasePointsManager.AddObjectToDataBase(1, 2);
 
-    DataBaseLinesManager dateBaseLinesManager = DataBaseLinesManager(dateBaseName);
-    dateBaseLinesManager.addObjectToDataBase(1, 2);
-    dateBaseLinesManager.addObjectToDataBase(10, 20);
+    DataBaseLinesManager dataBaseLinesManager = DataBaseLinesManager(dateBaseName);
+    dataBaseLinesManager.addObjectToDataBase(1, 2);
+    dataBaseLinesManager.addObjectToDataBase(10, 20);
 
     DataBaseSupportsManager dataBaseSupportsManager = DataBaseSupportsManager(dateBaseName);
     dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
@@ -69,12 +69,23 @@ int main() {
 
     dataBaseNodalLoadsManager.deleteObjectFromDataBase(3);
 
-    dataBaseSupportsManager.deleteObjectFromDataBase(1);
+    dataBaseSupportsManager.deleteObjectFromDataBase(2);
 
     dataBaseLineLoadsManager.deleteObjectFromDataBase(2);
+
+
+    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 1);
+    dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 1);
+    dataBaseMaterialsManager.selectAllFromTableByID(TableType::MATERIALS, 1);
+    dataBaseCrossSectionsManager.selectAllFromTableByID(TableType::CROSS_SECTIONS, 1);
+    dataBaseSupportsManager.selectAllFromTableByID(TableType::SUPPORTS, 1);
+    dataBaseNodalLoadsManager.selectAllFromTableByID(TableType::NODAL_LOADS, 1);
+    dataBaseLineLoadsManager.selectAllFromTableByID(TableType::LINE_LOADS, 1);
+
+
     //dateBasePointsManager.deleteObjectFromDataBase(1);
 
-    //dateBaseLinesManager.deleteObjectFromDataBase(1);
+    //dataBaseLinesManager.deleteObjectFromDataBase(1);
 
 
 //    }

@@ -22,13 +22,14 @@ public:
 
     bool validate(int id, const TableType& tableName);
     void executeAndCheckIfSQLOk(const string& query, TableType tableName);
+    void selectAllFromTableByID(TableType tableName, int id);
 
     //Variables
     string dateBaseName;
     const char *dateBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
-    sqlite3_stmt *stmt;
+
 
 };
 
