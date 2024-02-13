@@ -17,9 +17,11 @@ public:
 
     virtual void addObjectToDataBase();
     virtual void deleteObjectFromDataBase();
+
     //virtual void editObjectInDataBase();
 
     bool validate(int id, const TableType& tableName);
+    void executeAndCheckIfSQLOk(const string& query, TableType tableName);
 
     //Variables
     string dateBaseName;

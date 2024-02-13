@@ -115,7 +115,7 @@ void DataBaseStarter::createNodalLoadsTable() {
     } else {
         cout << "Nodal loads Table created successfully" << endl;
     }
-    cout << "\n";
+
 }
 
 void DataBaseStarter::createLineLoadsTable() {
@@ -132,4 +132,3 @@ void DataBaseStarter::createLineLoadsTable() {
     }
     cout << "\n";
 }
-

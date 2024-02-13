@@ -14,18 +14,13 @@ DataBaseCrossSectionsManager::DataBaseCrossSectionsManager(const string &dateBas
 void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int materialID, double A, double I) {
 
     string queryAddCrossSection =
-            "INSERT INTO cross_sections (name, material_id, A, I) VALUES ('" + name + "', " + to_string(materialID) +
+            "INSERT INTO " + tableTypesMap.at(TableType::CROSS_SECTIONS) + " (name, material_id, A, I) VALUES ('" + name + "', " + to_string(materialID) +
             ", " + toStringWithPrecision(A) + ", " + toStringWithPrecision(I) + ");";
 
 
     if (validate(materialID, TableType::MATERIALS)) {
         cout << "Material exists" << endl;
-        int rc = sqlite3_exec(this->DB, queryAddCrossSection.c_str(), nullptr, nullptr, &this->zErrMsg);
-        if (rc != SQLITE_OK) {
-            cout << "Error: " << zErrMsg << endl;
-        } else {
-            cout << "Cross section added successfully" << endl;
-        }
+        executeAndCheckIfSQLOk(queryAddCrossSection, TableType::CROSS_SECTIONS);
     } else {
         cout << "Error: " << "Material doesn't exist in DB" << endl;
     }
