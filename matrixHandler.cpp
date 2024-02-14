@@ -10,7 +10,7 @@ MatrixHandler::MatrixHandler(int initialRows, int initialCols) : rows(initialRow
     vector<vector<double>> matrix(rows, vector<double>(cols));
 }
 
-//Tranposing
+//Transposing
 void MatrixHandler::transposeMatrix() {
     vector<vector<double>> transposedMatrix(cols, vector<double>(rows));
     for (int i = 0; i < rows; ++i) {

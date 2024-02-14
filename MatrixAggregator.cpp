@@ -14,3 +14,5 @@ void MatrixAggregator::rodsStiffnessMatrixAggregation(vector<vector<double>> K, 
     cout << k.size() << " rozmiar malego k" << endl;
     globalStiffnesMatrixAggregated = K;
 }
+
+

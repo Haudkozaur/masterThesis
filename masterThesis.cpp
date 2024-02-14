@@ -20,11 +20,18 @@
 using namespace std;
 
 int main() {
+
     cout << "WELCOME IN MES-OS-OIC Project" << "\n" << endl;
 
-    //eksperymenty z baz¹ danych sqlite
+    string dateBaseName;
 
-    string dateBaseName = "Project.db";
+    cout << "Name your project: ";
+    cin >> dateBaseName;
+    cout << "You entered: " << dateBaseName << endl;
+
+    // This is basic starting section of the program
+
+    dateBaseName = dateBaseName + ".db";
 
     DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
     dateBaseStarter.startDateBase();
@@ -42,45 +49,50 @@ int main() {
     dataBaseMaterialsManager.addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
     DataBaseCrossSectionsManager dataBaseCrossSectionsManager = DataBaseCrossSectionsManager(dateBaseName);
-    dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3*pow(10.0,-4.0), 171.000000000000*pow(10.0,-8));
+    dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0),
+                                                     171.000000000000 * pow(10.0, -8));
     dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
+//********************************************************************************************************************
+
+
+
     DataBasePointsManager dataBasePointsManager = DataBasePointsManager(dateBaseName);
-    dataBasePointsManager.AddObjectToDataBase(69, 420);
-    dataBasePointsManager.AddObjectToDataBase(1, 2);
+//    dataBasePointsManager.AddObjectToDataBase(69, 420);
+//    dataBasePointsManager.AddObjectToDataBase(1, 2);
 
     DataBaseLinesManager dataBaseLinesManager = DataBaseLinesManager(dateBaseName);
-    dataBaseLinesManager.addObjectToDataBase(1, 2);
-    dataBaseLinesManager.addObjectToDataBase(10, 20);
+//    dataBaseLinesManager.addObjectToDataBase(1, 2);
+//    dataBaseLinesManager.addObjectToDataBase(10, 20);
 
     DataBaseSupportsManager dataBaseSupportsManager = DataBaseSupportsManager(dateBaseName);
-    dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
-    dataBaseSupportsManager.addObjectToDataBase(2, false, true, false);
+//    dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
+//    dataBaseSupportsManager.addObjectToDataBase(2, false, true, false);
 
     DataBaseNodalLoadsManager dataBaseNodalLoadsManager = DataBaseNodalLoadsManager(dateBaseName);
-    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420.0);
-    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137.0, 690.0, 0);
-    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137.0);
+//    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420.0);
+//    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137.0, 690.0, 0);
+//    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137.0);
 
     DataBaseLineLoadsManager dataBaseLineLoadsManager = DataBaseLineLoadsManager(dateBaseName);
-    dataBaseLineLoadsManager.addObjectToDataBase(1, 0, -420.0);
-    dataBaseLineLoadsManager.addObjectToDataBase(20, 20.0, -69.0);
-    dataBaseLineLoadsManager.addObjectToDataBase(2, 69.0, -420.0);
+//    dataBaseLineLoadsManager.addObjectToDataBase(1, 0, -420.0);
+//    dataBaseLineLoadsManager.addObjectToDataBase(20, 20.0, -69.0);
+//    dataBaseLineLoadsManager.addObjectToDataBase(2, 69.0, -420.0);
 
-    dataBaseNodalLoadsManager.deleteObjectFromDataBase(3);
+//    dataBaseNodalLoadsManager.deleteObjectFromDataBase(3);
+//
+//    dataBaseSupportsManager.deleteObjectFromDataBase(2);
+//
+//    dataBaseLineLoadsManager.deleteObjectFromDataBase(2);
 
-    dataBaseSupportsManager.deleteObjectFromDataBase(2);
 
-    dataBaseLineLoadsManager.deleteObjectFromDataBase(2);
-
-
-    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 1);
-    dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 1);
-    dataBaseMaterialsManager.selectAllFromTableByID(TableType::MATERIALS, 1);
-    dataBaseCrossSectionsManager.selectAllFromTableByID(TableType::CROSS_SECTIONS, 1);
-    dataBaseSupportsManager.selectAllFromTableByID(TableType::SUPPORTS, 1);
-    dataBaseNodalLoadsManager.selectAllFromTableByID(TableType::NODAL_LOADS, 1);
-    dataBaseLineLoadsManager.selectAllFromTableByID(TableType::LINE_LOADS, 1);
+//    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 1);
+//    dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 1);
+//    dataBaseMaterialsManager.selectAllFromTableByID(TableType::MATERIALS, 1);
+//    dataBaseCrossSectionsManager.selectAllFromTableByID(TableType::CROSS_SECTIONS, 1);
+//    dataBaseSupportsManager.selectAllFromTableByID(TableType::SUPPORTS, 1);
+//    dataBaseNodalLoadsManager.selectAllFromTableByID(TableType::NODAL_LOADS, 1);
+//    dataBaseLineLoadsManager.selectAllFromTableByID(TableType::LINE_LOADS, 1);
 
 
     //dateBasePointsManager.deleteObjectFromDataBase(1);

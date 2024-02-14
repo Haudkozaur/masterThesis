@@ -7,6 +7,7 @@ using namespace std;
 
 class MatrixAggregator {
 public:
+
 	//Aggregations of Global Stiffnes Matrices for different types of elements
 
 	virtual void rodsStiffnessMatrixAggregation(vector<vector<double>> K, vector<vector<double>> k, int i, int j);
