@@ -14,7 +14,8 @@ public:
     //Other methods
     void printMatrix();
     void fillRandom(int min, int max);
-
+    void multiplyByVector(vector<double> vector);
+    vector<double> solveLinearSystem(vector<double> vector);
     //Operators overloading
     MatrixHandler operator+(const MatrixHandler& secMatrix) const;
     MatrixHandler operator-(const MatrixHandler& secMatrix) const;

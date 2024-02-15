@@ -4,9 +4,12 @@
 #include "random"
 
 using namespace std;
+
 MatrixHandler::MatrixHandler() : rows(0), cols(0), matrix() {
 }
-MatrixHandler::MatrixHandler(int initialRows, int initialCols) : rows(initialRows), cols(initialCols), matrix(initialRows, vector<double>(initialCols)) {
+
+MatrixHandler::MatrixHandler(int initialRows, int initialCols) : rows(initialRows), cols(initialCols),
+                                                                 matrix(initialRows, vector<double>(initialCols)) {
     vector<vector<double>> matrix(rows, vector<double>(cols));
 }
 
@@ -14,12 +17,12 @@ MatrixHandler::MatrixHandler(int initialRows, int initialCols) : rows(initialRow
 void MatrixHandler::transposeMatrix() {
     vector<vector<double>> transposedMatrix(cols, vector<double>(rows));
     for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
+        for (int j = 0; j < cols; j++) {
             transposedMatrix[j][i] = matrix[i][j];
         }
     }
+    matrix = transposedMatrix;
 }
-
 //Print object-matrix 
 
 void MatrixHandler::printMatrix() {
@@ -27,7 +30,7 @@ void MatrixHandler::printMatrix() {
         for (int j = 0; j < cols; ++j) {
             cout << matrix[i][j] << endl;
         }
-        
+
     }
 }
 //Create random matrix for tests
@@ -46,9 +49,57 @@ void MatrixHandler::fillRandom(int min, int max) {
     }
 }
 
+
+//Multiply matrix by vector, edit matrix in place
+void MatrixHandler::multiplyByVector(vector<double> vector) {
+    if (rows == vector.size()) {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                matrix[i][j] *= vector[i];
+            }
+        }
+        cout << "Matrix multiplied" << endl;
+    } else {
+        cout << "Matrix and vector sizes are incompatible for multiplication";
+        cout << endl;
+    }
+}
+vector<double> MatrixHandler::solveLinearSystem(vector<double> vector) {
+    int rows;
+
+    // Forward elimination
+    for (int i = 0; i < rows; ++i) {
+        for (int j = i + 1; j < rows; ++j) {
+            double ratio = matrix[j][i] / matrix[i][i];
+            for (int k = i; k < rows; ++k) {
+                matrix[j][k] -= ratio * matrix[i][k];
+            }
+            vector[j] -= ratio * vector[i];
+        }
+    }
+
+    // Back substitution
+    std::vector<double> x(rows);
+    for (int i = rows - 1; i >= 0; --i) {
+        double sum = 0.0;
+        for (int j = i + 1; j < rows; ++j) {
+            sum += matrix[i][j] * x[j];
+        }
+        x[i] = (vector[i] - sum) / matrix[i][i];
+    }
+
+    return x;
+}
+
+
+
+
+
+
+
 //Operators overloading
 
-MatrixHandler MatrixHandler::operator+(const MatrixHandler& secMatrix) const {
+MatrixHandler MatrixHandler::operator+(const MatrixHandler &secMatrix) const {
     if (rows == secMatrix.rows and cols == secMatrix.cols) {
         cout << "Matrices can be added";
         cout << endl;
@@ -57,16 +108,17 @@ MatrixHandler MatrixHandler::operator+(const MatrixHandler& secMatrix) const {
             for (int j = 0; j < cols; ++j) {
                 result.matrix[i][j] = matrix[i][j] + secMatrix.matrix[i][j];
             }
-        } return result;
-    }
-    else {
+        }
+        return result;
+    } else {
         cout << "Matrices sizes are incompatible for addition";
         cout << endl;
         return *this;
 
     }
 }
-MatrixHandler MatrixHandler::operator-(const MatrixHandler& secMatrix) const {
+
+MatrixHandler MatrixHandler::operator-(const MatrixHandler &secMatrix) const {
     if (rows == secMatrix.rows and cols == secMatrix.cols) {
         cout << "Matrices can be subtract";
         cout << endl;
@@ -75,15 +127,16 @@ MatrixHandler MatrixHandler::operator-(const MatrixHandler& secMatrix) const {
             for (int j = 0; j < cols; ++j) {
                 result.matrix[i][j] = matrix[i][j] - secMatrix.matrix[i][j];
             }
-        } return result;
-    }
-    else {
+        }
+        return result;
+    } else {
         cout << "Matrices sizes are incompatible for subtraction";
         cout << endl;
         return *this;
 
     }
 }
+
 MatrixHandler MatrixHandler::operator*(double scalar) const {
     MatrixHandler result(rows, cols);
 
@@ -96,7 +149,8 @@ MatrixHandler MatrixHandler::operator*(double scalar) const {
 
     return result;
 }
-MatrixHandler MatrixHandler::operator*(const MatrixHandler& secMatrix) const {
+
+MatrixHandler MatrixHandler::operator*(const MatrixHandler &secMatrix) const {
     if (cols == secMatrix.matrix.size()) {
         cout << "Matrices can be multiplied";
         cout << endl;
@@ -111,8 +165,7 @@ MatrixHandler MatrixHandler::operator*(const MatrixHandler& secMatrix) const {
         }
 
         return result;
-    }
-    else {
+    } else {
         cout << "Matrices sizes are incompatible for multiplication";
         cout << endl;
         return *this;

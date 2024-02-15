@@ -17,7 +17,7 @@
 
 #include <tuple>
 #include <cmath>
-
+#include <algorithm>
 using namespace std;
 
 int main() {
@@ -173,28 +173,55 @@ int main() {
     K.printMatrix();
 
     // Vector of nodal loads
-    vector<double> F;
-    for (int i = 1; i < dataBaseNodalLoadsManager.getNumberOfObjectsInTable(TableType::NODAL_LOADS)+1; i++) {
-        F.push_back(stod(dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "Fz")));
-    }
-    for (int i = 0; i < F.size(); i++) {
-        cout << "F[" << i << "]: " << F[i] << endl;
-    }
+
+
 
     // Vector of factors
-    vector<double> factors;
-    vector<int> nodes;
+
+    vector<string> nodes;
     for (int i = 1; i < dataBaseNodalLoadsManager.getNumberOfObjectsInTable(TableType::NODAL_LOADS)+1; i++) {
-        cout << dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "point_id") << endl;
-        string pointID = dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "point_id");
-        cout << "pointID: " << pointID << endl;
-        cout << "nodes[" << i << "]: " << nodes[i] << endl;
+        nodes.push_back(dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "point_id"));
+        cout << "nodes[" << i << "]: " << nodes[i-1] << endl;
+
+    }
+    vector<int> nodesWithForce;
+    vector<double> F;
+    for (const auto & node : nodes) {
+        nodesWithForce.push_back(stoi(node));
+    }
+    vector<double> factors;
+    for (int i = 1; i < dataBasePointsManager.getNumberOfObjectsInTable(TableType::POINTS)+1; i++) {
+        if (nodesWithForce.end() != std::find(nodesWithForce.begin(), nodesWithForce.end(), i)) {
+            factors.push_back(1);
+            F.push_back(stod(dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "Fz")));
+        } else {
+            factors.push_back(0);
+            F.push_back(0);
+        }
+    }
+    for (int i = 0; i < factors.size(); i++) {
+        cout << "factors[" << i << "]: " << factors[i] << endl;
     }
 
 
-    //dataBasePointsManager.getNumberOfObjectsInTable(TableType::POINTS);
+    MatrixHandler Keff = K;
+    Keff.multiplyByVector(factors);
+    Keff.multiplyByVector(factors);
+    Keff.transposeMatrix();
+//    FMatrix.transposeMatrix();
+//    Keff = Keff*FMatrix;
+    Keff.printMatrix();
 
+    // Effective stiffness matrix
+//    MatrixHandler Keff;
+//    Keff = K.
 
+    //Solve the system of equations
+    vector<double> U;
+    U = Keff.solveLinearSystem(F);
+    for (int i = 0; i < U.size(); i++) {
+        cout << "U[" << i << "]: " << U[i] << endl;
+    }
 
 
 
