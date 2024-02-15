@@ -23,13 +23,15 @@ public:
     bool validate(int id, const TableType& tableName);
     void executeAndCheckIfSQLOk(const string& query, TableType tableName);
     void selectAllFromTableByID(TableType tableName, int id);
+    void updateObjectInDataBase(TableType tableName, int id, const string& propertyName, const string& newValue);
+    string selectObjectPropertyByID(TableType tableName, int id, const string& propertyName) const;
+    int getNumberOfObjectsInTable(TableType tableName);
 
     //Variables
     string dateBaseName;
     const char *dateBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
-
 
 };
 

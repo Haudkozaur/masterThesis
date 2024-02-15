@@ -78,3 +78,44 @@ void DataBaseModelObjectsManager::selectAllFromTableByID(TableType tableName, in
     cout << "\n";
 }
 
+string DataBaseModelObjectsManager::selectObjectPropertyByID(TableType tableName, int id, const string &propertyName) const {
+    string querySelect =
+            "SELECT " + propertyName + " FROM " + tableTypesMap.at(tableName) + " WHERE id = " + to_string(id);
+    sqlite3_stmt *stmt;
+    if (sqlite3_prepare_v2(DB, querySelect.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        printf("ERROR: while compiling sql: %s\n", sqlite3_errmsg(DB));
+        return sqlite3_errmsg(DB);
+    } else if (sqlite3_step(stmt) == SQLITE_ROW) {
+        string result = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+        sqlite3_close(DB);
+        sqlite3_finalize(stmt);
+        return result;
+
+    } else {
+        return "Object with ID - " + to_string(id) + " does not exist";
+    }
+}
+
+void DataBaseModelObjectsManager::updateObjectInDataBase(TableType tableName, int id, const string& propertyName, const string& newValue) {
+
+    string queryUpdate = "UPDATE " + tableTypesMap.at(tableName) + " SET " + propertyName + " = " + newValue + " WHERE id = " + to_string(id);
+    executeAndCheckIfSQLOk(queryUpdate, tableName);
+    cout << "\n";
+
+}
+int DataBaseModelObjectsManager::getNumberOfObjectsInTable(TableType tableName) {
+    sqlite3_open(this->dateBaseNameAsChar, &this->DB);
+    string querySelect = "SELECT COUNT(*) FROM " + tableTypesMap.at(tableName);
+    sqlite3_stmt *stmt;
+    if (sqlite3_prepare_v2(DB, querySelect.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        printf("ERROR: while compiling sql: %s\n", sqlite3_errmsg(DB));
+    } else {
+        sqlite3_step(stmt);
+        int result = sqlite3_column_int(stmt, 0);
+        sqlite3_close(DB);
+        sqlite3_finalize(stmt);
+        return result;
+    }
+    return 0;
+}
+

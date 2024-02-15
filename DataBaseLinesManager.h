@@ -15,6 +15,9 @@ public:
 
     void deleteObjectFromDataBase(int id);
 
+    double getLineLengthFromPoints(int startPointID, int endPointID);
+    double getLineInclinationAngleFromPoints(int startPointID, int endPointID);
+
     //Varibles
 
     int defaultCrossSectionID;

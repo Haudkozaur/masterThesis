@@ -7,7 +7,7 @@
 DataBasePointsManager::DataBasePointsManager(string dateBaseName) : DataBaseModelObjectsManager(
         std::move(dateBaseName)) {}
 
-void DataBasePointsManager::AddObjectToDataBase(int XCoordinate, int ZCoordinate) {
+void DataBasePointsManager::addObjectToDataBase(int XCoordinate, int ZCoordinate) {
 
     string QueryInsertPoint = "INSERT INTO points (id, x_cord, z_cord) VALUES (NULL, " + to_string(XCoordinate) + ", " +
                               to_string(ZCoordinate) + ")";

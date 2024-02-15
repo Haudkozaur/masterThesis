@@ -31,7 +31,7 @@ void DataBaseStarter::createPointsTable() {
 void DataBaseStarter::createLinesTable() {
     sqlite3_open(dataBaseNameAsChar, &DB);
     string queryToCreateLinesTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::LINES) +
-                                     " (id INTEGER PRIMARY KEY AUTOINCREMENT, start_point INTEGER, end_point INTEGER, cross_section_id, "
+                                     " (id INTEGER PRIMARY KEY AUTOINCREMENT, start_point INTEGER, end_point INTEGER, cross_section_id, length REAL, inclination_angle REAL,"
                                      "FOREIGN KEY (start_point) REFERENCES points(id),FOREIGN KEY (end_point) REFERENCES points(id), FOREIGN KEY (cross_section_id) REFERENCES cross_sections(id))";
     int rc = sqlite3_exec(DB,
                           queryToCreateLinesTable.c_str(),

@@ -35,4 +35,6 @@ add_executable(masterThesis
         toStringWithPrecision.h
         DataBaseLineLoadsManager.cpp
         DataBaseLineLoadsManager.h
+        CrossSectionsAssistant.cpp
+        CrossSectionsAssistant.h
 )

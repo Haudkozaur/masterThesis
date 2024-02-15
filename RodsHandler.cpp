@@ -6,17 +6,16 @@
 using namespace std;
 
 RodsHandler::RodsHandler()
-    : youngs_Modulus(0),
-    length(0),
-    crossSectionalArea(0) {
+        : youngs_Modulus(0),
+          length(0),
+          crossSectionalArea(0) {
 
 }
 
 RodsHandler::RodsHandler(double E, double L, double A)
-    : youngs_Modulus(E),
-    length(L),
-    crossSectionalArea(A)
-{
+        : youngs_Modulus(E),
+          length(L),
+          crossSectionalArea(A) {
     MatrixHandler stiffnessMatrix(2, 2);
     stiffnessMatrix.matrix[0][0] = 1.0;
     stiffnessMatrix.matrix[0][1] = -1.0;
