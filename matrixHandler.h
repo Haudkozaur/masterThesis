@@ -1,4 +1,5 @@
 using namespace std;
+#include "Eigen/Dense"
 
 #ifndef MATRIX_HANDLER_H
 #define MATRIX_HANDLER_H

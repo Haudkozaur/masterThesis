@@ -14,16 +14,95 @@
 #include "DataBaseNodalLoadsManager.h"
 #include "DataBaseLineLoadsManager.h"
 #include "CrossSectionsAssistant.h"
-
-#include <tuple>
 #include <cmath>
 #include <algorithm>
+#include <Eigen/Dense>
+
+using namespace Eigen;
 using namespace std;
 
 int main() {
 
-    cout << "WELCOME IN MES-OS-OIC Project" << "\n" << endl;
-
+//    cout << "Eigen learning" << "\n" << endl;
+//
+//    // define 3x3 matrix of floats and set its entries to zero -explicit declaration
+//    int const rows = 3;
+//    int const cols = 3;
+//    Matrix<float, rows, cols> matrixA;
+//    matrixA.setZero();
+//    cout << matrixA << endl;
+//
+//    //define 3x3 matrix of floats and set its entries to zero -typedef declaration
+//    Matrix4d matrixA1;
+//    matrixA1.setZero();
+//    cout << "\n" << matrixA1 << endl;
+//
+//    // define a dynamic matrix, explicit declaration
+//    Matrix<float, Dynamic, Dynamic> matrixB;
+//    matrixB.setZero(10, 10);
+//    cout << "\n" << matrixB << endl;
+//
+//    //define a dynamic matrix, typedef declaration
+//    MatrixXd matrixB1;
+//    matrixB1.setZero(5, 5);
+//
+//    // constructor
+//    MatrixXd matrixC(10, 10);
+//
+//    Matrix4f matrixD;
+//    matrixD << 1, 2, 3, 4,
+//            5, 6, 7, 8,
+//            9, 10, 11, 12,
+//            13, 14, 15, 16;
+//    cout << endl << matrixD << endl;
+//    cout << endl << matrixD(1, 2) << endl;
+//
+//    Matrix3f matrixD1;
+//    matrixD1.resize(3, 3);
+//    matrixD1.setZero(3, 3);
+//    cout <<endl<< matrixD1;
+//
+//    // setting matrix entries - two approaches
+//    int rowsNumber = 5;
+//    int columnNumber= 5;
+//
+//    // matrix of zeros
+//    MatrixXf matrix1zeros;
+//    matrix1zeros = MatrixXf::Zero(rowsNumber, columnNumber);
+//    cout << "\n \n"<< matrix1zeros<<endl;
+//    // another option:
+//    MatrixXf matrix1zeros1;
+//    matrix1zeros1.setZero(rowsNumber, columnNumber);
+//    cout << "\n \n" << matrix1zeros1 << endl;
+//
+//    //matrix of ones
+//    MatrixXf matrix1ones;
+//    matrix1ones = MatrixXf::Ones(rowsNumber, columnNumber);
+//    cout << "\n \n" << matrix1ones << endl;
+//    //another option
+//    MatrixXf matrix1ones1;
+//    matrix1ones1.setOnes(rowsNumber, columnNumber);
+//    cout << "\n \n" << matrix1ones1 << endl;
+//
+//    //matrix of constants
+//    float value = 1.1;
+//    MatrixXf matrix1const;
+//    matrix1const = MatrixXf::Constant(rowsNumber, columnNumber,value);
+//    cout << "\n \n" << matrix1const << endl;
+//    //another option
+//    MatrixXf matrix1const1;
+//    matrix1const1.setConstant(rowsNumber, columnNumber, value);
+//    cout << "\n \n" << matrix1const1 << endl;
+//
+//    //create a diagonal matrix out of a vector
+//    Matrix <double, 3, 1> vector1;
+//    vector1 << 1, 2, 3;
+//    MatrixXd diagonalMatrix;
+//    diagonalMatrix = vector1.asDiagonal();
+//    cout << " Diagonal matrix is \n\n" << diagonalMatrix;
+//
+//    cout << "WELCOME IN MES-OS-OIC Project" << "\n" << endl;
+//
     string dateBaseName = "mesosoic_test";
 
 //    cout << "Name your project: ";
@@ -193,7 +272,9 @@ int main() {
     for (int i = 1; i < dataBasePointsManager.getNumberOfObjectsInTable(TableType::POINTS)+1; i++) {
         if (nodesWithForce.end() != std::find(nodesWithForce.begin(), nodesWithForce.end(), i)) {
             factors.push_back(1);
-            F.push_back(stod(dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "Fz")));
+            string z = dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "Fz");
+            double zdouble = stod(z);
+            F.push_back(zdouble);
         } else {
             factors.push_back(0);
             F.push_back(0);
@@ -218,6 +299,7 @@ int main() {
 
     //Solve the system of equations
     vector<double> U;
+
     U = Keff.solveLinearSystem(F);
     for (int i = 0; i < U.size(); i++) {
         cout << "U[" << i << "]: " << U[i] << endl;

@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.10)
 project(masterThesis)
 
 set(CMAKE_CXX_STANDARD 14)
 
-include_directories(.)
+find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 
 add_executable(masterThesis
         masterThesis.cpp
@@ -37,4 +37,7 @@ add_executable(masterThesis
         DataBaseLineLoadsManager.h
         CrossSectionsAssistant.cpp
         CrossSectionsAssistant.h
+
 )
+
+target_link_libraries(masterThesis Eigen3::Eigen)

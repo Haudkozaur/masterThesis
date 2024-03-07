@@ -65,30 +65,27 @@ void MatrixHandler::multiplyByVector(vector<double> vector) {
     }
 }
 vector<double> MatrixHandler::solveLinearSystem(vector<double> vector) {
-    int rows;
-
-    // Forward elimination
-    for (int i = 0; i < rows; ++i) {
-        for (int j = i + 1; j < rows; ++j) {
-            double ratio = matrix[j][i] / matrix[i][i];
-            for (int k = i; k < rows; ++k) {
-                matrix[j][k] -= ratio * matrix[i][k];
+    std::vector<double> result;
+    if (rows == cols and rows == vector.size()) {
+        Eigen::MatrixXd A(rows, cols);
+        Eigen::VectorXd b(rows);
+        Eigen::VectorXd x(cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                A(i, j) = matrix[i][j];
             }
-            vector[j] -= ratio * vector[i];
+            b(i) = vector[i];
         }
-    }
-
-    // Back substitution
-    std::vector<double> x(rows);
-    for (int i = rows - 1; i >= 0; --i) {
-        double sum = 0.0;
-        for (int j = i + 1; j < rows; ++j) {
-            sum += matrix[i][j] * x[j];
+        x = A.colPivHouseholderQr().solve(b);
+        for (int i = 0; i < cols; ++i) {
+            result.push_back(x(i));
         }
-        x[i] = (vector[i] - sum) / matrix[i][i];
+        cout << "Linear system solved" << endl;
+    } else {
+        cout << "Matrix and vector sizes are incompatible for solving linear system";
+        cout << endl;
     }
-
-    return x;
+    return result;
 }
 
 
