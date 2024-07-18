@@ -24,7 +24,8 @@ public:
     MatrixHandler operator*(const MatrixHandler& secMatrix) const;
 
     //Variables
-    vector<vector<double>> matrix;
+    //Matrix as eigen matrix
+    Eigen::MatrixXd matrix;
 
 private:
     int rows;
