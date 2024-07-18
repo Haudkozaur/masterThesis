@@ -1,0 +1,3 @@
+C:/Users/jhaud/Desktop/PRACA/PRYWATA/Magisterka/masterThesis/cmake-build-debug/CMakeFiles/masterThesis.dir
+C:/Users/jhaud/Desktop/PRACA/PRYWATA/Magisterka/masterThesis/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/jhaud/Desktop/PRACA/PRYWATA/Magisterka/masterThesis/cmake-build-debug/CMakeFiles/rebuild_cache.dir
