@@ -1,4 +1,5 @@
 using namespace std;
+
 #include "Eigen/Dense"
 
 #ifndef MATRIX_HANDLER_H
@@ -24,6 +25,9 @@ public:
     MatrixHandler operator*(const MatrixHandler& secMatrix) const;
 
     //Variables
+    //Matrix represented as eigen matrix
+    Eigen::MatrixXd eigenMatrix;
+
     vector<vector<double>> matrix;
 
 private:

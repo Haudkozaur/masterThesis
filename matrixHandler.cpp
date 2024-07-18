@@ -2,8 +2,12 @@
 #include "vector"
 #include "matrixHandler.h"
 #include "random"
+#include <Eigen/Dense>
 
+using namespace Eigen;
 using namespace std;
+
+//MatrixHandler class implementation using eigen
 
 MatrixHandler::MatrixHandler() : rows(0), cols(0), matrix() {
 }

@@ -23,28 +23,59 @@ using namespace std;
 
 int main() {
 
-//    cout << "Eigen learning" << "\n" << endl;
-//
-//    // define 3x3 matrix of floats and set its entries to zero -explicit declaration
-//    int const rows = 3;
-//    int const cols = 3;
-//    Matrix<float, rows, cols> matrixA;
-//    matrixA.setZero();
-//    cout << matrixA << endl;
+    cout << "Eigen learning" << "\n" << endl;
+
+    // define 3x3 matrix of floats and set its entries to zero -explicit declaration
+    int const rows = 3;
+    int const cols = 3;
+    Matrix<float, rows, cols> matrixA;
+    matrixA.setZero();
+    cout << matrixA << endl;
+
+    Matrix<double, 3, 3> matrixA2;
+    matrixA2.setZero();
+    cout << "\n" << matrixA2 << endl;
+
+    //insert values into the matrix
+    matrixA(0, 0) = 1;
+    matrixA(0, 1) = 2;
+    matrixA(0, 2) = 3;
+    matrixA(1, 0) = 4;
+    matrixA(1, 1) = 5;
+    matrixA(1, 2) = 6;
+    matrixA(2, 0) = 7;
+    matrixA(2, 1) = 8;
+    matrixA(2, 2) = 9;
+    cout << "\n" << matrixA << endl;
+
+    //multiply matrix by a scalar
+    Matrix<float, rows, cols> matrixC;
+    matrixC = 2 * matrixA;
+    cout << "\n" << matrixC << endl;
+
+    //add two matrices
+    Matrix<float, rows, cols> matrixD;
+    matrixD = matrixA + matrixC;
+    cout << "\n" << matrixD << endl;
+
+
+
+
+
 //
 //    //define 3x3 matrix of floats and set its entries to zero -typedef declaration
 //    Matrix4d matrixA1;
 //    matrixA1.setZero();
 //    cout << "\n" << matrixA1 << endl;
 //
-//    // define a dynamic matrix, explicit declaration
-//    Matrix<float, Dynamic, Dynamic> matrixB;
-//    matrixB.setZero(10, 10);
-//    cout << "\n" << matrixB << endl;
+    // define a dynamic matrix, explicit declaration
+    Matrix<float, Dynamic, Dynamic> matrixB;
+    matrixB.setZero(10, 10);
+    cout << "\n" << matrixB << endl;
 //
-//    //define a dynamic matrix, typedef declaration
-//    MatrixXd matrixB1;
-//    matrixB1.setZero(5, 5);
+    //define a dynamic matrix, typedef declaration
+    MatrixXd matrixB1;
+    matrixB1.setZero(5, 5);
 //
 //    // constructor
 //    MatrixXd matrixC(10, 10);
