@@ -241,100 +241,100 @@ int main() {
     dataBaseNodalLoadsManager.addObjectToDataBase(3, 0, -10, 0);
     dataBaseNodalLoadsManager.addObjectToDataBase(4, 0, -20, 0);
 
-    int numberOfFE = dataBaseLinesManager.getNumberOfObjectsInTable(TableType::LINES);
+//     int numberOfFE = dataBaseLinesManager.getNumberOfObjectsInTable(TableType::LINES);
 
-    cout << "Number of FE: " << numberOfFE << endl;
+//     cout << "Number of FE: " << numberOfFE << endl;
 
-    MatrixHandler K;
+//     MatrixHandler K;
 
-    K = MatrixHandler(numberOfFE + 1, numberOfFE + 1); //global matrix of stiffness
+//     K = MatrixHandler(numberOfFE + 1, numberOfFE + 1); //global matrix of stiffness
 
-    K.printMatrix();
+//     K.printMatrix();
 
-    vector<RodsHandler> rods;
-    for (int i = 0; i < numberOfFE; i++) {
-        string crossSectionOfFEID = dataBaseLinesManager.selectObjectPropertyByID(TableType::LINES, i + 1,
-                                                                                  "cross_section_id");
-        cout << "crossSectionOfFEID: " << crossSectionOfFEID << endl;
-        string materialOfFEID = dataBaseCrossSectionsManager.selectObjectPropertyByID(TableType::CROSS_SECTIONS,
-                                                                                      stoi(crossSectionOfFEID),
-                                                                                      "material_id");
-        cout << "materialOfFEID: " << materialOfFEID << endl;
-        double E = stod(
-                dataBaseMaterialsManager.selectObjectPropertyByID(TableType::MATERIALS, stoi(materialOfFEID), "E"));
-        cout << "E: " << E << endl;
-        double A = stod(dataBaseCrossSectionsManager.selectObjectPropertyByID(TableType::CROSS_SECTIONS,
-                                                                              stoi(crossSectionOfFEID), "A"));
-        cout << "A: " << A << endl;
-        double L = stod(dataBaseLinesManager.selectObjectPropertyByID(TableType::LINES, i + 1, "length"));
-        cout << "L: " << L << endl;
+//     vector<RodsHandler> rods;
+//     for (int i = 0; i < numberOfFE; i++) {
+//         string crossSectionOfFEID = dataBaseLinesManager.selectObjectPropertyByID(TableType::LINES, i + 1,
+//                                                                                   "cross_section_id");
+//         cout << "crossSectionOfFEID: " << crossSectionOfFEID << endl;
+//         string materialOfFEID = dataBaseCrossSectionsManager.selectObjectPropertyByID(TableType::CROSS_SECTIONS,
+//                                                                                       stoi(crossSectionOfFEID),
+//                                                                                       "material_id");
+//         cout << "materialOfFEID: " << materialOfFEID << endl;
+//         double E = stod(
+//                 dataBaseMaterialsManager.selectObjectPropertyByID(TableType::MATERIALS, stoi(materialOfFEID), "E"));
+//         cout << "E: " << E << endl;
+//         double A = stod(dataBaseCrossSectionsManager.selectObjectPropertyByID(TableType::CROSS_SECTIONS,
+//                                                                               stoi(crossSectionOfFEID), "A"));
+//         cout << "A: " << A << endl;
+//         double L = stod(dataBaseLinesManager.selectObjectPropertyByID(TableType::LINES, i + 1, "length"));
+//         cout << "L: " << L << endl;
 
-        RodsHandler rod = RodsHandler(E, L, A);
+//         RodsHandler rod = RodsHandler(E, L, A);
 
-        rods.push_back({rod});
-    }
-    MatrixAggregator matrixAggregator;
-    for (int i = 0; i < rods.size(); i++) {
+//         rods.push_back({rod});
+//     }
+//     MatrixAggregator matrixAggregator;
+//     for (int i = 0; i < rods.size(); i++) {
 
-        matrixAggregator.rodsStiffnessMatrixAggregation(K.matrix, rods[i].matrix, i, i + 1);
-        K.matrix = matrixAggregator.globalStiffnesMatrixAggregated;
-    }
+//         matrixAggregator.rodsStiffnessMatrixAggregation(K.matrix, rods[i].matrix, i, i + 1);
+//         K.matrix = matrixAggregator.globalStiffnesMatrixAggregated;
+//     }
 
-    K.printMatrix();
+//     K.printMatrix();
 
-    // Vector of nodal loads
-
-
-
-    // Vector of factors
-
-    vector<string> nodes;
-    for (int i = 1; i < dataBaseNodalLoadsManager.getNumberOfObjectsInTable(TableType::NODAL_LOADS)+1; i++) {
-        nodes.push_back(dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "point_id"));
-        cout << "nodes[" << i << "]: " << nodes[i-1] << endl;
-
-    }
-    vector<int> nodesWithForce;
-    vector<double> F;
-    for (const auto & node : nodes) {
-        nodesWithForce.push_back(stoi(node));
-    }
-    vector<double> factors;
-    for (int i = 1; i < dataBasePointsManager.getNumberOfObjectsInTable(TableType::POINTS)+1; i++) {
-        if (nodesWithForce.end() != std::find(nodesWithForce.begin(), nodesWithForce.end(), i)) {
-            factors.push_back(1);
-            string z = dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "Fz");
-            double zdouble = stod(z);
-            F.push_back(zdouble);
-        } else {
-            factors.push_back(0);
-            F.push_back(0);
-        }
-    }
-    for (int i = 0; i < factors.size(); i++) {
-        cout << "factors[" << i << "]: " << factors[i] << endl;
-    }
+//     // Vector of nodal loads
 
 
-    MatrixHandler Keff = K;
-    Keff.multiplyByVector(factors);
-    Keff.multiplyByVector(factors);
-    Keff.transposeMatrix();
-//    FMatrix.transposeMatrix();
-//    Keff = Keff*FMatrix;
-    Keff.printMatrix();
 
-    // Effective stiffness matrix
-//    MatrixHandler Keff;
-//    Keff = K.
+//     // Vector of factors
 
-    //Solve the system of equations
-    vector<double> U;
+//     vector<string> nodes;
+//     for (int i = 1; i < dataBaseNodalLoadsManager.getNumberOfObjectsInTable(TableType::NODAL_LOADS)+1; i++) {
+//         nodes.push_back(dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "point_id"));
+//         cout << "nodes[" << i << "]: " << nodes[i-1] << endl;
 
-    U = Keff.solveLinearSystem(F);
-    for (int i = 0; i < U.size(); i++) {
-        cout << "U[" << i << "]: " << U[i] << endl;
-    }
+//     }
+//     vector<int> nodesWithForce;
+//     vector<double> F;
+//     for (const auto & node : nodes) {
+//         nodesWithForce.push_back(stoi(node));
+//     }
+//     vector<double> factors;
+//     for (int i = 1; i < dataBasePointsManager.getNumberOfObjectsInTable(TableType::POINTS)+1; i++) {
+//         if (nodesWithForce.end() != std::find(nodesWithForce.begin(), nodesWithForce.end(), i)) {
+//             factors.push_back(1);
+//             string z = dataBaseNodalLoadsManager.selectObjectPropertyByID(TableType::NODAL_LOADS, i, "Fz");
+//             double zdouble = stod(z);
+//             F.push_back(zdouble);
+//         } else {
+//             factors.push_back(0);
+//             F.push_back(0);
+//         }
+//     }
+//     for (int i = 0; i < factors.size(); i++) {
+//         cout << "factors[" << i << "]: " << factors[i] << endl;
+//     }
+
+
+//     MatrixHandler Keff = K;
+//     Keff.multiplyByVector(factors);
+//     Keff.multiplyByVector(factors);
+//     Keff.transposeMatrix();
+// //    FMatrix.transposeMatrix();
+// //    Keff = Keff*FMatrix;
+//     Keff.printMatrix();
+
+//     // Effective stiffness matrix
+// //    MatrixHandler Keff;
+// //    Keff = K.
+
+//     //Solve the system of equations
+//     vector<double> U;
+
+//     U = Keff.solveLinearSystem(F);
+//     for (int i = 0; i < U.size(); i++) {
+//         cout << "U[" << i << "]: " << U[i] << endl;
+//     }
 
 
 

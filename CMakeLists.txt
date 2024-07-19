@@ -2,18 +2,23 @@ cmake_minimum_required(VERSION 3.10)
 project(masterThesis)
 
 set(CMAKE_CXX_STANDARD 14)
-
-# Dodaj VCPKG do CMake
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+# wykrycie vcpkg
 if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
 endif()
 
-# Wczytaj konfigurację z VCPKG
+# wczytanie konfigu dla bibliotek (wymaga ustawienia zmiennej środowiskowej)
 include("${CMAKE_TOOLCHAIN_FILE}")
 
-# Znajdź pakiety Eigen3 i SQLite3
+# używane biblioteki
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(SQLite3 REQUIRED)
+
+find_package(Qt6Widgets REQUIRED)
+find_package(Qt6Core REQUIRED)
+find_package(Qt6Gui REQUIRED)
 
 add_executable(masterThesis
     masterThesis.cpp
@@ -48,7 +53,10 @@ add_executable(masterThesis
     CrossSectionsAssistant.cpp
     CrossSectionsAssistant.h
     vcpkg.json
+    gui.h gui.cpp gui.ui
+
 )
 
-# Linkowanie bibliotek Eigen3 i SQLite3
-target_link_libraries(masterThesis Eigen3::Eigen SQLite::SQLite3)
+# linkowanie bibliotek
+target_link_libraries(masterThesis Eigen3::Eigen SQLite::SQLite3 Qt6::Widgets Qt6::Core Qt6::Gui)
+
