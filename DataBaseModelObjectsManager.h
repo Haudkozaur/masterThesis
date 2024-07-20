@@ -2,7 +2,7 @@
 #include "sqlite/sqlite3.h"
 #include "TableTypes.h"
 #include "toStringWithPrecision.h"
-
+#include <vector>
 using namespace std;
 
 #ifndef MASTERTHESIS_DATABASEMODELOBJECTSMANAGER_H
@@ -18,6 +18,8 @@ public:
     virtual void addObjectToDataBase();
     virtual void deleteObjectFromDataBase();
 
+    virtual void iterateOverTable();
+
     //virtual void editObjectInDataBase();
 
     bool validate(int id, const TableType& tableName);
@@ -26,13 +28,14 @@ public:
     void updateObjectInDataBase(TableType tableName, int id, const string& propertyName, const string& newValue);
     string selectObjectPropertyByID(TableType tableName, int id, const string& propertyName) const;
     int getNumberOfObjectsInTable(TableType tableName);
+    vector<vector<string>> executeQuery(const string& query); // Function to execute SELECT queries
+
 
     //Variables
     string dateBaseName;
     const char *dateBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
-
 };
 
 

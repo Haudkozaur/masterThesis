@@ -16,6 +16,9 @@ void DataBaseModelObjectsManager::addObjectToDataBase() {
 void DataBaseModelObjectsManager::deleteObjectFromDataBase() {
 }
 
+void DataBaseModelObjectsManager::iterateOverTable() {
+}
+
 bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableName) {
     sqlite3_open(this->dateBaseNameAsChar, &this->DB);
     cout << "Validating object with ID = " << objectID << " in table " << tableTypesMap.at(tableName) << endl;
@@ -118,4 +121,24 @@ int DataBaseModelObjectsManager::getNumberOfObjectsInTable(TableType tableName) 
     }
     return 0;
 }
+vector<vector<string>> DataBaseModelObjectsManager::executeQuery(const string& query) {
+    sqlite3_stmt* stmt;
+    vector<vector<string>> results;
 
+    if (sqlite3_prepare_v2(DB, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        throw runtime_error("Failed to execute query: " + string(sqlite3_errmsg(DB)));
+    }
+
+    int cols = sqlite3_column_count(stmt);
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        vector<string> row;
+        for (int i = 0; i < cols; ++i) {
+            const char* val = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+            row.push_back(val ? val : "");
+        }
+        results.push_back(row);
+    }
+
+    sqlite3_finalize(stmt);
+    return results;
+}

@@ -14,18 +14,49 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QCheckBox" name="checkBox">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>230</y>
-      <width>93</width>
-      <height>26</height>
+      <x>0</x>
+      <y>60</y>
+      <width>181</width>
+      <height>103</height>
      </rect>
     </property>
-    <property name="text">
-     <string>CheckBox</string>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="addPointButton">
+       <property name="text">
+        <string>Add Point</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="addLineButton">
+       <property name="text">
+        <string>Add Line</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="addSupportButton">
+       <property name="text">
+        <string>Add support</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>-1</y>
+      <width>801</width>
+      <height>61</height>
+     </rect>
     </property>
+    <layout class="QHBoxLayout" name="horizontalLayout"/>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

@@ -17,11 +17,35 @@
 #include <cmath>
 #include <algorithm>
 #include <Eigen/Dense>
-
+#include <QApplication>
+#include "gui.h"
 using namespace Eigen;
 using namespace std;
 
-int main() {
+int main(int argc, char *argv[]) {
+
+    string dateBaseName = "mesosoic_test";
+
+    dateBaseName = dateBaseName + ".db";
+
+    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
+    dateBaseStarter.startDateBase();
+    dateBaseStarter.createPointsTable();
+    dateBaseStarter.createLinesTable();
+    dateBaseStarter.createSurfacesTable();
+    dateBaseStarter.createMaterialsTable();
+    dateBaseStarter.createCrossSectionsTable();
+    dateBaseStarter.createSupportsTable();
+    dateBaseStarter.createNodalLoadsTable();
+    dateBaseStarter.createLineLoadsTable();
+
+    QApplication app(argc, argv);
+
+    Gui mainWindow;
+    mainWindow.show();
+
+    return app.exec();
+
 
     cout << "Eigen learning" << "\n" << endl;
 
@@ -134,7 +158,7 @@ int main() {
 //
 //    cout << "WELCOME IN MES-OS-OIC Project" << "\n" << endl;
 //
-    string dateBaseName = "mesosoic_test";
+
 
 //    cout << "Name your project: ";
 //    cin >> dateBaseName;
@@ -142,18 +166,6 @@ int main() {
 
     // This is basic starting section of the program
 
-    dateBaseName = dateBaseName + ".db";
-
-    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
-    dateBaseStarter.startDateBase();
-    dateBaseStarter.createPointsTable();
-    dateBaseStarter.createLinesTable();
-    dateBaseStarter.createSurfacesTable();
-    dateBaseStarter.createMaterialsTable();
-    dateBaseStarter.createCrossSectionsTable();
-    dateBaseStarter.createSupportsTable();
-    dateBaseStarter.createNodalLoadsTable();
-    dateBaseStarter.createLineLoadsTable();
 
     DataBaseMaterialsManager dataBaseMaterialsManager = DataBaseMaterialsManager(dateBaseName);
     dataBaseMaterialsManager.addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);

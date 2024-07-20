@@ -54,6 +54,9 @@ add_executable(masterThesis
     CrossSectionsAssistant.h
     vcpkg.json
     gui.h gui.cpp gui.ui
+    addpointdialog.h addpointdialog.cpp addpointdialog.ui
+    addlinedialog.h addlinedialog.cpp addlinedialog.ui
+
 
 )
 

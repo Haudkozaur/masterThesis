@@ -25,5 +25,6 @@ void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int m
         cout << "Error: " << "Material doesn't exist in DB" << endl;
     }
     cout << "\n";
+
 }
 
