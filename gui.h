@@ -1,3 +1,4 @@
+// gui.h
 #ifndef GUI_H
 #define GUI_H
 
@@ -19,7 +20,8 @@ public:
 
 private slots:
     void on_addPointButton_clicked();
-    void on_addLineButton_clicked(); // New slot for adding lines
+    void on_addLineButton_clicked(); // Slot for adding lines
+    void on_addSupportButton_clicked(); // Slot for adding supports
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -42,13 +44,21 @@ private:
         int endX;
         int endZ;
     };
+    struct Boundary {
+        int pointId;
+        bool ry;
+        bool tz;
+        bool tx;
+    };
 
     std::vector<Point> points;
     std::vector<Line> lines;
+    std::vector<Boundary> boundaries; // Consider renaming to supports for clarity
 
     void drawPoint();
     void paintPoints(QPainter &painter);
     void paintLines(QPainter &painter);
+    void paintSupports(QPainter &painter); // Add this line
 };
 
 #endif // GUI_H

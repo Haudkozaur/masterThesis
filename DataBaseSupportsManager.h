@@ -4,6 +4,8 @@
 
 
 #include "DataBaseModelObjectsManager.h"
+#include <map>
+#include <tuple>
 
 class DataBaseSupportsManager : public DataBaseModelObjectsManager{
 
@@ -15,6 +17,14 @@ public:
 
     void deleteObjectFromDataBase(int id);
 
+    void iterateOverTable();
+
+    //getter of map
+    map<int, tuple<int, bool, bool, bool>> getSupportsMap() const;
+
+private:
+    //Map that stores all supports parameters id -> (point_id, ry, tz, tx)
+    map<int, tuple<int, bool, bool, bool>> supportsMap;
 
 };
 

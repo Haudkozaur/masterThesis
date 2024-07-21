@@ -91,7 +91,7 @@ void DataBaseStarter::createCrossSectionsTable() {
 void DataBaseStarter::createSupportsTable() {
     sqlite3_open(dataBaseNameAsChar, &DB);
     string queryToCreateSupportsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::SUPPORTS) +
-                                        " (id INTEGER PRIMARY KEY AUTOINCREMENT, point_id INTEGER, rx BOOLEAN, tz BOOLEAN, tx BOOLEAN, FOREIGN KEY (point_id) REFERENCES points(id))";
+                                        " (id INTEGER PRIMARY KEY AUTOINCREMENT, point_id INTEGER, ry BOOLEAN, tz BOOLEAN, tx BOOLEAN, FOREIGN KEY (point_id) REFERENCES points(id))";
     int rc = sqlite3_exec(DB,
                           queryToCreateSupportsTable.c_str(),
                           nullptr, nullptr, &zErrMsg);

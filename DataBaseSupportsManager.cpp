@@ -7,11 +7,11 @@
 DataBaseSupportsManager::DataBaseSupportsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
         dateBaseName) {}
 
-void DataBaseSupportsManager::addObjectToDataBase(int pointID, bool Rx, bool Tz, bool Tx) {
+void DataBaseSupportsManager::addObjectToDataBase(int pointID, bool Ry, bool Tz, bool Tx) {
     string queryInsertSupport =
-            "INSERT INTO " + tableTypesMap.at(TableType::SUPPORTS) + " (id, point_id, rx, tz, tx) VALUES (NULL, " +
+            "INSERT INTO " + tableTypesMap.at(TableType::SUPPORTS) + " (id, point_id, ry, tz, tx) VALUES (NULL, " +
             to_string(pointID) + ", " +
-            to_string(Rx) + ", " + to_string(Tz) + ", " + to_string(Tx) + ")";
+            to_string(Ry) + ", " + to_string(Tz) + ", " + to_string(Tx) + ")";
 
     if (validate(pointID, TableType::POINTS)) {
         cout << "Point exists" << endl;
@@ -29,4 +29,32 @@ void DataBaseSupportsManager::deleteObjectFromDataBase(int id) {
     string queryDeleteSupport = "DELETE FROM " + tableTypesMap.at(TableType::SUPPORTS) + " WHERE id = " + to_string(id);
     executeAndCheckIfSQLOk(queryDeleteSupport, TableType::SUPPORTS);
     cout << "\n";
+}
+
+void DataBaseSupportsManager::iterateOverTable() {
+    string querySelectAllSupports = "SELECT id, point_id, ry, tz, tx FROM " + tableTypesMap.at(TableType::SUPPORTS);
+    std::vector<std::vector<string>> results = executeQuery(querySelectAllSupports);
+
+    supportsMap.clear(); // Clear the map before populating it
+
+    // Populate the map with the results
+    for (const auto& row : results) {
+        if (row.size() == 5) {
+            int id = stoi(row[0]);
+            int pointID = stoi(row[1]);
+            bool ry = stoi(row[2]);
+            bool tz = stoi(row[3]);
+            bool tx = stoi(row[4]);
+            supportsMap[id] = make_tuple(pointID, ry, tz, tx);
+        }
+    }
+
+    //Print supports for debugging
+    for (const auto& support : supportsMap) {
+        cout << "ID: " << support.first << ", Point ID: " << get<0>(support.second) << ", Ry: " << get<1>(support.second) << ", Tz: " << get<2>(support.second) << ", Tx: " << get<3>(support.second) << endl;
+    }
+
+}
+map<int, tuple<int, bool, bool, bool>> DataBaseSupportsManager::getSupportsMap() const {
+    return supportsMap;
 }

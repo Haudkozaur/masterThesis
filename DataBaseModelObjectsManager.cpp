@@ -19,17 +19,20 @@ void DataBaseModelObjectsManager::deleteObjectFromDataBase() {
 void DataBaseModelObjectsManager::iterateOverTable() {
 }
 
+
 bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableName) {
+    if (objectID == 0) {
+        cout << "Object with ID = 0 is not valid." << endl;
+        return false;
+    }
     sqlite3_open(this->dateBaseNameAsChar, &this->DB);
     cout << "Validating object with ID = " << objectID << " in table " << tableTypesMap.at(tableName) << endl;
     bool isObjectExist = true;
     string QueryCheckObject = "SELECT * FROM " + tableTypesMap.at(tableName) + " WHERE id = " + to_string(objectID);
 
-//    cout << QueryCheckObject << endl;
-
+    //    cout << QueryCheckObject << endl;
 
     sqlite3_stmt *stmt;
-
 
     if (sqlite3_prepare_v2(DB, QueryCheckObject.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         printf("ERROR: while compiling sql: %s\n", sqlite3_errmsg(DB));
@@ -38,7 +41,7 @@ bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableN
     } else {
         //      IDK exactly why this have to be here, but it works
         sqlite3_step(stmt);
-//        cout << sqlite3_column_int(stmt, 0) << endl;
+        //        cout << sqlite3_column_int(stmt, 0) << endl;
         if (sqlite3_column_int(stmt, 0) != objectID) {
             cout << "Object with ID - " << objectID << " does not exist" << endl;
             isObjectExist = false;
@@ -52,10 +55,13 @@ bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableN
     return isObjectExist;
 }
 
+
 void DataBaseModelObjectsManager::executeAndCheckIfSQLOk(const string &query, TableType tableName) {
     int rc = sqlite3_exec(this->DB, query.c_str(), nullptr, nullptr, &this->zErrMsg);
     if (rc != SQLITE_OK) {
+
         cout << "Error: " << zErrMsg << endl;
+
     } else {
         cout << "Operation on table " + tableTypesMap.at(tableName) + " completed successfully" << endl;
     }
@@ -83,7 +89,7 @@ void DataBaseModelObjectsManager::selectAllFromTableByID(TableType tableName, in
 
 string DataBaseModelObjectsManager::selectObjectPropertyByID(TableType tableName, int id, const string &propertyName) const {
     string querySelect =
-            "SELECT " + propertyName + " FROM " + tableTypesMap.at(tableName) + " WHERE id = " + to_string(id);
+        "SELECT " + propertyName + " FROM " + tableTypesMap.at(tableName) + " WHERE id = " + to_string(id);
     sqlite3_stmt *stmt;
     if (sqlite3_prepare_v2(DB, querySelect.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         printf("ERROR: while compiling sql: %s\n", sqlite3_errmsg(DB));
