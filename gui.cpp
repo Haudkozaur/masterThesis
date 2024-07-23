@@ -9,6 +9,7 @@
 #include "addlinedialog.h"
 #include "addpointdialog.h"
 #include "ui_gui.h"
+#include <QWheelEvent>
 
 // Konstruktor Gui z wskaźnikami do menedżerów baz danych
 Gui::Gui(DataBasePointsManager *pointsManager,
@@ -25,12 +26,12 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseSupportsManager(supportsManager)
 {
     ui->setupUi(this);
-    connect(ui->addLineButton, &QPushButton::clicked, this, &Gui::on_addLineButton_clicked);
+    /*    connect(ui->addLineButton, &QPushButton::clicked, this, &Gui::on_addLineButton_clicked);
     connect(ui->addPointButton, &QPushButton::clicked, this, &Gui::on_addPointButton_clicked);
     connect(ui->addSupportButton,
             &QPushButton::clicked,
             this,
-            &Gui::on_addSupportButton_clicked); // Connect button to slot
+            &Gui::on_addSupportButton_clicked);*/ // Connect button to slot
 }
 
 Gui::~Gui()
@@ -40,7 +41,9 @@ Gui::~Gui()
 
 void Gui::on_addPointButton_clicked()
 {
+    // new dialog
     AddPointDialog *dialog = new AddPointDialog(this);
+    dialog->setWindowModality(Qt::NonModal);
     if (dialog->exec() == QDialog::Accepted) {
         xCoordinate = dialog->getXCoordinate();
         zCoordinate = dialog->getZCoordinate();
@@ -49,23 +52,23 @@ void Gui::on_addPointButton_clicked()
 
         dataBasePointsManager->addObjectToDataBase(xCoordinate, zCoordinate);
 
-        // Fetch all points from the database
+        // Select all points from database
         dataBasePointsManager->iterateOverTable();
         points.clear();
 
-        // Update points vector with all points from the database
+        // update points vector
         for (const auto &point : dataBasePointsManager->getPointsMap()) {
             points.push_back({point.second.first, point.second.second, point.first});
         }
 
-        // Trigger a repaint to draw all points
+        // redraw all points
         update();
+        dialog->close();
+        Gui::on_addPointButton_clicked();
+    } else if (dialog->result() == QDialog::Rejected) {
+        dialog->close();
     }
-
-    // Clean up the dialog
-    dialog->deleteLater();
 }
-
 
 void Gui::on_addLineButton_clicked()
 {
@@ -85,33 +88,35 @@ void Gui::on_addLineButton_clicked()
             lines.push_back({startPoint.first, startPoint.second, endPoint.first, endPoint.second});
         }
 
-        // Trigger a repaint to draw all lines
+        // redraw all lines
         update();
+        dialog->close();
+        Gui::on_addLineButton_clicked();
+    } else if (dialog->result() == QDialog::Rejected) {
+        dialog->close();
     }
-
-    // Clean up the dialog
-    dialog->deleteLater();
 }
 
 void Gui::on_addSupportButton_clicked()
 {
+    // new dialog
     AddBoundariesDialog *dialog = new AddBoundariesDialog(this);
+
     if (dialog->exec() == QDialog::Accepted) {
         int pointId = dialog->getPointId();
         bool ry = dialog->getRy();
         bool tx = dialog->getTx();
         bool tz = dialog->getTz();
 
-        qDebug() << "Adding Support to Database for Point ID:" << pointId;
+        qDebug() << "Support added for:" << pointId << " ry:" << ry << " tx:" << tx << " tz:" << tz;
 
-        // Dodaj wsparcie do bazy danych
         dataBaseSupportsManager->addObjectToDataBase(pointId, ry, tz, tx);
 
-        // Fetch all supports from the database only once
+        // select all supports from database
         dataBaseSupportsManager->iterateOverTable();
         boundaries.clear();
 
-        // Update boundaries vector with all supports from the database
+        // update boundaries vector
         auto supportsMap = dataBaseSupportsManager->getSupportsMap();
         for (const auto &support : supportsMap) {
             bool ry = std::get<1>(support.second);
@@ -124,14 +129,15 @@ void Gui::on_addSupportButton_clicked()
             boundaries.push_back({support.first, ry, tx, tz});
         }
 
-        // Trigger a repaint to draw all supports
+        // redraw all supports
         update();
+        dialog->close();
+        Gui::on_addSupportButton_clicked();
+
+    } else if (dialog->result() == QDialog::Rejected) {
+        dialog->close();
     }
-
-    // Clean up the dialog
-    dialog->deleteLater();
 }
-
 
 void Gui::paintEvent(QPaintEvent *event)
 {
@@ -139,6 +145,13 @@ void Gui::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+
+    // translation of coordinate system to start in left right corner
+    QTransform transform;
+    transform.translate(0, height());
+    transform.scale(1, -1);
+    transform.scale(scaleFactor, scaleFactor); // Dodaj to
+    painter.setTransform(transform);
 
     paintLines(painter);
     paintPoints(painter);
@@ -156,7 +169,20 @@ void Gui::paintPoints(QPainter &painter)
 
     for (const auto &point : points) {
         painter.drawEllipse(QPointF(point.x, point.z), 5, 5);
-        painter.drawText(QPointF(point.x + 10, point.z - 10), QString::number(point.id));
+
+        // Zapamiętaj stan painter
+        painter.save();
+
+        // Cofnij transformację i ustaw tekst
+        QTransform transformText;
+        transformText.translate(point.x + 10, point.z - 10);
+        transformText.scale(1, -1); // Odwróć tekst, aby był w standardowym układzie współrzędnych
+        painter.setTransform(transformText, true);
+
+        painter.drawText(0, 0, QString::number(point.id));
+
+        // Przywróć stan painter
+        painter.restore();
     }
 }
 
@@ -176,7 +202,8 @@ void Gui::paintSupports(QPainter &painter)
     for (const auto &boundary : boundaries) {
         int pointId = boundary.pointId;
 
-        if (dataBasePointsManager->getPointsMap().find(pointId) == dataBasePointsManager->getPointsMap().end()) {
+        if (dataBasePointsManager->getPointsMap().find(pointId)
+            == dataBasePointsManager->getPointsMap().end()) {
             qDebug() << "Point ID not found in pointsMap: " << pointId;
             continue; // If point with given ID does not exist in map, skip to next support
         }
@@ -195,7 +222,8 @@ void Gui::paintSupports(QPainter &painter)
         if (boundary.ry) {
             painter.drawLine(QPointF(x, z), QPointF(x + eccentricity, z + eccentricity));
             painter.drawLine(QPointF(x, z), QPointF(x - eccentricity, z + eccentricity));
-            painter.drawLine(QPointF(x + eccentricity, z + eccentricity), QPointF(x - eccentricity, z + eccentricity));
+            painter.drawLine(QPointF(x + eccentricity, z + eccentricity),
+                             QPointF(x - eccentricity, z + eccentricity));
         }
 
         if (boundary.tz) {
@@ -209,7 +237,19 @@ void Gui::paintSupports(QPainter &painter)
         }
 
         if (!boundary.ry && !boundary.tx && !boundary.tz) {
-            painter.drawEllipse(QPointF(x, z), eccentricity/5, eccentricity/5);
+            painter.drawEllipse(QPointF(x, z), eccentricity / 5, eccentricity / 5);
         }
     }
+}
+void Gui::wheelEvent(QWheelEvent *event)
+{
+    // Zoom in or out
+    if (event->angleDelta().y() > 0) {
+        scaleFactor *= 1.1;
+    } else {
+        scaleFactor /= 1.1;
+    }
+
+    // Redraw the widget
+    update();
 }

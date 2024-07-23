@@ -30,6 +30,7 @@ private slots:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override; // Dodaj to
 
 private:
     Ui::Gui *ui;
@@ -63,6 +64,8 @@ private:
     std::vector<Point> points;
     std::vector<Line> lines;
     std::vector<Boundary> boundaries;
+
+    double scaleFactor = 1.0; // Dodaj to
 
     void paintPoints(QPainter &painter);
     void paintLines(QPainter &painter);
