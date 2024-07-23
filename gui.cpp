@@ -10,10 +10,19 @@
 #include "addpointdialog.h"
 #include "ui_gui.h"
 
-Gui::Gui(QWidget *parent)
+// Konstruktor Gui z wskaźnikami do menedżerów baz danych
+Gui::Gui(DataBasePointsManager *pointsManager,
+         DataBaseLinesManager *linesManager,
+         DataBaseSupportsManager *supportsManager,
+         QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Gui)
+    , xCoordinate(0)
+    , zCoordinate(0)
     , pointSet(false)
+    , dataBasePointsManager(pointsManager)
+    , dataBaseLinesManager(linesManager)
+    , dataBaseSupportsManager(supportsManager)
 {
     ui->setupUi(this);
     connect(ui->addLineButton, &QPushButton::clicked, this, &Gui::on_addLineButton_clicked);
@@ -31,54 +40,48 @@ Gui::~Gui()
 
 void Gui::on_addPointButton_clicked()
 {
-    DataBasePointsManager dataBasePointsManager("mesosoic_test.db");
+    AddPointDialog *dialog = new AddPointDialog(this);
+    if (dialog->exec() == QDialog::Accepted) {
+        xCoordinate = dialog->getXCoordinate();
+        zCoordinate = dialog->getZCoordinate();
 
-    while (true) {
-        AddPointDialog *dialog = new AddPointDialog(this);
-        if (dialog->exec() == QDialog::Accepted) {
-            xCoordinate = dialog->getXCoordinate();
-            zCoordinate = dialog->getZCoordinate();
-            dataBasePointsManager.addObjectToDataBase(xCoordinate, zCoordinate);
+        qDebug() << "Adding Point to Database:" << xCoordinate << zCoordinate;
 
-            // Fetch all points from the database
-            dataBasePointsManager.iterateOverTable();
-            points.clear();
+        dataBasePointsManager->addObjectToDataBase(xCoordinate, zCoordinate);
 
-            // Update points vector with all points from the database
-            for (const auto &point : dataBasePointsManager.getPointsMap()) {
-                points.push_back({point.second.first, point.second.second, point.first});
-            }
+        // Fetch all points from the database
+        dataBasePointsManager->iterateOverTable();
+        points.clear();
 
-            // Trigger a repaint to draw all points
-            update();
-        } else {
-            // If dialog is not accepted, break the loop
-            break;
+        // Update points vector with all points from the database
+        for (const auto &point : dataBasePointsManager->getPointsMap()) {
+            points.push_back({point.second.first, point.second.second, point.first});
         }
 
-        // Clean up the dialog
-        dialog->deleteLater();
+        // Trigger a repaint to draw all points
+        update();
     }
+
+    // Clean up the dialog
+    dialog->deleteLater();
 }
+
 
 void Gui::on_addLineButton_clicked()
 {
-    DataBasePointsManager dataBasePointsManager("mesosoic_test.db");
-    DataBaseLinesManager dataBaseLinesManager("mesosoic_test.db");
-
-    dataBasePointsManager.iterateOverTable();
+    dataBasePointsManager->iterateOverTable();
 
     AddLineDialog *dialog = new AddLineDialog(this);
     if (dialog->exec() == QDialog::Accepted) {
         int startId = dialog->getFirstPointId();
         int endId = dialog->getSecondPointId();
 
-        auto pointsMap = dataBasePointsManager.getPointsMap();
+        auto pointsMap = dataBasePointsManager->getPointsMap();
 
         if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
             auto startPoint = pointsMap[startId];
             auto endPoint = pointsMap[endId];
-            dataBaseLinesManager.addObjectToDataBase(startId, endId);
+            dataBaseLinesManager->addObjectToDataBase(startId, endId);
             lines.push_back({startPoint.first, startPoint.second, endPoint.first, endPoint.second});
         }
 
@@ -98,19 +101,19 @@ void Gui::on_addSupportButton_clicked()
         bool ry = dialog->getRy();
         bool tx = dialog->getTx();
         bool tz = dialog->getTz();
-        //print for debugging
-        qDebug() << "podpora dodana dla:" << pointId << " ry:" << ry << " tx:" << tx << " tz:" << tz;
-        DataBaseSupportsManager dataBaseSupportsManager("mesosoic_test.db");
-        dataBaseSupportsManager.addObjectToDataBase(pointId, ry, tz, tx);
 
-        // Fetch all supports from the database
-        dataBaseSupportsManager.iterateOverTable();
+        qDebug() << "Adding Support to Database for Point ID:" << pointId;
+
+        // Dodaj wsparcie do bazy danych
+        dataBaseSupportsManager->addObjectToDataBase(pointId, ry, tz, tx);
+
+        // Fetch all supports from the database only once
+        dataBaseSupportsManager->iterateOverTable();
         boundaries.clear();
 
         // Update boundaries vector with all supports from the database
-        auto supportsMap = dataBaseSupportsManager.getSupportsMap();
+        auto supportsMap = dataBaseSupportsManager->getSupportsMap();
         for (const auto &support : supportsMap) {
-            // Assuming support.second is a tuple with elements in order: ry, tx, tz
             bool ry = std::get<1>(support.second);
             bool tx = std::get<2>(support.second);
             bool tz = std::get<3>(support.second);
@@ -128,6 +131,7 @@ void Gui::on_addSupportButton_clicked()
     // Clean up the dialog
     dialog->deleteLater();
 }
+
 
 void Gui::paintEvent(QPaintEvent *event)
 {
@@ -167,23 +171,17 @@ void Gui::paintLines(QPainter &painter)
 
 void Gui::paintSupports(QPainter &painter)
 {
-    // Ustaw grubość pióra
     painter.setPen(QPen(Qt::green, 1));
-
-    // Pobierz punkty z bazy danych
-    DataBasePointsManager dataBasePointsManager("mesosoic_test.db");
-    dataBasePointsManager.iterateOverTable();
-    auto pointsMap = dataBasePointsManager.getPointsMap();
 
     for (const auto &boundary : boundaries) {
         int pointId = boundary.pointId;
 
-        if (pointsMap.find(pointId) == pointsMap.end()) {
+        if (dataBasePointsManager->getPointsMap().find(pointId) == dataBasePointsManager->getPointsMap().end()) {
             qDebug() << "Point ID not found in pointsMap: " << pointId;
-            continue; // Jeśli punkt o podanym ID nie istnieje w mapie, przejdź do następnego wsparcia
+            continue; // If point with given ID does not exist in map, skip to next support
         }
 
-        auto point = pointsMap[pointId];
+        auto point = dataBasePointsManager->getPointsMap()[pointId];
         int x = point.first;
         int z = point.second;
 
@@ -215,5 +213,3 @@ void Gui::paintSupports(QPainter &painter)
         }
     }
 }
-
-

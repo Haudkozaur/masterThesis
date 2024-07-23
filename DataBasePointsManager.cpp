@@ -47,6 +47,7 @@ void DataBasePointsManager::iterateOverTable() {
         cout << "ID: " << point.first << ", X: " << point.second.first << ", Z: " << point.second.second << endl;
     }
 }
+
 std::map<int, std::pair<int, int>> DataBasePointsManager::getPointsMap() const {
     return pointsMap;
 }

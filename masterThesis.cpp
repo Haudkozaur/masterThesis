@@ -41,46 +41,58 @@ int main(int argc, char *argv[]) {
 
     QApplication app(argc, argv);
 
-    Gui mainWindow;
+    // Tworzenie wskaŸników do mened¿erów baz danych
+    DataBasePointsManager *pointsManager = new DataBasePointsManager("mesosoic_test.db");
+    DataBaseLinesManager *linesManager = new DataBaseLinesManager("mesosoic_test.db");
+    DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager("mesosoic_test.db");
+
+    // Tworzenie obiektu Gui i przekazywanie wskaŸników
+    Gui mainWindow(pointsManager, linesManager, supportsManager);
     mainWindow.show();
 
-    return app.exec();
+    // Wydanie zasobów przed zakoñczeniem programu
+    int result = app.exec();
+
+    delete pointsManager;
+    delete linesManager;
+    delete supportsManager;
 
 
-    cout << "Eigen learning" << "\n" << endl;
 
-    // define 3x3 matrix of floats and set its entries to zero -explicit declaration
-    int const rows = 3;
-    int const cols = 3;
-    Matrix<float, rows, cols> matrixA;
-    matrixA.setZero();
-    cout << matrixA << endl;
+    // cout << "Eigen learning" << "\n" << endl;
 
-    Matrix<double, 3, 3> matrixA2;
-    matrixA2.setZero();
-    cout << "\n" << matrixA2 << endl;
+    // // define 3x3 matrix of floats and set its entries to zero -explicit declaration
+    // int const rows = 3;
+    // int const cols = 3;
+    // Matrix<float, rows, cols> matrixA;
+    // matrixA.setZero();
+    // cout << matrixA << endl;
 
-    //insert values into the matrix
-    matrixA(0, 0) = 1;
-    matrixA(0, 1) = 2;
-    matrixA(0, 2) = 3;
-    matrixA(1, 0) = 4;
-    matrixA(1, 1) = 5;
-    matrixA(1, 2) = 6;
-    matrixA(2, 0) = 7;
-    matrixA(2, 1) = 8;
-    matrixA(2, 2) = 9;
-    cout << "\n" << matrixA << endl;
+    // Matrix<double, 3, 3> matrixA2;
+    // matrixA2.setZero();
+    // cout << "\n" << matrixA2 << endl;
 
-    //multiply matrix by a scalar
-    Matrix<float, rows, cols> matrixC;
-    matrixC = 2 * matrixA;
-    cout << "\n" << matrixC << endl;
+    // //insert values into the matrix
+    // matrixA(0, 0) = 1;
+    // matrixA(0, 1) = 2;
+    // matrixA(0, 2) = 3;
+    // matrixA(1, 0) = 4;
+    // matrixA(1, 1) = 5;
+    // matrixA(1, 2) = 6;
+    // matrixA(2, 0) = 7;
+    // matrixA(2, 1) = 8;
+    // matrixA(2, 2) = 9;
+    // cout << "\n" << matrixA << endl;
 
-    //add two matrices
-    Matrix<float, rows, cols> matrixD;
-    matrixD = matrixA + matrixC;
-    cout << "\n" << matrixD << endl;
+    // //multiply matrix by a scalar
+    // Matrix<float, rows, cols> matrixC;
+    // matrixC = 2 * matrixA;
+    // cout << "\n" << matrixC << endl;
+
+    // //add two matrices
+    // Matrix<float, rows, cols> matrixD;
+    // matrixD = matrixA + matrixC;
+    // cout << "\n" << matrixD << endl;
 
 
 
@@ -92,14 +104,14 @@ int main(int argc, char *argv[]) {
 //    matrixA1.setZero();
 //    cout << "\n" << matrixA1 << endl;
 //
-    // define a dynamic matrix, explicit declaration
-    Matrix<float, Dynamic, Dynamic> matrixB;
-    matrixB.setZero(10, 10);
-    cout << "\n" << matrixB << endl;
-//
-    //define a dynamic matrix, typedef declaration
-    MatrixXd matrixB1;
-    matrixB1.setZero(5, 5);
+//     // define a dynamic matrix, explicit declaration
+//     Matrix<float, Dynamic, Dynamic> matrixB;
+//     matrixB.setZero(10, 10);
+//     cout << "\n" << matrixB << endl;
+// //
+//     //define a dynamic matrix, typedef declaration
+//     MatrixXd matrixB1;
+//     matrixB1.setZero(5, 5);
 //
 //    // constructor
 //    MatrixXd matrixC(10, 10);
@@ -167,91 +179,91 @@ int main(int argc, char *argv[]) {
     // This is basic starting section of the program
 
 
-    DataBaseMaterialsManager dataBaseMaterialsManager = DataBaseMaterialsManager(dateBaseName);
-    dataBaseMaterialsManager.addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
-    dataBaseMaterialsManager.addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
+//     DataBaseMaterialsManager dataBaseMaterialsManager = DataBaseMaterialsManager(dateBaseName);
+//     dataBaseMaterialsManager.addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
+//     dataBaseMaterialsManager.addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
-    DataBaseCrossSectionsManager dataBaseCrossSectionsManager = DataBaseCrossSectionsManager(dateBaseName);
-    dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0),
-                                                     171.000000000000 * pow(10.0, -8));
-    dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
+//     DataBaseCrossSectionsManager dataBaseCrossSectionsManager = DataBaseCrossSectionsManager(dateBaseName);
+//     dataBaseCrossSectionsManager.addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0),
+//                                                      171.000000000000 * pow(10.0, -8));
+//     dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
-//********************************************************************************************************************
-
-
-
-    DataBasePointsManager dataBasePointsManager = DataBasePointsManager(dateBaseName);
-//    dataBasePointsManager.addObjectToDataBase(69, 420);
-//    dataBasePointsManager.addObjectToDataBase(1, 2);
-
-    DataBaseLinesManager dataBaseLinesManager = DataBaseLinesManager(dateBaseName);
-//    dataBaseLinesManager.addObjectToDataBase(1, 2);
-//    dataBaseLinesManager.addObjectToDataBase(10, 20);
-
-    DataBaseSupportsManager dataBaseSupportsManager = DataBaseSupportsManager(dateBaseName);
-//    dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
-//    dataBaseSupportsManager.addObjectToDataBase(2, false, true, false);
-
-    DataBaseNodalLoadsManager dataBaseNodalLoadsManager = DataBaseNodalLoadsManager(dateBaseName);
-//    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420.0);
-//    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137.0, 690.0, 0);
-//    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137.0);
-
-    DataBaseLineLoadsManager dataBaseLineLoadsManager = DataBaseLineLoadsManager(dateBaseName);
-//    dataBaseLineLoadsManager.addObjectToDataBase(1, 0, -420.0);
-//    dataBaseLineLoadsManager.addObjectToDataBase(20, 20.0, -69.0);
-//    dataBaseLineLoadsManager.addObjectToDataBase(2, 69.0, -420.0);
+// //********************************************************************************************************************
 
 
-    // ex.1 rod in tension
-    //Adding points
-    dataBasePointsManager.addObjectToDataBase(0, 0);
-    dataBasePointsManager.addObjectToDataBase(0, -500);
-    dataBasePointsManager.addObjectToDataBase(0, -1000);
-    dataBasePointsManager.addObjectToDataBase(0, -2000);
 
-    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 1);
-    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 2);
-    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 3);
-    dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 4);
+//     DataBasePointsManager dataBasePointsManager = DataBasePointsManager(dateBaseName);
+// //    dataBasePointsManager.addObjectToDataBase(69, 420);
+// //    dataBasePointsManager.addObjectToDataBase(1, 2);
 
-    //Adding lines
-    dataBaseLinesManager.addObjectToDataBase(1, 2);
-    dataBaseLinesManager.addObjectToDataBase(2, 3);
-    dataBaseLinesManager.addObjectToDataBase(3, 4);
+//     DataBaseLinesManager dataBaseLinesManager = DataBaseLinesManager(dateBaseName);
+// //    dataBaseLinesManager.addObjectToDataBase(1, 2);
+// //    dataBaseLinesManager.addObjectToDataBase(10, 20);
 
-    dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 1);
-    dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 2);
-    dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 3);
+//     DataBaseSupportsManager dataBaseSupportsManager = DataBaseSupportsManager(dateBaseName);
+// //    dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
+// //    dataBaseSupportsManager.addObjectToDataBase(2, false, true, false);
+
+//     DataBaseNodalLoadsManager dataBaseNodalLoadsManager = DataBaseNodalLoadsManager(dateBaseName);
+// //    dataBaseNodalLoadsManager.addObjectToDataBase(1, 0, 0, -420.0);
+// //    dataBaseNodalLoadsManager.addObjectToDataBase(2, 2137.0, 690.0, 0);
+// //    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, 0, 694202137.0);
+
+//     DataBaseLineLoadsManager dataBaseLineLoadsManager = DataBaseLineLoadsManager(dateBaseName);
+// //    dataBaseLineLoadsManager.addObjectToDataBase(1, 0, -420.0);
+// //    dataBaseLineLoadsManager.addObjectToDataBase(20, 20.0, -69.0);
+// //    dataBaseLineLoadsManager.addObjectToDataBase(2, 69.0, -420.0);
 
 
-    //Adding supports
-    dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
+//     // ex.1 rod in tension
+//     //Adding points
+//     dataBasePointsManager.addObjectToDataBase(0, 0);
+//     dataBasePointsManager.addObjectToDataBase(0, -500);
+//     dataBasePointsManager.addObjectToDataBase(0, -1000);
+//     dataBasePointsManager.addObjectToDataBase(0, -2000);
 
-    //Adding materials
-    dataBaseMaterialsManager.addObjectToDataBase("Gold", 78.0 * pow(10, 9), 0.42, 19280.0);
+//     dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 1);
+//     dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 2);
+//     dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 3);
+//     dataBasePointsManager.selectAllFromTableByID(TableType::POINTS, 4);
 
-    dataBaseMaterialsManager.selectAllFromTableByID(TableType::MATERIALS, 3);
+//     //Adding lines
+//     dataBaseLinesManager.addObjectToDataBase(1, 2);
+//     dataBaseLinesManager.addObjectToDataBase(2, 3);
+//     dataBaseLinesManager.addObjectToDataBase(3, 4);
 
-    //Adding cross-sections
-    CrossSectionsAssistant crossSectionsAssistant = CrossSectionsAssistant();
+//     dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 1);
+//     dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 2);
+//     dataBaseLinesManager.selectAllFromTableByID(TableType::LINES, 3);
 
-    dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 200x200", 2,
-                                                     crossSectionsAssistant.calculateArea(200, 200),
-                                                     crossSectionsAssistant.calculateInertia(200, 200));
 
-    dataBaseCrossSectionsManager.addObjectToDataBase("Golden rod fi400", 3, crossSectionsAssistant.calculateArea(200),
-                                                     crossSectionsAssistant.calculateInertia(200));
+//     //Adding supports
+//     dataBaseSupportsManager.addObjectToDataBase(1, true, true, true);
 
-    //Updating lines with cross-sections
-    dataBaseLinesManager.updateObjectInDataBase(TableType::LINES, 1, "cross_section_id", "4");
-    dataBaseLinesManager.updateObjectInDataBase(TableType::LINES, 2, "cross_section_id", "4");
-    dataBaseLinesManager.updateObjectInDataBase(TableType::LINES, 3, "cross_section_id", "3");
+//     //Adding materials
+//     dataBaseMaterialsManager.addObjectToDataBase("Gold", 78.0 * pow(10, 9), 0.42, 19280.0);
 
-    //Adding nodal loads
-    dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, -5, 0);
-    dataBaseNodalLoadsManager.addObjectToDataBase(3, 0, -10, 0);
-    dataBaseNodalLoadsManager.addObjectToDataBase(4, 0, -20, 0);
+//     dataBaseMaterialsManager.selectAllFromTableByID(TableType::MATERIALS, 3);
+
+//     //Adding cross-sections
+//     CrossSectionsAssistant crossSectionsAssistant = CrossSectionsAssistant();
+
+//     dataBaseCrossSectionsManager.addObjectToDataBase("Concrete beam 200x200", 2,
+//                                                      crossSectionsAssistant.calculateArea(200, 200),
+//                                                      crossSectionsAssistant.calculateInertia(200, 200));
+
+//     dataBaseCrossSectionsManager.addObjectToDataBase("Golden rod fi400", 3, crossSectionsAssistant.calculateArea(200),
+//                                                      crossSectionsAssistant.calculateInertia(200));
+
+//     //Updating lines with cross-sections
+//     dataBaseLinesManager.updateObjectInDataBase(TableType::LINES, 1, "cross_section_id", "4");
+//     dataBaseLinesManager.updateObjectInDataBase(TableType::LINES, 2, "cross_section_id", "4");
+//     dataBaseLinesManager.updateObjectInDataBase(TableType::LINES, 3, "cross_section_id", "3");
+
+//     //Adding nodal loads
+//     dataBaseNodalLoadsManager.addObjectToDataBase(2, 0, -5, 0);
+//     dataBaseNodalLoadsManager.addObjectToDataBase(3, 0, -10, 0);
+//     dataBaseNodalLoadsManager.addObjectToDataBase(4, 0, -20, 0);
 
 //     int numberOfFE = dataBaseLinesManager.getNumberOfObjectsInTable(TableType::LINES);
 
@@ -439,6 +451,5 @@ int main(int argc, char *argv[]) {
     //K.matrix = rod.globalStiffnesMatrixAggregated;
     //K.printMatrix();
 
-
+    return result;
 }
-

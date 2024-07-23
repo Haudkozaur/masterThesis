@@ -1,10 +1,12 @@
-// gui.h
 #ifndef GUI_H
 #define GUI_H
 
 #include <QMainWindow>
 #include <vector>
 #include <utility> // for std::pair
+#include "DataBasePointsManager.h"
+#include "DataBaseLinesManager.h"
+#include "DataBaseSupportsManager.h"
 
 namespace Ui {
 class Gui;
@@ -15,19 +17,26 @@ class Gui : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit Gui(QWidget *parent = nullptr);
+    explicit Gui(DataBasePointsManager *pointsManager,
+                 DataBaseLinesManager *linesManager,
+                 DataBaseSupportsManager *supportsManager,
+                 QWidget *parent = nullptr);
     ~Gui();
 
 private slots:
     void on_addPointButton_clicked();
-    void on_addLineButton_clicked(); // Slot for adding lines
-    void on_addSupportButton_clicked(); // Slot for adding supports
+    void on_addLineButton_clicked();
+    void on_addSupportButton_clicked();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
     Ui::Gui *ui;
+
+    DataBasePointsManager *dataBasePointsManager;
+    DataBaseLinesManager *dataBaseLinesManager;
+    DataBaseSupportsManager *dataBaseSupportsManager;
 
     int xCoordinate;
     int zCoordinate;
@@ -53,12 +62,11 @@ private:
 
     std::vector<Point> points;
     std::vector<Line> lines;
-    std::vector<Boundary> boundaries; // Consider renaming to supports for clarity
+    std::vector<Boundary> boundaries;
 
-    void drawPoint();
     void paintPoints(QPainter &painter);
     void paintLines(QPainter &painter);
-    void paintSupports(QPainter &painter); // Add this line
+    void paintSupports(QPainter &painter);
 };
 
 #endif // GUI_H
