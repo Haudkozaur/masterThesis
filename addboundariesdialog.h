@@ -19,6 +19,7 @@ public:
     bool getRy() const;
     bool getTx() const;
     bool getTz() const;
+    void moveToBottomLeft();
 
 private:
     Ui::AddBoundariesDialog *ui;

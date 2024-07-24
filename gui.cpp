@@ -13,7 +13,7 @@
 #include "ui_gui.h"
 #include <cmath>
 
-// Konstruktor Gui z wskaźnikami do menedżerów baz danych
+// gui constructor
 Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseLinesManager *linesManager,
          DataBaseSupportsManager *supportsManager,
@@ -51,11 +51,19 @@ Gui::~Gui()
 
 void Gui::on_addPointButton_clicked()
 {
+    // Create a new dialog instance
     AddPointDialog *dialog = new AddPointDialog(this);
-    dialog->setWindowModality(Qt::NonModal);
-    if (dialog->exec() == QDialog::Accepted) {
-        xCoordinate = dialog->getXCoordinate();
-        zCoordinate = dialog->getZCoordinate();
+
+    // Move the dialog to the bottom-left corner of the main window
+    dialog->moveToBottomLeft();
+
+    // Set the attribute to delete the dialog when it's closed
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Connect the accepted signal to a slot to handle dialog input
+    connect(dialog, &AddPointDialog::accepted, this, [this, dialog]() {
+        double xCoordinate = dialog->getXCoordinate();
+        double zCoordinate = dialog->getZCoordinate();
 
         qDebug() << "Adding Point to Database:" << xCoordinate << zCoordinate;
 
@@ -69,18 +77,33 @@ void Gui::on_addPointButton_clicked()
         }
 
         update();
-        dialog->close();
-    } else if (dialog->result() == QDialog::Rejected) {
-        dialog->close();
-    }
+        // Optionally, you might want to call another method here
+        Gui::on_addPointButton_clicked(); // Be cautious with recursion
+    });
+
+    // Connect the rejected signal to delete the dialog
+    connect(dialog, &AddPointDialog::rejected, dialog, &AddPointDialog::deleteLater);
+
+    // Show the dialog non-modally
+    dialog->show();
 }
 
 void Gui::on_addLineButton_clicked()
 {
+    // Iterate over the table to ensure the latest data is available
     dataBasePointsManager->iterateOverTable();
 
+    // Create a new AddLineDialog instance
     AddLineDialog *dialog = new AddLineDialog(this);
-    if (dialog->exec() == QDialog::Accepted) {
+
+    // Move the dialog to the bottom-left corner of the main window
+    dialog->moveToBottomLeft();
+
+    // Set the attribute to delete the dialog when it's closed
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Connect the accepted signal to handle dialog input
+    connect(dialog, &AddLineDialog::accepted, this, [this, dialog]() {
         int startId = dialog->getFirstPointId();
         int endId = dialog->getSecondPointId();
 
@@ -94,17 +117,30 @@ void Gui::on_addLineButton_clicked()
         }
 
         update();
-        dialog->close();
-    } else if (dialog->result() == QDialog::Rejected) {
-        dialog->close();
-    }
+        // Optionally, you might want to call another method here
+        Gui::on_addLineButton_clicked(); // Be cautious with recursion
+    });
+
+    // Connect the rejected signal to delete the dialog
+    connect(dialog, &AddLineDialog::rejected, dialog, &AddLineDialog::deleteLater);
+
+    // Show the dialog non-modally
+    dialog->show();
 }
 
 void Gui::on_addSupportButton_clicked()
 {
+    // Create a new AddBoundariesDialog instance
     AddBoundariesDialog *dialog = new AddBoundariesDialog(this);
 
-    if (dialog->exec() == QDialog::Accepted) {
+    // Move the dialog to the bottom-left corner of the main window
+    dialog->moveToBottomLeft();
+
+    // Set the attribute to delete the dialog when it's closed
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Connect the accepted signal to handle dialog input
+    connect(dialog, &AddBoundariesDialog::accepted, this, [this, dialog]() {
         int pointId = dialog->getPointId();
         bool ry = dialog->getRy();
         bool tx = dialog->getTx();
@@ -131,10 +167,14 @@ void Gui::on_addSupportButton_clicked()
         }
 
         update();
-        dialog->close();
-    } else if (dialog->result() == QDialog::Rejected) {
-        dialog->close();
-    }
+        Gui::on_addSupportButton_clicked(); // Be cautious with recursion
+    });
+
+    // Connect the rejected signal to delete the dialog
+    connect(dialog, &AddBoundariesDialog::rejected, dialog, &AddBoundariesDialog::deleteLater);
+
+    // Show the dialog non-modally
+    dialog->show();
 }
 
 void Gui::paintEvent(QPaintEvent *event)
@@ -148,7 +188,8 @@ void Gui::paintEvent(QPaintEvent *event)
     drawAxes(painter);
 
     // Apply transformations for points, lines, and supports
-    painter.setTransform(QTransform().translate(translationOffset.x(), translationOffset.y())
+    painter.setTransform(QTransform()
+                             .translate(translationOffset.x(), translationOffset.y())
                              .scale(scaleFactor, scaleFactor));
 
     // Draw points, lines, and supports
@@ -156,7 +197,6 @@ void Gui::paintEvent(QPaintEvent *event)
     paintPoints(painter);
     paintSupports(painter);
 }
-
 
 void Gui::paintPoints(QPainter &painter)
 {
@@ -184,7 +224,7 @@ void Gui::paintLines(QPainter &painter)
 
 void Gui::paintSupports(QPainter &painter)
 {
-    painter.setPen(QPen(Qt::green, 1));
+    painter.setPen(QPen(Qt::darkBlue, 1));
 
     for (const auto &boundary : boundaries) {
         int pointId = boundary.pointId;
@@ -202,31 +242,51 @@ void Gui::paintSupports(QPainter &painter)
         qDebug() << "Drawing support for pointId:" << pointId << " x:" << x << " z:" << z
                  << " ry:" << boundary.ry << " tx:" << boundary.tx << " tz:" << boundary.tz;
 
-        qreal eccentricity = 20; // Adjust as needed
+        qreal eccentricity = 30; // Adjust as needed
 
-        painter.setBrush(Qt::green);
+        painter.setBrush(Qt::magenta);
 
-        // Rysowanie ry (rysowanie w oparciu o rzeczywiste współrzędne)
+        // draw ry
         if (boundary.ry) {
-            painter.drawLine(QPointF(x, z), QPointF(x + eccentricity, z + eccentricity));
-            painter.drawLine(QPointF(x, z), QPointF(x - eccentricity, z + eccentricity));
-            painter.drawLine(QPointF(x + eccentricity, z + eccentricity),
-                             QPointF(x - eccentricity, z + eccentricity));
+            // Save the current painter state
+            painter.save();
+
+            // Translate to the point (x, z)
+            painter.translate(QPointF(x, z));
+
+            // Rotate the painter's coordinate system by 230 degrees
+            painter.rotate(-230);
+
+            // Draw the triangle with one angle of 20 degrees and the other two of 80 degrees
+            double angleRad = 20 * M_PI / 180.0;                // Convert angle to radians
+            double height = (4 * eccentricity) * tan(angleRad); // Calculate height of the triangle
+
+            QPointF point1(0, 0);
+            QPointF point2(-eccentricity / 4, height);
+            QPointF point3(eccentricity / 4, height);
+
+            QVector<QPointF> points;
+            points << point1 << point2 << point3;
+
+            painter.drawPolygon(QPolygonF(points));
+
+            // Restore the painter state to its original form
+            painter.restore();
         }
 
-        // Rysowanie tz (rysowanie w oparciu o rzeczywiste współrzędne)
+        // draw tz
         if (boundary.tz) {
             painter.drawLine(QPointF(x, z), QPointF(x, z - eccentricity));
             painter.drawEllipse(QPointF(x, z - eccentricity), 5, 5);
         }
 
-        // Rysowanie tx (rysowanie w oparciu o rzeczywiste współrzędne)
+        // draw tx
         if (boundary.tx) {
             painter.drawLine(QPointF(x, z), QPointF(x - eccentricity, z));
             painter.drawEllipse(QPointF(x - eccentricity, z), 5, 5);
         }
 
-        // Jeśli żaden z flagi nie jest ustawiony, rysuj tylko punkt
+        // if non checked draw hinge
         if (!boundary.ry && !boundary.tx && !boundary.tz) {
             painter.drawEllipse(QPointF(x, z), 5, 5);
         }
@@ -275,9 +335,9 @@ void Gui::drawAxes(QPainter &painter)
     // Draw labels at fixed real coordinates along the Z-axis
     for (qreal z = std::floor(topZ / step) * step; z >= bottomZ; z -= step) {
         QPointF labelPos(centerX + 10, centerZ + z * scaleFactor);
-        painter.drawText(labelPos, QString::number(z, 'f', 0));
+        painter.drawText(labelPos, QString::number(-z, 'f', 0));
         // Print current z value
-        qDebug() << "z: " << z;
+        // qDebug() << "z: " << z;
     }
 
     // Draw the grid
@@ -287,7 +347,14 @@ void Gui::drawAxes(QPainter &painter)
     painter.setTransform(originalTransform);
 }
 
-void Gui::drawGrid(QPainter &painter, qreal leftX, qreal rightX, qreal topZ, qreal bottomZ, qreal step, qreal centerX, qreal centerZ)
+void Gui::drawGrid(QPainter &painter,
+                   qreal leftX,
+                   qreal rightX,
+                   qreal topZ,
+                   qreal bottomZ,
+                   qreal step,
+                   qreal centerX,
+                   qreal centerZ)
 {
     QPen gridPen(Qt::lightGray, 1, Qt::DashLine);
     painter.setPen(gridPen);
@@ -305,13 +372,12 @@ void Gui::drawGrid(QPainter &painter, qreal leftX, qreal rightX, qreal topZ, qre
     }
 }
 
-
 void Gui::wheelEvent(QWheelEvent *event)
 {
     if (event->angleDelta().y() > 0) {
-        scaleFactor *= 1.1; // Powiększenie
+        scaleFactor *= 1.1; // zoom in
     } else {
-        scaleFactor /= 1.1; // Oddalenie
+        scaleFactor /= 1.1; // zoom out
     }
     update();
 }
@@ -329,7 +395,6 @@ void Gui::mouseMoveEvent(QMouseEvent *event)
     if (isDragging) {
         QPointF delta = event->localPos() - lastMousePosition;
         lastMousePosition = event->localPos();
-
         translationOffset += delta;
         update();
     }
@@ -341,3 +406,49 @@ void Gui::mouseReleaseEvent(QMouseEvent *event)
         isDragging = false;
     }
 }
+
+void Gui::on_refreshButton_clicked()
+{
+    // Update the data from the database managers
+    dataBasePointsManager->iterateOverTable();
+    dataBaseLinesManager->iterateOverTable();
+    dataBaseSupportsManager->iterateOverTable();
+
+    // Clear current points, lines, and boundaries
+    points.clear();
+    lines.clear();
+    boundaries.clear();
+
+    // Update points from the database manager
+    for (const auto &point : dataBasePointsManager->getPointsMap()) {
+        points.push_back({point.second.first, point.second.second, point.first});
+    }
+
+    // Update lines from the database manager
+    for (const auto &lineEntry : dataBaseLinesManager->getLinesMap()) {
+        int startId = std::get<0>(lineEntry.second);
+        int endId = std::get<1>(lineEntry.second);
+
+        auto pointsMap = dataBasePointsManager->getPointsMap();
+
+        if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
+            auto startPoint = pointsMap[startId];
+            auto endPoint = pointsMap[endId];
+            lines.push_back({startPoint.first, startPoint.second, endPoint.first, endPoint.second});
+        }
+    }
+
+    // Update supports from the database manager
+    for (const auto &support : dataBaseSupportsManager->getSupportsMap()) {
+        int pointId = std::get<0>(support.second);
+        bool ry = std::get<1>(support.second);
+        bool tx = std::get<2>(support.second);
+        bool tz = std::get<3>(support.second);
+
+        boundaries.push_back({pointId, ry, tx, tz});
+    }
+
+    // Update the widget to trigger a repaint
+    update();
+}
+

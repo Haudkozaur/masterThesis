@@ -32,3 +32,13 @@ bool AddBoundariesDialog::getTz() const
 {
     return ui->TzCheckBox->isChecked();
 }
+void AddBoundariesDialog::moveToBottomLeft()
+{
+    if (parentWidget()) {
+        auto host = parentWidget();
+        auto hostRect = host->geometry();
+        int x = hostRect.left();
+        int y = hostRect.top() + 250;
+        move(x, y);
+    }
+}

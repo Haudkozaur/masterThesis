@@ -1,5 +1,6 @@
 #include <cmath>
 #include "DataBaseLinesManager.h"
+#include "DataBaseModelObjectsManager.h"
 
 
 DataBaseLinesManager::DataBaseLinesManager(const string &dateBaseName) : DataBaseModelObjectsManager(dateBaseName) {
@@ -57,4 +58,30 @@ double DataBaseLinesManager::getLineInclinationAngleFromPoints(int startPointID,
         angle = angle + 180;
     }
     return angle;
+}
+void DataBaseLinesManager::iterateOverTable()
+{
+    string querySelectAllLines = "SELECT id, start_point, end_point FROM lines";
+    vector<vector<string>> results = executeQuery(querySelectAllLines);
+
+    linesMap.clear(); // Clear the map before populating it
+
+    for (const auto& row : results) {
+        if (row.size() == 3) {
+            int id = stoi(row[0]);
+            int startPoint = stoi(row[1]);
+            int endPoint = stoi(row[2]);
+            linesMap[id] = make_tuple(startPoint, endPoint);
+        }
+    }
+
+    // Print lines for debugging
+    for (const auto& line : linesMap) {
+        cout << "ID: " << line.first << ", Start Point: " << get<0>(line.second) << ", End Point: " << get<1>(line.second) << endl;
+    }
+}
+
+map<int, tuple<int, int>> DataBaseLinesManager::getLinesMap() const
+{
+    return linesMap;
 }

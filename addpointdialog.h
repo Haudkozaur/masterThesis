@@ -17,6 +17,7 @@ public:
 
     double getXCoordinate() const;
     double getZCoordinate() const;
+    void moveToBottomLeft();
 
 private:
     Ui::AddPointDialog *ui;

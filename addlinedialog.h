@@ -17,6 +17,7 @@ public:
 
     int getFirstPointId() const;
     int getSecondPointId() const;
+    void moveToBottomLeft();
 
 private:
     Ui::AddLineDialog *ui;

@@ -35,6 +35,8 @@ private slots:
     void on_addLineButton_clicked();
     void on_addSupportButton_clicked();
 
+    void on_refreshButton_clicked();
+
 private:
     Ui::Gui *ui;
 
