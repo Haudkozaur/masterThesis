@@ -57,6 +57,8 @@ add_executable(masterThesis
     addpointdialog.h addpointdialog.cpp addpointdialog.ui
     addlinedialog.h addlinedialog.cpp addlinedialog.ui
     addboundariesdialog.h addboundariesdialog.cpp addboundariesdialog.ui
+    deleteobjectdialog.h deleteobjectdialog.cpp deleteobjectdialog.ui
+    deletepointslayout.ui
 
 
 )

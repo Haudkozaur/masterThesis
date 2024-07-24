@@ -8,6 +8,7 @@
 #include "DataBaseLinesManager.h"
 #include "DataBaseSupportsManager.h"
 
+
 namespace Ui {
 class Gui;
 }
@@ -34,6 +35,8 @@ private slots:
     void on_addPointButton_clicked();
     void on_addLineButton_clicked();
     void on_addSupportButton_clicked();
+
+    void on_deleteObjectButton_clicked();
 
     void on_refreshButton_clicked();
 

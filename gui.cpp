@@ -11,6 +11,7 @@
 #include "addlinedialog.h"
 #include "addpointdialog.h"
 #include "ui_gui.h"
+#include "deleteobjectdialog.h"
 #include <cmath>
 
 // gui constructor
@@ -451,4 +452,24 @@ void Gui::on_refreshButton_clicked()
     // Update the widget to trigger a repaint
     update();
 }
+void Gui::on_deleteObjectButton_clicked()
+{
+    DeleteObjectDialog dialog(this);
+    dialog.moveToBottomLeft();
 
+    if (dialog.exec() == QDialog::Accepted) {
+        QString selectedType = dialog.getSelectedObjectType();
+
+        // Handle deletion based on the selected type
+        if (selectedType == "Points") {
+            // Delete points logic
+        } else if (selectedType == "Lines") {
+            // Delete lines logic
+        } else if (selectedType == "Supports") {
+            // Delete supports logic
+        }
+
+        // Refresh the UI
+        on_refreshButton_clicked();
+    }
+}
