@@ -1,7 +1,9 @@
 #include "gui.h"
 #include <QDebug>
 #include <QFont>
+#include <QMouseEvent>
 #include <QPainter>
+#include <QWheelEvent>
 #include "DataBaseLinesManager.h"
 #include "DataBasePointsManager.h"
 #include "DataBaseSupportsManager.h"
@@ -9,7 +11,7 @@
 #include "addlinedialog.h"
 #include "addpointdialog.h"
 #include "ui_gui.h"
-#include <QWheelEvent>
+#include <cmath>
 
 // Konstruktor Gui z wskaźnikami do menedżerów baz danych
 Gui::Gui(DataBasePointsManager *pointsManager,
@@ -24,14 +26,22 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBasePointsManager(pointsManager)
     , dataBaseLinesManager(linesManager)
     , dataBaseSupportsManager(supportsManager)
+    , scaleFactor(1.0)
+    , isDragging(false)
 {
     ui->setupUi(this);
-    /*    connect(ui->addLineButton, &QPushButton::clicked, this, &Gui::on_addLineButton_clicked);
-    connect(ui->addPointButton, &QPushButton::clicked, this, &Gui::on_addPointButton_clicked);
-    connect(ui->addSupportButton,
-            &QPushButton::clicked,
-            this,
-            &Gui::on_addSupportButton_clicked);*/ // Connect button to slot
+
+    // Calculate initial translation offset to center the origin
+    translationOffset = QPoint(width() / 2, height() / 2);
+
+    // Setting background style for button containers
+    QWidget *leftButtonContainer = ui->leftverticalLayout->parentWidget();
+    QWidget *upperButtonContainer = ui->uphorizontalLayout->parentWidget();
+    if (leftButtonContainer && upperButtonContainer) {
+        QString backgroundStyle = "background-color: rgba(255, 255, 255, 150);";
+        leftButtonContainer->setStyleSheet(backgroundStyle);
+        upperButtonContainer->setStyleSheet(backgroundStyle);
+    }
 }
 
 Gui::~Gui()
@@ -41,7 +51,6 @@ Gui::~Gui()
 
 void Gui::on_addPointButton_clicked()
 {
-    // new dialog
     AddPointDialog *dialog = new AddPointDialog(this);
     dialog->setWindowModality(Qt::NonModal);
     if (dialog->exec() == QDialog::Accepted) {
@@ -52,19 +61,15 @@ void Gui::on_addPointButton_clicked()
 
         dataBasePointsManager->addObjectToDataBase(xCoordinate, zCoordinate);
 
-        // Select all points from database
         dataBasePointsManager->iterateOverTable();
         points.clear();
 
-        // update points vector
         for (const auto &point : dataBasePointsManager->getPointsMap()) {
             points.push_back({point.second.first, point.second.second, point.first});
         }
 
-        // redraw all points
         update();
         dialog->close();
-        Gui::on_addPointButton_clicked();
     } else if (dialog->result() == QDialog::Rejected) {
         dialog->close();
     }
@@ -88,10 +93,8 @@ void Gui::on_addLineButton_clicked()
             lines.push_back({startPoint.first, startPoint.second, endPoint.first, endPoint.second});
         }
 
-        // redraw all lines
         update();
         dialog->close();
-        Gui::on_addLineButton_clicked();
     } else if (dialog->result() == QDialog::Rejected) {
         dialog->close();
     }
@@ -99,7 +102,6 @@ void Gui::on_addLineButton_clicked()
 
 void Gui::on_addSupportButton_clicked()
 {
-    // new dialog
     AddBoundariesDialog *dialog = new AddBoundariesDialog(this);
 
     if (dialog->exec() == QDialog::Accepted) {
@@ -112,28 +114,24 @@ void Gui::on_addSupportButton_clicked()
 
         dataBaseSupportsManager->addObjectToDataBase(pointId, ry, tz, tx);
 
-        // select all supports from database
         dataBaseSupportsManager->iterateOverTable();
         boundaries.clear();
 
-        // update boundaries vector
         auto supportsMap = dataBaseSupportsManager->getSupportsMap();
         for (const auto &support : supportsMap) {
+            int pointId = std::get<0>(support.second);
             bool ry = std::get<1>(support.second);
             bool tx = std::get<2>(support.second);
             bool tz = std::get<3>(support.second);
 
-            qDebug() << "Support added for pointId:" << support.first << " ry:" << ry
-                     << " tx:" << tx << " tz:" << tz;
+            qDebug() << "Support added for pointId:" << pointId << " ry:" << ry << " tx:" << tx
+                     << " tz:" << tz;
 
-            boundaries.push_back({support.first, ry, tx, tz});
+            boundaries.push_back({pointId, ry, tx, tz});
         }
 
-        // redraw all supports
         update();
         dialog->close();
-        Gui::on_addSupportButton_clicked();
-
     } else if (dialog->result() == QDialog::Rejected) {
         dialog->close();
     }
@@ -146,17 +144,19 @@ void Gui::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // translation of coordinate system to start in left right corner
-    QTransform transform;
-    transform.translate(0, height());
-    transform.scale(1, -1);
-    transform.scale(scaleFactor, scaleFactor); // Dodaj to
-    painter.setTransform(transform);
+    // Draw axes with labels
+    drawAxes(painter);
 
+    // Apply transformations for points, lines, and supports
+    painter.setTransform(QTransform().translate(translationOffset.x(), translationOffset.y())
+                             .scale(scaleFactor, scaleFactor));
+
+    // Draw points, lines, and supports
     paintLines(painter);
     paintPoints(painter);
     paintSupports(painter);
 }
+
 
 void Gui::paintPoints(QPainter &painter)
 {
@@ -168,21 +168,8 @@ void Gui::paintPoints(QPainter &painter)
     painter.setFont(font);
 
     for (const auto &point : points) {
-        painter.drawEllipse(QPointF(point.x, point.z), 5, 5);
-
-        // Zapamiętaj stan painter
-        painter.save();
-
-        // Cofnij transformację i ustaw tekst
-        QTransform transformText;
-        transformText.translate(point.x + 10, point.z - 10);
-        transformText.scale(1, -1); // Odwróć tekst, aby był w standardowym układzie współrzędnych
-        painter.setTransform(transformText, true);
-
-        painter.drawText(0, 0, QString::number(point.id));
-
-        // Przywróć stan painter
-        painter.restore();
+        painter.drawEllipse(QPointF(point.x, -point.z), 5, 5);
+        painter.drawText(QPointF(point.x + 10, -point.z - 10), QString::number(point.id));
     }
 }
 
@@ -191,7 +178,7 @@ void Gui::paintLines(QPainter &painter)
     painter.setPen(Qt::black);
 
     for (const auto &line : lines) {
-        painter.drawLine(QPointF(line.startX, line.startZ), QPointF(line.endX, line.endZ));
+        painter.drawLine(QPointF(line.startX, -line.startZ), QPointF(line.endX, -line.endZ));
     }
 }
 
@@ -205,20 +192,21 @@ void Gui::paintSupports(QPainter &painter)
         if (dataBasePointsManager->getPointsMap().find(pointId)
             == dataBasePointsManager->getPointsMap().end()) {
             qDebug() << "Point ID not found in pointsMap: " << pointId;
-            continue; // If point with given ID does not exist in map, skip to next support
+            continue;
         }
 
         auto point = dataBasePointsManager->getPointsMap()[pointId];
-        int x = point.first;
-        int z = point.second;
+        qreal x = point.first;
+        qreal z = -point.second;
 
         qDebug() << "Drawing support for pointId:" << pointId << " x:" << x << " z:" << z
                  << " ry:" << boundary.ry << " tx:" << boundary.tx << " tz:" << boundary.tz;
 
-        int eccentricity = 20;
+        qreal eccentricity = 20; // Adjust as needed
 
         painter.setBrush(Qt::green);
 
+        // Rysowanie ry (rysowanie w oparciu o rzeczywiste współrzędne)
         if (boundary.ry) {
             painter.drawLine(QPointF(x, z), QPointF(x + eccentricity, z + eccentricity));
             painter.drawLine(QPointF(x, z), QPointF(x - eccentricity, z + eccentricity));
@@ -226,30 +214,130 @@ void Gui::paintSupports(QPainter &painter)
                              QPointF(x - eccentricity, z + eccentricity));
         }
 
+        // Rysowanie tz (rysowanie w oparciu o rzeczywiste współrzędne)
         if (boundary.tz) {
             painter.drawLine(QPointF(x, z), QPointF(x, z - eccentricity));
             painter.drawEllipse(QPointF(x, z - eccentricity), 5, 5);
         }
 
+        // Rysowanie tx (rysowanie w oparciu o rzeczywiste współrzędne)
         if (boundary.tx) {
             painter.drawLine(QPointF(x, z), QPointF(x - eccentricity, z));
             painter.drawEllipse(QPointF(x - eccentricity, z), 5, 5);
         }
 
+        // Jeśli żaden z flagi nie jest ustawiony, rysuj tylko punkt
         if (!boundary.ry && !boundary.tx && !boundary.tz) {
-            painter.drawEllipse(QPointF(x, z), eccentricity / 5, eccentricity / 5);
+            painter.drawEllipse(QPointF(x, z), 5, 5);
         }
     }
 }
-void Gui::wheelEvent(QWheelEvent *event)
+void Gui::drawAxes(QPainter &painter)
 {
-    // Zoom in or out
-    if (event->angleDelta().y() > 0) {
-        scaleFactor *= 1.1;
-    } else {
-        scaleFactor /= 1.1;
+    // Save the current transformation
+    QTransform originalTransform = painter.transform();
+
+    // Calculate the center of the widget
+    qreal centerX = translationOffset.x();
+    qreal centerZ = translationOffset.y(); //y bc this is from qt documentation
+
+    // Set up the font for axis labels
+    QFont font = painter.font();
+    font.setPointSize(10);
+    painter.setFont(font);
+
+    // Define the step for axis labels
+    qreal step = 50.0;
+
+    // Set up the pen for drawing axes
+    painter.setPen(QPen(Qt::black, 2));
+
+    // Calculate the visible range of the widget in real coordinates
+    qreal leftX = -centerX / scaleFactor;
+    qreal rightX = (width() - centerX) / scaleFactor;
+    qreal topZ = (height() - centerZ) / scaleFactor; // Top is positive
+    qreal bottomZ = -centerZ / scaleFactor;          // Bottom is negative
+
+    // Draw X-axis
+    painter.drawLine(QPointF(leftX * scaleFactor + centerX, centerZ),
+                     QPointF(rightX * scaleFactor + centerX, centerZ));
+
+    // Draw labels at fixed real coordinates along the X-axis
+    for (qreal x = std::floor(leftX / step) * step; x <= rightX; x += step) {
+        QPointF labelPos(centerX + x * scaleFactor, centerZ + 10);
+        painter.drawText(labelPos, QString::number(x, 'f', 0));
     }
 
-    // Redraw the widget
+    // Draw Z-axis (Y-axis in this case) with positive direction upwards
+    painter.drawLine(QPointF(centerX, bottomZ * scaleFactor + centerZ),
+                     QPointF(centerX, topZ * scaleFactor + centerZ));
+
+    // Draw labels at fixed real coordinates along the Z-axis
+    for (qreal z = std::floor(topZ / step) * step; z >= bottomZ; z -= step) {
+        QPointF labelPos(centerX + 10, centerZ + z * scaleFactor);
+        painter.drawText(labelPos, QString::number(z, 'f', 0));
+        // Print current z value
+        qDebug() << "z: " << z;
+    }
+
+    // Draw the grid
+    drawGrid(painter, leftX, rightX, topZ, bottomZ, step, centerX, centerZ);
+
+    // Restore the original transformation
+    painter.setTransform(originalTransform);
+}
+
+void Gui::drawGrid(QPainter &painter, qreal leftX, qreal rightX, qreal topZ, qreal bottomZ, qreal step, qreal centerX, qreal centerZ)
+{
+    QPen gridPen(Qt::lightGray, 1, Qt::DashLine);
+    painter.setPen(gridPen);
+
+    // Draw vertical grid lines
+    for (qreal x = std::floor(leftX / step) * step; x <= rightX; x += step) {
+        painter.drawLine(QPointF(centerX + x * scaleFactor, bottomZ * scaleFactor + centerZ),
+                         QPointF(centerX + x * scaleFactor, topZ * scaleFactor + centerZ));
+    }
+
+    // Draw horizontal grid lines
+    for (qreal z = std::floor(topZ / step) * step; z >= bottomZ; z -= step) {
+        painter.drawLine(QPointF(leftX * scaleFactor + centerX, centerZ + z * scaleFactor),
+                         QPointF(rightX * scaleFactor + centerX, centerZ + z * scaleFactor));
+    }
+}
+
+
+void Gui::wheelEvent(QWheelEvent *event)
+{
+    if (event->angleDelta().y() > 0) {
+        scaleFactor *= 1.1; // Powiększenie
+    } else {
+        scaleFactor /= 1.1; // Oddalenie
+    }
     update();
+}
+
+void Gui::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
+        isDragging = true;
+        lastMousePosition = event->localPos();
+    }
+}
+
+void Gui::mouseMoveEvent(QMouseEvent *event)
+{
+    if (isDragging) {
+        QPointF delta = event->localPos() - lastMousePosition;
+        lastMousePosition = event->localPos();
+
+        translationOffset += delta;
+        update();
+    }
+}
+
+void Gui::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        isDragging = false;
+    }
 }

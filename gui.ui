@@ -23,7 +23,7 @@
       <height>161</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QVBoxLayout" name="leftverticalLayout">
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
@@ -59,7 +59,7 @@
       <height>61</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout"/>
+    <layout class="QHBoxLayout" name="uphorizontalLayout"/>
    </widget>
    <widget class="Line" name="line">
     <property name="geometry">
@@ -67,7 +67,7 @@
       <x>180</x>
       <y>70</y>
       <width>20</width>
-      <height>831</height>
+      <height>6000</height>
      </rect>
     </property>
     <property name="orientation">
@@ -79,7 +79,7 @@
      <rect>
       <x>0</x>
       <y>60</y>
-      <width>801</width>
+      <width>6000</width>
       <height>20</height>
      </rect>
     </property>
