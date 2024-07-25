@@ -2,7 +2,12 @@
 #define DELETEOBJECTDIALOG_H
 
 #include <QDialog>
-#include "ui_DeleteObjectDialog.h"
+#include <QUiLoader>
+#include <QFile>
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class DeleteObjectDialog; }
+QT_END_NAMESPACE
 
 class DeleteObjectDialog : public QDialog
 {
@@ -10,17 +15,22 @@ class DeleteObjectDialog : public QDialog
 
 public:
     explicit DeleteObjectDialog(QWidget *parent = nullptr);
+    ~DeleteObjectDialog();
+
     QString getSelectedObjectType() const;
-    void moveToBottomLeft();
+    void moveToBottomLeft();  // Przenieś metodę tutaj do sekcji public
 
 private slots:
     void onObjectTypeChanged(const QString &type);
+    void loadLayoutFromFile(const QString &fileName);
+    int getPointId();
 
 private:
-    void updateLayoutForType(const QString &type);
+    void updateLayoutForType(const QString &type);  // Deklaracja metody
 
-    Ui::DeleteObjectDialog ui;
+    Ui::DeleteObjectDialog *ui;
     QWidget *currentOptionsWidget;
+    QUiLoader *uiLoader;
 };
 
 #endif // DELETEOBJECTDIALOG_H

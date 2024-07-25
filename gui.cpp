@@ -385,7 +385,7 @@ void Gui::wheelEvent(QWheelEvent *event)
 
 void Gui::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
+    if (event->button() == Qt::MiddleButton) {
         isDragging = true;
         lastMousePosition = event->localPos();
     }
@@ -403,10 +403,11 @@ void Gui::mouseMoveEvent(QMouseEvent *event)
 
 void Gui::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::MiddleButton) {
         isDragging = false;
     }
 }
+
 
 void Gui::on_refreshButton_clicked()
 {
@@ -454,22 +455,36 @@ void Gui::on_refreshButton_clicked()
 }
 void Gui::on_deleteObjectButton_clicked()
 {
-    DeleteObjectDialog dialog(this);
-    dialog.moveToBottomLeft();
+    // Tworzymy instancję dialogu
+    DeleteObjectDialog *dialog = new DeleteObjectDialog(this);
 
-    if (dialog.exec() == QDialog::Accepted) {
-        QString selectedType = dialog.getSelectedObjectType();
+    // Przemieszczamy dialog do lewego dolnego rogu głównego okna
+    dialog->moveToBottomLeft();
 
-        // Handle deletion based on the selected type
+    // Ustawiamy atrybut, aby dialog został usunięty po jego zamknięciu
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Po zamknięciu dialogu, przetwarzamy wybór użytkownika
+    connect(dialog, &DeleteObjectDialog::accepted, this, [this, dialog]() {
+        QString selectedType = dialog->getSelectedObjectType();
+
+        // Obsługuje usuwanie w zależności od wybranego typu
         if (selectedType == "Points") {
-            // Delete points logic
+            // Logika usuwania punktów
         } else if (selectedType == "Lines") {
-            // Delete lines logic
+            // Logika usuwania linii
         } else if (selectedType == "Supports") {
-            // Delete supports logic
+            // Logika usuwania podpór
         }
 
-        // Refresh the UI
+        // Odświeżenie UI
         on_refreshButton_clicked();
-    }
+    });
+
+    // Po odrzuceniu dialogu, usuwamy go
+    connect(dialog, &DeleteObjectDialog::rejected, dialog, &DeleteObjectDialog::deleteLater);
+
+    // Pokazujemy dialog nienachalnie
+    dialog->show();
 }
+

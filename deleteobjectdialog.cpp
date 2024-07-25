@@ -1,57 +1,67 @@
 #include "DeleteObjectDialog.h"
-#include <QVBoxLayout>
-#include <QLabel>
+#include "ui_DeleteObjectDialog.h"
 
 DeleteObjectDialog::DeleteObjectDialog(QWidget *parent)
-    : QDialog(parent), currentOptionsWidget(nullptr)
+    : QDialog(parent), ui(new Ui::DeleteObjectDialog), currentOptionsWidget(nullptr), uiLoader(new QUiLoader(this))
 {
-    ui.setupUi(this);
+    ui->setupUi(this);
 
-    connect(ui.comboBoxObjectType, &QComboBox::currentTextChanged, this, &DeleteObjectDialog::onObjectTypeChanged);
+    connect(ui->comboBoxObjectType, &QComboBox::currentTextChanged, this, &DeleteObjectDialog::onObjectTypeChanged);
 
     // Initialize layout for the current type
-    updateLayoutForType(ui.comboBoxObjectType->currentText());
+    updateLayoutForType(ui->comboBoxObjectType->currentText());
 
     // Connect dialog buttons
-    connect(ui.buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(ui.buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+}
+
+DeleteObjectDialog::~DeleteObjectDialog()
+{
+    delete ui;
 }
 
 QString DeleteObjectDialog::getSelectedObjectType() const
 {
-    return ui.comboBoxObjectType->currentText();
+    return ui->comboBoxObjectType->currentText();
 }
 
 void DeleteObjectDialog::onObjectTypeChanged(const QString &type)
 {
-    updateLayoutForType(type);
-}
-
-void DeleteObjectDialog::updateLayoutForType(const QString &type)
-{
     if (currentOptionsWidget) {
-        ui.mainLayout->removeWidget(currentOptionsWidget);
+        ui->mainLayout->removeWidget(currentOptionsWidget);
         delete currentOptionsWidget;
         currentOptionsWidget = nullptr;
     }
 
-    currentOptionsWidget = new QWidget(this);
-    QVBoxLayout *layout = new QVBoxLayout(currentOptionsWidget);
-
+    QString fileName;
     if (type == "Points") {
-        layout->addWidget(new QLabel("Option for Points:", currentOptionsWidget));
-        // Add more widgets as needed
+        fileName = ":/ui/deletepointslayout.ui"; // Adjust path as needed
     } else if (type == "Lines") {
-        layout->addWidget(new QLabel("Option for Lines:", currentOptionsWidget));
-        // Add more widgets as needed
+        fileName = ":/ui/deletelineslayout.ui"; // Adjust path as needed
     } else if (type == "Supports") {
-        layout->addWidget(new QLabel("Option for Supports:", currentOptionsWidget));
-        // Add more widgets as needed
+        fileName = ":/ui/deletesupportslayout.ui"; // Adjust path as needed
     }
 
-    currentOptionsWidget->setLayout(layout);
-    ui.mainLayout->addWidget(currentOptionsWidget);
+    loadLayoutFromFile(fileName);
 }
+
+void DeleteObjectDialog::loadLayoutFromFile(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly)) {
+        qWarning() << "Cannot open file" << fileName;
+        return;
+    }
+
+    currentOptionsWidget = uiLoader->load(&file, this);
+    file.close();
+
+    if (currentOptionsWidget) {
+        ui->mainLayout->insertWidget(1, currentOptionsWidget); // Insert widget at position 1
+    }
+}
+
 void DeleteObjectDialog::moveToBottomLeft()
 {
     if (parentWidget()) {
@@ -61,4 +71,15 @@ void DeleteObjectDialog::moveToBottomLeft()
         int y = hostRect.top() + 250;
         move(x, y);
     }
+}
+
+void DeleteObjectDialog::updateLayoutForType(const QString &type)
+{
+    // This method should update the layout based on the initial type
+    // You can add any necessary logic here
+    onObjectTypeChanged(type);
+}
+int DeleteObjectDialog::getPointId()
+{
+    return ui->pointToDeleteLineEdit->text().toInt();
 }

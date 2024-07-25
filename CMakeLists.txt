@@ -4,6 +4,9 @@ project(masterThesis)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+
 # wykrycie vcpkg
 if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
@@ -19,6 +22,7 @@ find_package(SQLite3 REQUIRED)
 find_package(Qt6Widgets REQUIRED)
 find_package(Qt6Core REQUIRED)
 find_package(Qt6Gui REQUIRED)
+find_package(Qt6UiTools REQUIRED)
 
 add_executable(masterThesis
     masterThesis.cpp
@@ -58,11 +62,8 @@ add_executable(masterThesis
     addlinedialog.h addlinedialog.cpp addlinedialog.ui
     addboundariesdialog.h addboundariesdialog.cpp addboundariesdialog.ui
     deleteobjectdialog.h deleteobjectdialog.cpp deleteobjectdialog.ui
-    deletepointslayout.ui
-
-
+    resources.qrc
 )
 
 # linkowanie bibliotek
-target_link_libraries(masterThesis Eigen3::Eigen SQLite::SQLite3 Qt6::Widgets Qt6::Core Qt6::Gui)
-
+target_link_libraries(masterThesis Eigen3::Eigen SQLite::SQLite3 Qt6::Widgets Qt6::Core Qt6::Gui Qt6::UiTools)
