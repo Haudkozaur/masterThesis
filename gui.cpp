@@ -10,8 +10,9 @@
 #include "addboundariesdialog.h"
 #include "addlinedialog.h"
 #include "addpointdialog.h"
-#include "ui_gui.h"
 #include "deleteobjectdialog.h"
+#include "editobjectdialog.h"
+#include "ui_gui.h"
 #include <cmath>
 
 // gui constructor
@@ -77,7 +78,7 @@ void Gui::on_addPointButton_clicked()
             points.push_back({point.second.first, point.second.second, point.first});
         }
 
-        update();
+        Gui::on_refreshButton_clicked();
         // Optionally, you might want to call another method here
         Gui::on_addPointButton_clicked(); // Be cautious with recursion
     });
@@ -113,11 +114,20 @@ void Gui::on_addLineButton_clicked()
         if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
             auto startPoint = pointsMap[startId];
             auto endPoint = pointsMap[endId];
+
+            // Generate a unique ID for the new line
+            int newLineId = lines.empty() ? 1 : lines.back().id + 1;
+
+            // Add the new line to the database
             dataBaseLinesManager->addObjectToDataBase(startId, endId);
-            lines.push_back({startPoint.first, startPoint.second, endPoint.first, endPoint.second});
+
+            // Add the new line to the lines vector
+            lines.push_back(
+                {startPoint.first, startPoint.second, endPoint.first, endPoint.second, newLineId});
         }
 
-        update();
+        // Update the UI
+        Gui::on_refreshButton_clicked();
         // Optionally, you might want to call another method here
         Gui::on_addLineButton_clicked(); // Be cautious with recursion
     });
@@ -167,7 +177,7 @@ void Gui::on_addSupportButton_clicked()
             boundaries.push_back({pointId, ry, tx, tz});
         }
 
-        update();
+        Gui::on_refreshButton_clicked();
         Gui::on_addSupportButton_clicked(); // Be cautious with recursion
     });
 
@@ -177,6 +187,141 @@ void Gui::on_addSupportButton_clicked()
     // Show the dialog non-modally
     dialog->show();
 }
+void Gui::on_refreshButton_clicked()
+{
+    // Update the data from the database managers
+    dataBasePointsManager->iterateOverTable();
+    dataBaseLinesManager->iterateOverTable();
+    dataBaseSupportsManager->iterateOverTable();
+
+    // Clear current points, lines, and boundaries
+    points.clear();
+    lines.clear();
+    boundaries.clear();
+
+    // Update points from the database manager
+    for (const auto &point : dataBasePointsManager->getPointsMap()) {
+        points.push_back({point.second.first, point.second.second, point.first});
+    }
+
+    // Update lines from the database manager
+    for (const auto &lineEntry : dataBaseLinesManager->getLinesMap()) {
+        int lineId = lineEntry.first; // ID linii
+        int startId = std::get<0>(lineEntry.second);
+        int endId = std::get<1>(lineEntry.second);
+
+        auto pointsMap = dataBasePointsManager->getPointsMap();
+
+        if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
+            auto startPoint = pointsMap[startId];
+            auto endPoint = pointsMap[endId];
+            lines.push_back(
+                {startPoint.first, startPoint.second, endPoint.first, endPoint.second, lineId});
+        }
+    }
+
+    // Update supports from the database manager
+    for (const auto &support : dataBaseSupportsManager->getSupportsMap()) {
+        int pointId = std::get<0>(support.second);
+        bool ry = std::get<1>(support.second);
+        bool tx = std::get<2>(support.second);
+        bool tz = std::get<3>(support.second);
+
+        boundaries.push_back({pointId, ry, tx, tz});
+    }
+
+    // Update the widget to trigger a repaint
+    update();
+}
+void Gui::on_deleteObjectButton_clicked()
+{
+    // Tworzymy instancję dialogu do usuwania obiektów
+    DeleteObjectDialog *dialog = new DeleteObjectDialog(this);
+
+    // Przemieszczamy dialog do lewego dolnego rogu głównego okna
+    dialog->moveToBottomLeft();
+
+    // Ustawiamy atrybut, aby dialog został usunięty po jego zamknięciu
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Po zamknięciu dialogu, przetwarzamy wybór użytkownika
+    connect(dialog, &DeleteObjectDialog::accepted, this, [this, dialog]() {
+        QString selectedType = dialog->getSelectedObjectType();
+
+        if (selectedType == "Points") {
+            int pointId = dialog->getPointId();
+            if (pointId != -1) {
+                // Usuwamy punkt z bazy danych
+                dataBasePointsManager->deleteObjectFromDataBase(pointId);
+
+                // Odświeżamy dane po usunięciu
+                on_refreshButton_clicked();
+            }
+        } else if (selectedType == "Lines") {
+            int lineId = dialog->getLineId();
+            if (lineId != -1) {
+                // Usuwamy linię z bazy danych
+                dataBaseLinesManager->deleteObjectFromDataBase(lineId);
+
+                // Odświeżamy dane po usunięciu
+                on_refreshButton_clicked();
+            }
+        } else if (selectedType == "Supports") {
+            int supportPointId = dialog->getSupportPointId();
+            if (supportPointId != -1) {
+                // Usuwamy podporę z bazy danych
+                dataBaseSupportsManager->deleteObjectFromDataBase(supportPointId);
+
+                // Odświeżamy dane po usunięciu
+                on_refreshButton_clicked();
+            }
+        }
+    });
+
+    // Po odrzuceniu dialogu, usuwamy go
+    connect(dialog, &DeleteObjectDialog::rejected, dialog, &DeleteObjectDialog::deleteLater);
+
+    // Pokazujemy dialog nienachalnie
+    dialog->show();
+}
+void Gui::on_editObjectButton_clicked()
+{
+    // Create an instance of the edit dialog
+    EditObjectDialog *dialog = new EditObjectDialog(this);
+
+    // Move the dialog to the bottom left of the main window
+    dialog->moveToBottomLeft();
+
+    // Set the attribute to delete the dialog on close
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Handle user acceptance
+    connect(dialog, &EditObjectDialog::accepted, this, [this, dialog]() {
+        QString selectedType = dialog->getSelectedObjectType();
+
+        // Handle editing based on the selected type
+        if (selectedType == "Points") {
+            int pointId = dialog->getPointId();
+            // Update the point in the database and refresh the UI
+            // dataBasePointsManager->updatePointInDataBase(pointId, newX, newZ); // Example function
+        } else if (selectedType == "Lines") {
+            int lineId = dialog->getLineId();
+            // Update the line in the database and refresh the UI
+            // dataBaseLinesManager->updateLineInDataBase(lineId, newStartId, newEndId); // Example function
+        } else if (selectedType == "Supports") {
+            int supportPointId = dialog->getSupportPointId();
+            // Update the support in the database and refresh the UI
+            // dataBaseSupportsManager->updateSupportInDataBase(supportPointId, newRx, newRy, newRz); // Example function
+        }
+
+        // Refresh the UI
+        on_refreshButton_clicked();
+    });
+
+    // Show the dialog non-modally
+    dialog->show();
+}
+
 
 void Gui::paintEvent(QPaintEvent *event)
 {
@@ -202,7 +347,7 @@ void Gui::paintEvent(QPaintEvent *event)
 void Gui::paintPoints(QPainter &painter)
 {
     painter.setBrush(Qt::blue);
-    painter.setPen(Qt::black);
+    painter.setPen(Qt::blue);
 
     QFont font = painter.font();
     font.setPointSize(10);
@@ -220,6 +365,14 @@ void Gui::paintLines(QPainter &painter)
 
     for (const auto &line : lines) {
         painter.drawLine(QPointF(line.startX, -line.startZ), QPointF(line.endX, -line.endZ));
+
+        // Ustawienie czcionki i rysowanie ID
+        QFont font = painter.font();
+        font.setPointSize(10);
+        painter.setFont(font);
+
+        QPointF textPosition((line.startX + line.endX) / 2, (-line.startZ + -line.endZ) / 2);
+        painter.drawText(textPosition + QPointF(10, -10), QString::number(line.id));
     }
 }
 
@@ -277,8 +430,8 @@ void Gui::paintSupports(QPainter &painter)
 
         // draw tz
         if (boundary.tz) {
-            painter.drawLine(QPointF(x, z), QPointF(x, z - eccentricity));
-            painter.drawEllipse(QPointF(x, z - eccentricity), 5, 5);
+            painter.drawLine(QPointF(x, z), QPointF(x, z + eccentricity));
+            painter.drawEllipse(QPointF(x, z + eccentricity), 5, 5);
         }
 
         // draw tx
@@ -408,83 +561,11 @@ void Gui::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-
-void Gui::on_refreshButton_clicked()
+void Gui::on_clearButton_clicked()
 {
-    // Update the data from the database managers
-    dataBasePointsManager->iterateOverTable();
-    dataBaseLinesManager->iterateOverTable();
-    dataBaseSupportsManager->iterateOverTable();
-
-    // Clear current points, lines, and boundaries
-    points.clear();
-    lines.clear();
-    boundaries.clear();
-
-    // Update points from the database manager
-    for (const auto &point : dataBasePointsManager->getPointsMap()) {
-        points.push_back({point.second.first, point.second.second, point.first});
-    }
-
-    // Update lines from the database manager
-    for (const auto &lineEntry : dataBaseLinesManager->getLinesMap()) {
-        int startId = std::get<0>(lineEntry.second);
-        int endId = std::get<1>(lineEntry.second);
-
-        auto pointsMap = dataBasePointsManager->getPointsMap();
-
-        if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
-            auto startPoint = pointsMap[startId];
-            auto endPoint = pointsMap[endId];
-            lines.push_back({startPoint.first, startPoint.second, endPoint.first, endPoint.second});
-        }
-    }
-
-    // Update supports from the database manager
-    for (const auto &support : dataBaseSupportsManager->getSupportsMap()) {
-        int pointId = std::get<0>(support.second);
-        bool ry = std::get<1>(support.second);
-        bool tx = std::get<2>(support.second);
-        bool tz = std::get<3>(support.second);
-
-        boundaries.push_back({pointId, ry, tx, tz});
-    }
-
-    // Update the widget to trigger a repaint
-    update();
+    // QTC_TEMP
 }
-void Gui::on_deleteObjectButton_clicked()
-{
-    // Tworzymy instancję dialogu
-    DeleteObjectDialog *dialog = new DeleteObjectDialog(this);
 
-    // Przemieszczamy dialog do lewego dolnego rogu głównego okna
-    dialog->moveToBottomLeft();
 
-    // Ustawiamy atrybut, aby dialog został usunięty po jego zamknięciu
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
 
-    // Po zamknięciu dialogu, przetwarzamy wybór użytkownika
-    connect(dialog, &DeleteObjectDialog::accepted, this, [this, dialog]() {
-        QString selectedType = dialog->getSelectedObjectType();
-
-        // Obsługuje usuwanie w zależności od wybranego typu
-        if (selectedType == "Points") {
-            // Logika usuwania punktów
-        } else if (selectedType == "Lines") {
-            // Logika usuwania linii
-        } else if (selectedType == "Supports") {
-            // Logika usuwania podpór
-        }
-
-        // Odświeżenie UI
-        on_refreshButton_clicked();
-    });
-
-    // Po odrzuceniu dialogu, usuwamy go
-    connect(dialog, &DeleteObjectDialog::rejected, dialog, &DeleteObjectDialog::deleteLater);
-
-    // Pokazujemy dialog nienachalnie
-    dialog->show();
-}
 

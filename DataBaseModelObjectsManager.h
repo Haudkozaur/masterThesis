@@ -29,7 +29,7 @@ public:
     string selectObjectPropertyByID(TableType tableName, int id, const string& propertyName) const;
     int getNumberOfObjectsInTable(TableType tableName);
     vector<vector<string>> executeQuery(const string& query); // Function to execute SELECT queries
-
+    bool checkIfDuplicate(TableType tableName, const tuple<int, int, int> &properties);
 
     //Variables
     string dateBaseName;

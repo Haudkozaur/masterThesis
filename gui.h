@@ -39,6 +39,8 @@ private slots:
     void on_deleteObjectButton_clicked();
 
     void on_refreshButton_clicked();
+    void on_editObjectButton_clicked();
+    void on_clearButton_clicked();
 
 private:
     Ui::Gui *ui;
@@ -61,7 +63,9 @@ private:
         int startZ;
         int endX;
         int endZ;
+        int id; // Nowe pole id
     };
+
     struct Boundary {
         int pointId;
         bool ry;

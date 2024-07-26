@@ -94,14 +94,14 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QPushButton" name="deleteButton">
+        <widget class="QPushButton" name="clearButton">
          <property name="text">
-          <string/>
+          <string>Clear</string>
          </property>
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QPushButton" name="editButton">
+        <widget class="QPushButton" name="editObjectButton">
          <property name="text">
           <string>Edit</string>
          </property>

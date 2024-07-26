@@ -41,7 +41,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="xLineEdit">
+       <widget class="QLineEdit" name="pointSupportToDeleteLineEdit">
         <property name="text">
          <string>ID</string>
         </property>

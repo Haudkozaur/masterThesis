@@ -1,5 +1,6 @@
 #include "DeleteObjectDialog.h"
 #include "ui_DeleteObjectDialog.h"
+#include <QFile>
 
 DeleteObjectDialog::DeleteObjectDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::DeleteObjectDialog), currentOptionsWidget(nullptr), uiLoader(new QUiLoader(this))
@@ -36,11 +37,11 @@ void DeleteObjectDialog::onObjectTypeChanged(const QString &type)
 
     QString fileName;
     if (type == "Points") {
-        fileName = ":/ui/deletepointslayout.ui"; // Adjust path as needed
+        fileName = ":/ui/deletepointslayout.ui";
     } else if (type == "Lines") {
-        fileName = ":/ui/deletelineslayout.ui"; // Adjust path as needed
+        fileName = ":/ui/deletelineslayout.ui";
     } else if (type == "Supports") {
-        fileName = ":/ui/deletesupportslayout.ui"; // Adjust path as needed
+        fileName = ":/ui/deletesupportslayout.ui";
     }
 
     loadLayoutFromFile(fileName);
@@ -59,8 +60,48 @@ void DeleteObjectDialog::loadLayoutFromFile(const QString &fileName)
 
     if (currentOptionsWidget) {
         ui->mainLayout->insertWidget(1, currentOptionsWidget); // Insert widget at position 1
+
+        // Find and store pointers to the elements in the loaded layout
+        pointToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit*>("pointToDeleteLineEdit");
+        lineToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit*>("lineToDeleteLineEdit");
+        pointSupportToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit*>("pointSupportToDeleteLineEdit");
     }
 }
+
+int DeleteObjectDialog::getPointId()
+{
+    if (pointToDeleteLineEdit) {
+        return pointToDeleteLineEdit->text().toInt();
+    } else {
+        qWarning() << "pointToDeleteLineEdit not found!";
+        return -1; // Return an invalid ID or handle the error appropriately
+    }
+}
+
+int DeleteObjectDialog::getLineId()
+{
+    if (lineToDeleteLineEdit) {
+        return lineToDeleteLineEdit->text().toInt();
+    } else {
+        qWarning() << "lineToDeleteLineEdit not found!";
+        return -1; // Return an invalid ID or handle the error appropriately
+    }
+}
+
+int DeleteObjectDialog::getSupportPointId()
+{
+    if (pointSupportToDeleteLineEdit) {
+        return pointSupportToDeleteLineEdit->text().toInt();
+    } else {
+        qWarning() << "pointSupportToDeleteLineEdit not found!";
+        return -1; // Return an invalid ID or handle the error appropriately
+    }
+}
+void DeleteObjectDialog::updateLayoutForType(const QString &type)
+{
+    onObjectTypeChanged(type);
+}
+
 
 void DeleteObjectDialog::moveToBottomLeft()
 {
@@ -71,15 +112,4 @@ void DeleteObjectDialog::moveToBottomLeft()
         int y = hostRect.top() + 250;
         move(x, y);
     }
-}
-
-void DeleteObjectDialog::updateLayoutForType(const QString &type)
-{
-    // This method should update the layout based on the initial type
-    // You can add any necessary logic here
-    onObjectTypeChanged(type);
-}
-int DeleteObjectDialog::getPointId()
-{
-    return ui->pointToDeleteLineEdit->text().toInt();
 }

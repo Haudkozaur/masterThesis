@@ -8,6 +8,12 @@ DataBaseSupportsManager::DataBaseSupportsManager(const string &dateBaseName) : D
         dateBaseName) {}
 
 void DataBaseSupportsManager::addObjectToDataBase(int pointID, bool Ry, bool Tz, bool Tx) {
+
+    //check if there is no duplicated supports in db
+    if (checkIfDuplicate(TableType::SUPPORTS, make_tuple(pointID, 0, 0))) {
+        cout << "Error: " << "Support for this point already exists in DB" << endl;
+        return;
+    }
     string queryInsertSupport =
             "INSERT INTO " + tableTypesMap.at(TableType::SUPPORTS) + " (id, point_id, ry, tz, tx) VALUES (NULL, " +
             to_string(pointID) + ", " +
@@ -26,8 +32,11 @@ void DataBaseSupportsManager::addObjectToDataBase(int pointID, bool Ry, bool Tz,
 
 void DataBaseSupportsManager::deleteObjectFromDataBase(int id) {
 
-    string queryDeleteSupport = "DELETE FROM " + tableTypesMap.at(TableType::SUPPORTS) + " WHERE id = " + to_string(id);
-    executeAndCheckIfSQLOk(queryDeleteSupport, TableType::SUPPORTS);
+    //delete support based on point to which it is connected
+    string queryDeleteSupportBasedOnPoint = "DELETE FROM " + tableTypesMap.at(TableType::SUPPORTS) + " WHERE point_id = " + to_string(id);
+
+    //string queryDeleteSupport = "DELETE FROM " + tableTypesMap.at(TableType::SUPPORTS) + " WHERE id = " + to_string(id);
+    executeAndCheckIfSQLOk(queryDeleteSupportBasedOnPoint, TableType::SUPPORTS);
     cout << "\n";
 }
 

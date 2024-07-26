@@ -63,6 +63,7 @@ add_executable(masterThesis
     addboundariesdialog.h addboundariesdialog.cpp addboundariesdialog.ui
     deleteobjectdialog.h deleteobjectdialog.cpp deleteobjectdialog.ui
     resources.qrc
+    editobjectdialog.h editobjectdialog.cpp editobjectdialog.ui
 )
 
 # linkowanie bibliotek

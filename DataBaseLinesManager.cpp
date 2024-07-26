@@ -10,6 +10,12 @@ DataBaseLinesManager::DataBaseLinesManager(const string &dateBaseName) : DataBas
 
 void DataBaseLinesManager::addObjectToDataBase(int startPointID, int endPointID) {
 
+    //check if there is no duplicated lines in db
+    if (checkIfDuplicate(TableType::LINES, make_tuple(startPointID, endPointID, 0))) {
+        cout << "Error: " << "Line already exists in DB" << endl;
+        return;
+    }
+
     //contamination of add line query
     string queryInsertLine =
             "INSERT INTO lines (id, start_point, end_point, cross_section_id, length, inclination_angle) VALUES (NULL, " +
