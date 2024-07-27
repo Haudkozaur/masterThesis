@@ -1,12 +1,17 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include <QComboBox>
 #include <QMainWindow>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QPushButton>
 #include "DataBaseLinesManager.h"
 #include "DataBasePointsManager.h"
 #include "DataBaseStarter.h"
 #include "DataBaseSupportsManager.h"
-#include <utility> // for std::pair
+#include "DataBaseMaterialsManager.h"
+#include "DataBaseCrossSectionsManager.h"
 #include <vector>
 
 namespace Ui {
@@ -21,18 +26,23 @@ public:
     explicit Gui(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
                  DataBaseSupportsManager *supportsManager,
+                 DataBaseMaterialsManager *materialsManager,
+                 DataBaseCrossSectionsManager *crossSectionsManager,
                  DataBaseStarter *starter,
                  QWidget *parent = nullptr);
     ~Gui();
 
 protected:
+
     void paintEvent(QPaintEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void showEvent(QShowEvent *event) override; // Add this line
 
 private slots:
+    //slots for buttons from basic gui layout
     void on_addPointButton_clicked();
     void on_addLineButton_clicked();
     void on_addSupportButton_clicked();
@@ -41,22 +51,53 @@ private slots:
     void on_clearButton_clicked();
     void on_editObjectButton_clicked();
 
+    //cover changing layouts options
+    void onComboBoxIndexChanged(int index);
+public slots:
+    //slots for buttons from static scheme
+    //TODO: refactor it to not using functions from basic gui layout
+    void on_layoutAddPointButton_clicked();
+    void on_layoutAddLineButton_clicked();
+    void on_layoutAddSupportButton_clicked();
+    void on_addMaterialButton_clicked();
+    void on_addCrossSectionButton_clicked();
+    void on_openCrossSectionManagerButton();
+    void on_setPropertiesButton_clicked();
 private:
     Ui::Gui *ui;
 
-    // pointers to db managers used in gui
+    //to update leftverticallayout depending on the selected option
+    void loadLayoutFromFile(const QString &fileName);
+    void clearLayout(QLayout *layout);
+    void loadStaticSchemeLayout();
+    void loadPropertiesLayout();
+
+    // Pointers to DB managers used in the GUI
     DataBasePointsManager *dataBasePointsManager;
     DataBaseLinesManager *dataBaseLinesManager;
     DataBaseSupportsManager *dataBaseSupportsManager;
+    DataBaseMaterialsManager *dataBaseMaterialsManager;
+    DataBaseCrossSectionsManager *dataBaseCrossSectionsManager;
     DataBaseStarter *dataBaseStarter;
 
+    //using in drawing coordinates system
     int xCoordinate;
     int zCoordinate;
-    bool pointSet;
 
-    // to save edit and delete dialog state after accept
+
+    // To save edit and delete dialog state after accept
     QString lastSelectedType;
     QString deleteLastSelectedType;
+
+    //manually added pointers to buttons in .ui files to update leftverticallayout
+    QPushButton *layoutAddPointButton;
+    QPushButton *layoutAddLineButton;
+    QPushButton *layoutAddSupportButton;
+    QPushButton *addMaterialButton;
+    QPushButton *addCrossSectionButton;
+    QPushButton *setPropertiesButton;
+    QPushButton *openCrossSectionManagerButton;
+
 
     struct Point
     {
@@ -70,7 +111,7 @@ private:
         int startZ;
         int endX;
         int endZ;
-        int id; // Nowe pole id
+        int id; // New field id
     };
 
     struct Boundary
@@ -103,6 +144,7 @@ private:
                   qreal step,
                   qreal centerX,
                   qreal centerZ);
+
 };
 
 #endif // GUI_H

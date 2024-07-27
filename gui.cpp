@@ -1,14 +1,15 @@
 #include "gui.h"
+#include <QComboBox>
 #include <QDebug>
-#include <QFont>
+#include <QDialogButtonBox>
+#include <QFile>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QTransform>
+#include <QUiLoader>
 #include <QWheelEvent>
-#include "DataBaseLinesManager.h"
-#include "DataBasePointsManager.h"
-#include "DataBaseStarter.h"
-#include "DataBaseSupportsManager.h"
+#include <QXmlStreamReader>
 #include "addboundariesdialog.h"
 #include "addlinedialog.h"
 #include "addpointdialog.h"
@@ -17,25 +18,25 @@
 #include "ui_gui.h"
 #include <cmath>
 
-// gui constructor
 Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseLinesManager *linesManager,
          DataBaseSupportsManager *supportsManager,
+         DataBaseMaterialsManager *materialsManager,
+         DataBaseCrossSectionsManager *crossSectionsManager,
          DataBaseStarter *starter,
          QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Gui)
-    , xCoordinate(0)
-    , zCoordinate(0)
-    , pointSet(false)
     , dataBasePointsManager(pointsManager)
     , dataBaseLinesManager(linesManager)
     , dataBaseSupportsManager(supportsManager)
     , dataBaseStarter(starter)
+    , dataBaseMaterialsManager(materialsManager)
+    , dataBaseCrossSectionsManager(crossSectionsManager)
+    , xCoordinate(0)
+    , zCoordinate(0)
     , scaleFactor(1.0)
     , isDragging(false)
-    , lastSelectedType("Points")
-    , deleteLastSelectedType("Points")
 
 {
     ui->setupUi(this);
@@ -52,10 +53,207 @@ Gui::Gui(DataBasePointsManager *pointsManager,
         upperButtonContainer->setStyleSheet(backgroundStyle);
     }
 }
-
 Gui::~Gui()
 {
     delete ui;
+    // Cleanup ...
+}
+
+void Gui::on_layoutAddPointButton_clicked()
+{
+    Gui::on_addPointButton_clicked();
+}
+void Gui::on_layoutAddLineButton_clicked()
+{
+    Gui::on_addLineButton_clicked();
+}
+void Gui::on_layoutAddSupportButton_clicked()
+{
+    Gui::on_addSupportButton_clicked();
+}
+void Gui::on_addMaterialButton_clicked()
+{
+    cout << "Material button clicked" << endl;
+}
+void Gui::on_addCrossSectionButton_clicked()
+{
+    cout << "Cross section button clicked" << endl;
+}
+
+void Gui::on_openCrossSectionManagerButton()
+{
+    cout << "Cross section manager button clicked" << endl;
+}
+void Gui::on_setPropertiesButton_clicked()
+{
+    cout << "Properties button clicked" << endl;
+}
+void Gui::onComboBoxIndexChanged(int index)
+{
+    switch (index) {
+    case 0:
+        loadStaticSchemeLayout();
+        break;
+    case 1:
+        loadPropertiesLayout();
+        break;
+    default:
+        break;
+    }
+}
+void Gui::loadPropertiesLayout()
+{
+    loadLayoutFromFile(":/ui/properties_layout.ui");
+    // Znajdź przycisk w załadowanym layoutcie
+    addMaterialButton = findChild<QPushButton *>("addMaterialButton");
+    if (addMaterialButton) {
+        connect(addMaterialButton, &QPushButton::clicked, this, &Gui::on_addMaterialButton_clicked);
+    } else {
+        qWarning() << "Button 'addMaterialButton' not found!";
+    }
+    addCrossSectionButton = findChild<QPushButton *>("addCrossSectionButton");
+    if (addCrossSectionButton) {
+        connect(addCrossSectionButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_addCrossSectionButton_clicked);
+    } else {
+        qWarning() << "Button 'addCrossSectionButton' not found!";
+    }
+    setPropertiesButton = findChild<QPushButton *>("setPropertiesButton");
+    if (setPropertiesButton) {
+        connect(setPropertiesButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_setPropertiesButton_clicked);
+    } else {
+        qWarning() << "Button 'setPropertiesButton' not found!";
+    }
+    openCrossSectionManagerButton = findChild<QPushButton *>("openCrossSectionManagerButton");
+    if (openCrossSectionManagerButton) {
+        connect(openCrossSectionManagerButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_openCrossSectionManagerButton);
+    } else {
+        qWarning() << "Button 'openCrossSectionManagerButton' not found!";
+    }
+}
+
+void Gui::loadStaticSchemeLayout()
+{
+    loadLayoutFromFile(":/ui/static_scheme_layout.ui");
+
+    // Znajdź przycisk w załadowanym layoutcie
+    layoutAddPointButton = findChild<QPushButton *>("layoutAddPointButton");
+    if (layoutAddPointButton) {
+        connect(layoutAddPointButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_layoutAddPointButton_clicked);
+    } else {
+        qWarning() << "Button 'layoutAddPointButton' not found!";
+    }
+    layoutAddLineButton = findChild<QPushButton *>("layoutAddLineButton");
+    if (layoutAddLineButton) {
+        connect(layoutAddLineButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_layoutAddLineButton_clicked);
+    } else {
+        qWarning() << "Button 'layoutAddLineButton' not found!";
+    }
+    layoutAddSupportButton = findChild<QPushButton *>("layoutAddSupportButton");
+    if (layoutAddSupportButton) {
+        connect(layoutAddSupportButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_layoutAddSupportButton_clicked);
+    } else {
+        qWarning() << "Button 'layoutAddSupportButton' not found!";
+    }
+}
+
+void Gui::loadLayoutFromFile(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Unable to open file:" << fileName;
+        return;
+    }
+
+    QUiLoader loader;
+    QWidget *newWidget = loader.load(&file, this);
+    file.close();
+
+    if (!newWidget) {
+        qWarning() << "Failed to load layout from file:" << fileName;
+        return;
+    }
+
+    // Find the QVBoxLayout by searching the newWidget
+    QVBoxLayout *newLayout = nullptr;
+    QList<QObject *> children = newWidget->findChildren<QObject *>();
+    for (QObject *child : children) {
+        if (QVBoxLayout *layout = qobject_cast<QVBoxLayout *>(child)) {
+            newLayout = layout;
+            break;
+        }
+    }
+
+    if (newLayout) {
+        clearLayout(ui->leftverticalLayout);
+
+        // Transfer widgets from the new layout to the existing one
+        while (QLayoutItem *item = newLayout->takeAt(0)) {
+            if (item->widget()) {
+                qDebug() << "Adding widget" << item->widget()->objectName()
+                         << "to leftverticalLayout";
+                item->widget()->setParent(ui->verticalLayoutWidget); // Ensure correct parenting
+                ui->leftverticalLayout->addWidget(item->widget());
+            } else if (item->layout()) {
+                qDebug() << "Adding layout" << item->layout()->objectName()
+                         << "to leftverticalLayout";
+                ui->leftverticalLayout->addLayout(item->layout());
+            }
+        }
+    } else {
+        qWarning() << "No QVBoxLayout found in loaded widget";
+    }
+
+    newWidget->deleteLater();
+    qDebug() << "Temporary widget deleted";
+
+    ui->leftverticalLayout->update();   // Force layout update
+    ui->verticalLayoutWidget->update(); // Force container update
+}
+
+void Gui::clearLayout(QLayout *layout)
+{
+    if (!layout) {
+        qWarning() << "Layout to clear is null";
+        return;
+    }
+
+    qDebug() << "Clearing layout" << layout->objectName();
+
+    while (QLayoutItem *item = layout->takeAt(0)) {
+        if (QWidget *widget = item->widget()) {
+            qDebug() << "Deleting widget" << widget->objectName();
+            widget->deleteLater();
+        }
+        if (QLayout *childLayout = item->layout()) {
+            qDebug() << "Clearing child layout" << childLayout->objectName();
+            clearLayout(childLayout);
+        }
+        delete item;
+    }
+}
+
+void Gui::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+    // Implement any specific show event logic here
 }
 
 void Gui::on_addPointButton_clicked()
@@ -86,8 +284,8 @@ void Gui::on_addPointButton_clicked()
         }
 
         Gui::on_refreshButton_clicked();
-        // Optionally, you might want to call another method here
-        Gui::on_addPointButton_clicked(); // Be cautious with recursion
+
+        Gui::on_addPointButton_clicked();
     });
 
     // Connect the rejected signal to delete the dialog
@@ -145,7 +343,6 @@ void Gui::on_addLineButton_clicked()
     // Show the dialog non-modally
     dialog->show();
 }
-
 void Gui::on_addSupportButton_clicked()
 {
     // Create a new AddBoundariesDialog instance
@@ -185,6 +382,7 @@ void Gui::on_addSupportButton_clicked()
         }
 
         Gui::on_refreshButton_clicked();
+
         Gui::on_addSupportButton_clicked(); // Be cautious with recursion
     });
 
@@ -193,52 +391,6 @@ void Gui::on_addSupportButton_clicked()
 
     // Show the dialog non-modally
     dialog->show();
-}
-void Gui::on_refreshButton_clicked()
-{
-    // Update the data from the database managers
-    dataBasePointsManager->iterateOverTable();
-    dataBaseLinesManager->iterateOverTable();
-    dataBaseSupportsManager->iterateOverTable();
-
-    // Clear current points, lines, and boundaries
-    points.clear();
-    lines.clear();
-    boundaries.clear();
-
-    // Update points from the database manager
-    for (const auto &point : dataBasePointsManager->getPointsMap()) {
-        points.push_back({point.second.first, point.second.second, point.first});
-    }
-
-    // Update lines from the database manager
-    for (const auto &lineEntry : dataBaseLinesManager->getLinesMap()) {
-        int lineId = lineEntry.first; // ID linii
-        int startId = std::get<0>(lineEntry.second);
-        int endId = std::get<1>(lineEntry.second);
-
-        auto pointsMap = dataBasePointsManager->getPointsMap();
-
-        if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
-            auto startPoint = pointsMap[startId];
-            auto endPoint = pointsMap[endId];
-            lines.push_back(
-                {startPoint.first, startPoint.second, endPoint.first, endPoint.second, lineId});
-        }
-    }
-
-    // Update supports from the database manager
-    for (const auto &support : dataBaseSupportsManager->getSupportsMap()) {
-        int pointId = std::get<0>(support.second);
-        bool ry = std::get<1>(support.second);
-        bool tx = std::get<2>(support.second);
-        bool tz = std::get<3>(support.second);
-
-        boundaries.push_back({pointId, ry, tx, tz});
-    }
-
-    // Update the widget to trigger a repaint
-    update();
 }
 void Gui::on_deleteObjectButton_clicked()
 {
@@ -339,6 +491,79 @@ void Gui::on_editObjectButton_clicked()
     dialog->show();
 }
 
+void Gui::on_refreshButton_clicked()
+{
+    // Update the data from the database managers
+    dataBasePointsManager->iterateOverTable();
+    dataBaseLinesManager->iterateOverTable();
+    dataBaseSupportsManager->iterateOverTable();
+
+    // Clear current points, lines, and boundaries
+    points.clear();
+    lines.clear();
+    boundaries.clear();
+
+    // Update points from the database manager
+    for (const auto &point : dataBasePointsManager->getPointsMap()) {
+        points.push_back({point.second.first, point.second.second, point.first});
+    }
+
+    // Update lines from the database manager
+    for (const auto &lineEntry : dataBaseLinesManager->getLinesMap()) {
+        int lineId = lineEntry.first; // ID linii
+        int startId = std::get<0>(lineEntry.second);
+        int endId = std::get<1>(lineEntry.second);
+
+        auto pointsMap = dataBasePointsManager->getPointsMap();
+
+        if (pointsMap.find(startId) != pointsMap.end() && pointsMap.find(endId) != pointsMap.end()) {
+            auto startPoint = pointsMap[startId];
+            auto endPoint = pointsMap[endId];
+            lines.push_back(
+                {startPoint.first, startPoint.second, endPoint.first, endPoint.second, lineId});
+        }
+    }
+
+    // Update supports from the database manager
+    for (const auto &support : dataBaseSupportsManager->getSupportsMap()) {
+        int pointId = std::get<0>(support.second);
+        bool ry = std::get<1>(support.second);
+        bool tx = std::get<2>(support.second);
+        bool tz = std::get<3>(support.second);
+
+        boundaries.push_back({pointId, ry, tx, tz});
+    }
+
+    // Update the widget to trigger a repaint
+    update();
+}
+
+void Gui::on_clearButton_clicked()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this,
+                                  "Clear Data",
+                                  "This operation will lead to losing all data about the "
+                                  "structure. Are you sure you want to proceed?",
+                                  QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        // Clear all data from the database managers
+        dataBasePointsManager->dropTable(TableType::POINTS);
+        dataBaseLinesManager->dropTable(TableType::LINES);
+        dataBaseSupportsManager->dropTable(TableType::SUPPORTS);
+
+        dataBaseStarter->createPointsTable();
+        dataBaseStarter->createLinesTable();
+        dataBaseStarter->createSupportsTable();
+        // Refresh the UI to reflect changes
+        on_refreshButton_clicked();
+
+        qDebug() << "Data has been cleared.";
+    } else {
+        qDebug() << "Clear operation canceled.";
+    }
+}
+
 void Gui::paintEvent(QPaintEvent *event)
 {
     QMainWindow::paintEvent(event);
@@ -359,7 +584,6 @@ void Gui::paintEvent(QPaintEvent *event)
     paintPoints(painter);
     paintSupports(painter);
 }
-
 void Gui::paintPoints(QPainter &painter)
 {
     painter.setBrush(Qt::blue);
@@ -558,6 +782,12 @@ void Gui::mousePressEvent(QMouseEvent *event)
     }
 }
 
+void Gui::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::MiddleButton) {
+        isDragging = false;
+    }
+}
 void Gui::mouseMoveEvent(QMouseEvent *event)
 {
     if (isDragging) {
@@ -565,38 +795,5 @@ void Gui::mouseMoveEvent(QMouseEvent *event)
         lastMousePosition = event->localPos();
         translationOffset += delta;
         update();
-    }
-}
-
-void Gui::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::MiddleButton) {
-        isDragging = false;
-    }
-}
-
-void Gui::on_clearButton_clicked()
-{
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this,
-                                  "Clear Data",
-                                  "This operation will lead to losing all data about the "
-                                  "structure. Are you sure you want to proceed?",
-                                  QMessageBox::Yes | QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-        // Clear all data from the database managers
-        dataBasePointsManager->dropTable(TableType::POINTS);
-        dataBaseLinesManager->dropTable(TableType::LINES);
-        dataBaseSupportsManager->dropTable(TableType::SUPPORTS);
-
-        dataBaseStarter->createPointsTable();
-        dataBaseStarter->createLinesTable();
-        dataBaseStarter->createSupportsTable();
-        // Refresh the UI to reflect changes
-        on_refreshButton_clicked();
-
-        qDebug() << "Data has been cleared.";
-    } else {
-        qDebug() << "Clear operation canceled.";
     }
 }

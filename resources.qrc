@@ -6,5 +6,7 @@
         <file>editpointslayout.ui</file>
         <file>editlineslayout.ui</file>
         <file>editsupportslayout.ui</file>
+        <file>static_scheme_layout.ui</file>
+        <file>properties_layout.ui</file>
     </qresource>
 </RCC>

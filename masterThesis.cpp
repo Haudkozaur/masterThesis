@@ -22,12 +22,14 @@
 using namespace Eigen;
 using namespace std;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
+    //Setting DB name
     string dateBaseName = "mesosoic_test";
-
     dateBaseName = dateBaseName + ".db";
 
+    //Creating DB starter and initializate tables
     DataBaseStarter *dateBaseStarter = new DataBaseStarter(dateBaseName);
     dateBaseStarter->startDateBase();
     dateBaseStarter->createPointsTable();
@@ -39,15 +41,27 @@ int main(int argc, char *argv[]) {
     dateBaseStarter->createNodalLoadsTable();
     dateBaseStarter->createLineLoadsTable();
 
-    QApplication app(argc, argv);
+    //Creating DB managers and create basic objects
+    DataBaseMaterialsManager *materialsManager = new DataBaseMaterialsManager(dateBaseName);
+    materialsManager->addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
+    materialsManager->addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
-    // Tworzenie wskaŸników do mened¿erów baz danych
+    DataBaseCrossSectionsManager *crossSectionsManager = new DataBaseCrossSectionsManager(
+        dateBaseName);
+    crossSectionsManager->addObjectToDataBase("IPE 100",
+                                                     1,
+                                                     10.3 * pow(10.0, -4.0),
+                                                     171.000000000000 * pow(10.0, -8));
+    crossSectionsManager->addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
+
     DataBasePointsManager *pointsManager = new DataBasePointsManager(dateBaseName);
     DataBaseLinesManager *linesManager = new DataBaseLinesManager(dateBaseName);
     DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dateBaseName);
 
-    // Tworzenie obiektu Gui i przekazywanie wskaŸników
-    Gui mainWindow(pointsManager, linesManager, supportsManager, dateBaseStarter);
+    //Creating GUI
+    QApplication app(argc, argv);
+
+    Gui mainWindow(pointsManager, linesManager, supportsManager, materialsManager, crossSectionsManager, dateBaseStarter);
     mainWindow.show();
 
     int result = app.exec();
@@ -55,7 +69,8 @@ int main(int argc, char *argv[]) {
     delete pointsManager;
     delete linesManager;
     delete supportsManager;
-
+    delete materialsManager;
+    delete crossSectionsManager;
 
 
     // cout << "Eigen learning" << "\n" << endl;
