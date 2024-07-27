@@ -15,6 +15,7 @@
 #include "addpointdialog.h"
 #include "deleteobjectdialog.h"
 #include "editobjectdialog.h"
+#include "addmaterialdialog.h"
 #include "ui_gui.h"
 #include <cmath>
 
@@ -43,6 +44,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
 
     // Calculate initial translation offset to center the origin
     translationOffset = QPoint(width() / 2, height() / 2);
+    connect(ui->modelPhaseComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
 
     // Setting background style for button containers
     QWidget *leftButtonContainer = ui->leftverticalLayout->parentWidget();
@@ -74,6 +76,25 @@ void Gui::on_layoutAddSupportButton_clicked()
 void Gui::on_addMaterialButton_clicked()
 {
     cout << "Material button clicked" << endl;
+    AddMaterialDialog *dialog = new AddMaterialDialog(this);
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &AddMaterialDialog::accepted, this, [this, dialog]() {
+        string materialName = dialog->getMaterialName();
+        double youngModulus = dialog->getYoungModulus();
+        double poissonCoefficient = dialog->getPoissonCoefficient();
+        double density = dialog->getDensity();
+
+
+        dataBaseMaterialsManager->addObjectToDataBase(materialName, youngModulus*std::pow(10,9), poissonCoefficient, density);
+
+        dataBaseMaterialsManager->iterateOverTable();
+
+        Gui::on_addMaterialButton_clicked();
+    });
+
+    connect(dialog, &AddMaterialDialog::rejected, dialog, &AddMaterialDialog::deleteLater);
+    dialog->show();
 }
 void Gui::on_addCrossSectionButton_clicked()
 {

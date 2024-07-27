@@ -98,7 +98,7 @@ private:
     QPushButton *setPropertiesButton;
     QPushButton *openCrossSectionManagerButton;
 
-
+    QComboBox modelPhaseComboBox;
     struct Point
     {
         int x;

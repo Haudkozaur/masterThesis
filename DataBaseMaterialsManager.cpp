@@ -12,6 +12,10 @@ void DataBaseMaterialsManager::addObjectToDataBase(const string &name, double E,
             to_string(v) +
             "', '" + toStringWithPrecision(ro) + "')";
     executeAndCheckIfSQLOk(queryInsertMaterial, TableType::MATERIALS);
+
+
+
+
 }
 //TODO: implement deleteObjectFromDataBase after making decision what to do with cross section with material that is deleted
 //void DataBaseMaterialsManager::deleteObjectFromDataBase(int id) {
