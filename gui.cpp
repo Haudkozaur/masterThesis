@@ -34,7 +34,8 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseStarter(starter)
     , scaleFactor(1.0)
     , isDragging(false)
-    , lastSelectedType("Points") // Initialize with a default value
+    , lastSelectedType("Points")
+    , deleteLastSelectedType("Points")
 
 {
     ui->setupUi(this);
@@ -245,6 +246,9 @@ void Gui::on_deleteObjectButton_clicked()
     DeleteObjectDialog *dialog = new DeleteObjectDialog(this);
 
     // Przemieszczamy dialog do lewego dolnego rogu głównego okna
+
+    dialog->initializeWithType(deleteLastSelectedType);
+
     dialog->moveToBottomLeft();
 
     // Ustawiamy atrybut, aby dialog został usunięty po jego zamknięciu
@@ -259,31 +263,23 @@ void Gui::on_deleteObjectButton_clicked()
             if (pointId != -1) {
                 // Usuwamy punkt z bazy danych
                 dataBasePointsManager->deleteObjectFromDataBase(pointId);
-
-                // Odświeżamy dane po usunięciu
-                on_refreshButton_clicked();
             }
         } else if (selectedType == "Lines") {
             int lineId = dialog->getLineId();
             if (lineId != -1) {
                 // Usuwamy linię z bazy danych
                 dataBaseLinesManager->deleteObjectFromDataBase(lineId);
-
-                // Odświeżamy dane po usunięciu
-                on_refreshButton_clicked();
             }
         } else if (selectedType == "Supports") {
             int supportPointId = dialog->getSupportPointId();
             if (supportPointId != -1) {
                 // Usuwamy podporę z bazy danych
                 dataBaseSupportsManager->deleteObjectFromDataBase(supportPointId);
-
-                // Odświeżamy dane po usunięciu
-
             }
-            on_refreshButton_clicked();
-            Gui::on_deleteObjectButton_clicked();
         }
+        on_refreshButton_clicked();
+        deleteLastSelectedType = selectedType;
+        Gui::on_deleteObjectButton_clicked();
     });
 
     // Po odrzuceniu dialogu, usuwamy go
@@ -337,12 +333,10 @@ void Gui::on_editObjectButton_clicked()
         lastSelectedType = selectedType;
         Gui::on_editObjectButton_clicked();
         // Reopen the dialog with the updated selected type
-
     });
     connect(dialog, &EditObjectDialog::rejected, dialog, &EditObjectDialog::deleteLater);
     // Show the dialog non-modally
     dialog->show();
-
 }
 
 void Gui::paintEvent(QPaintEvent *event)

@@ -61,10 +61,15 @@
     </property>
     <layout class="QHBoxLayout" name="uphorizontalLayout">
      <item>
-      <widget class="QComboBox" name="comboBox">
+      <widget class="QComboBox" name="modelPhaseComboBox">
        <item>
         <property name="text">
          <string>Static scheme</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Properties</string>
         </property>
        </item>
        <item>
@@ -156,13 +161,19 @@
    </property>
    <widget class="QMenu" name="menuMESOSOIC_Project_0_01">
     <property name="title">
-     <string>file</string>
+     <string>File</string>
     </property>
     <addaction name="actionsave"/>
     <addaction name="actionopen"/>
     <addaction name="actionsave_2"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+   </widget>
    <addaction name="menuMESOSOIC_Project_0_01"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionsave">

@@ -1,16 +1,19 @@
 #include "DeleteObjectDialog.h"
-#include "ui_DeleteObjectDialog.h"
 #include <QFile>
+#include "ui_DeleteObjectDialog.h"
 
 DeleteObjectDialog::DeleteObjectDialog(QWidget *parent)
-    : QDialog(parent), ui(new Ui::DeleteObjectDialog), currentOptionsWidget(nullptr), uiLoader(new QUiLoader(this))
+    : QDialog(parent)
+    , ui(new Ui::DeleteObjectDialog)
+    , currentOptionsWidget(nullptr)
+    , uiLoader(new QUiLoader(this))
 {
     ui->setupUi(this);
 
-    connect(ui->comboBoxObjectType, &QComboBox::currentTextChanged, this, &DeleteObjectDialog::onObjectTypeChanged);
-
-    // Initialize layout for the current type
-    updateLayoutForType(ui->comboBoxObjectType->currentText());
+    connect(ui->comboBoxObjectType,
+            &QComboBox::currentTextChanged,
+            this,
+            &DeleteObjectDialog::onObjectTypeChanged);
 
     // Connect dialog buttons
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -22,6 +25,15 @@ DeleteObjectDialog::~DeleteObjectDialog()
     delete ui;
 }
 
+void DeleteObjectDialog::initializeWithType(const QString &selectedType)
+{
+    if (!selectedType.isEmpty()) {
+        ui->comboBoxObjectType->setCurrentText(selectedType);
+        updateLayoutForType(selectedType); // Ensure layout is updated
+    } else {
+        updateLayoutForType(ui->comboBoxObjectType->currentText());
+    }
+}
 QString DeleteObjectDialog::getSelectedObjectType() const
 {
     return ui->comboBoxObjectType->currentText();
@@ -62,9 +74,11 @@ void DeleteObjectDialog::loadLayoutFromFile(const QString &fileName)
         ui->mainLayout->insertWidget(1, currentOptionsWidget); // Insert widget at position 1
 
         // Find and store pointers to the elements in the loaded layout
-        pointToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit*>("pointToDeleteLineEdit");
-        lineToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit*>("lineToDeleteLineEdit");
-        pointSupportToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit*>("pointSupportToDeleteLineEdit");
+        pointToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>(
+            "pointToDeleteLineEdit");
+        lineToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>("lineToDeleteLineEdit");
+        pointSupportToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>(
+            "pointSupportToDeleteLineEdit");
     }
 }
 
@@ -102,7 +116,6 @@ void DeleteObjectDialog::updateLayoutForType(const QString &type)
     onObjectTypeChanged(type);
 }
 
-
 void DeleteObjectDialog::moveToBottomLeft()
 {
     if (parentWidget()) {
@@ -110,6 +123,6 @@ void DeleteObjectDialog::moveToBottomLeft()
         auto hostRect = host->geometry();
         int x = hostRect.left();
         int y = hostRect.top() + 250;
-        move(x, y);
+        move(x + 5, y);
     }
 }

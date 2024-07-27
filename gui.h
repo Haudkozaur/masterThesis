@@ -2,12 +2,12 @@
 #define GUI_H
 
 #include <QMainWindow>
-#include <vector>
-#include <utility> // for std::pair
-#include "DataBasePointsManager.h"
 #include "DataBaseLinesManager.h"
-#include "DataBaseSupportsManager.h"
+#include "DataBasePointsManager.h"
 #include "DataBaseStarter.h"
+#include "DataBaseSupportsManager.h"
+#include <utility> // for std::pair
+#include <vector>
 
 namespace Ui {
 class Gui;
@@ -41,14 +41,10 @@ private slots:
     void on_clearButton_clicked();
     void on_editObjectButton_clicked();
 
-public slots:
-    void handleDeletion(const QString& type);
-
 private:
     Ui::Gui *ui;
 
-    QString selectedType;
-
+    // pointers to db managers used in gui
     DataBasePointsManager *dataBasePointsManager;
     DataBaseLinesManager *dataBaseLinesManager;
     DataBaseSupportsManager *dataBaseSupportsManager;
@@ -58,14 +54,18 @@ private:
     int zCoordinate;
     bool pointSet;
 
+    // to save edit and delete dialog state after accept
     QString lastSelectedType;
+    QString deleteLastSelectedType;
 
-    struct Point {
+    struct Point
+    {
         int x;
         int z;
         int id;
     };
-    struct Line {
+    struct Line
+    {
         int startX;
         int startZ;
         int endX;
@@ -73,7 +73,8 @@ private:
         int id; // Nowe pole id
     };
 
-    struct Boundary {
+    struct Boundary
+    {
         int pointId;
         bool ry;
         bool tz;
@@ -94,7 +95,14 @@ private:
     void paintLines(QPainter &painter);
     void paintSupports(QPainter &painter);
     void drawAxes(QPainter &painter);
-    void drawGrid(QPainter &painter, qreal leftX, qreal rightX, qreal topZ, qreal bottomZ, qreal step, qreal centerX, qreal centerZ);
+    void drawGrid(QPainter &painter,
+                  qreal leftX,
+                  qreal rightX,
+                  qreal topZ,
+                  qreal bottomZ,
+                  qreal step,
+                  qreal centerX,
+                  qreal centerZ);
 };
 
 #endif // GUI_H

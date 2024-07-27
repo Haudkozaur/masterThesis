@@ -33,6 +33,6 @@ void AddPointDialog::moveToBottomLeft()
         auto hostRect = host->geometry();
         int x = hostRect.left();
         int y = hostRect.top() + 250;
-        move(x, y);
+        move(x + 5, y);
     }
 }
