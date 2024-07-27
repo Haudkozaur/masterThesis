@@ -16,6 +16,7 @@ public:
 
     void addObjectToDataBase(int startPointID, int endPointID);
     void deleteObjectFromDataBase(int id);
+    void editLine(int id, int newStartPoint, int newEndPoint);
 
     double getLineLengthFromPoints(int startPointID, int endPointID);
     double getLineInclinationAngleFromPoints(int startPointID, int endPointID);

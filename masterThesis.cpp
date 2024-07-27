@@ -28,29 +28,28 @@ int main(int argc, char *argv[]) {
 
     dateBaseName = dateBaseName + ".db";
 
-    DataBaseStarter dateBaseStarter = DataBaseStarter(dateBaseName);
-    dateBaseStarter.startDateBase();
-    dateBaseStarter.createPointsTable();
-    dateBaseStarter.createLinesTable();
-    dateBaseStarter.createSurfacesTable();
-    dateBaseStarter.createMaterialsTable();
-    dateBaseStarter.createCrossSectionsTable();
-    dateBaseStarter.createSupportsTable();
-    dateBaseStarter.createNodalLoadsTable();
-    dateBaseStarter.createLineLoadsTable();
+    DataBaseStarter *dateBaseStarter = new DataBaseStarter(dateBaseName);
+    dateBaseStarter->startDateBase();
+    dateBaseStarter->createPointsTable();
+    dateBaseStarter->createLinesTable();
+    dateBaseStarter->createSurfacesTable();
+    dateBaseStarter->createMaterialsTable();
+    dateBaseStarter->createCrossSectionsTable();
+    dateBaseStarter->createSupportsTable();
+    dateBaseStarter->createNodalLoadsTable();
+    dateBaseStarter->createLineLoadsTable();
 
     QApplication app(argc, argv);
 
     // Tworzenie wskaŸników do mened¿erów baz danych
-    DataBasePointsManager *pointsManager = new DataBasePointsManager("mesosoic_test.db");
-    DataBaseLinesManager *linesManager = new DataBaseLinesManager("mesosoic_test.db");
-    DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager("mesosoic_test.db");
+    DataBasePointsManager *pointsManager = new DataBasePointsManager(dateBaseName);
+    DataBaseLinesManager *linesManager = new DataBaseLinesManager(dateBaseName);
+    DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dateBaseName);
 
     // Tworzenie obiektu Gui i przekazywanie wskaŸników
-    Gui mainWindow(pointsManager, linesManager, supportsManager);
+    Gui mainWindow(pointsManager, linesManager, supportsManager, dateBaseStarter);
     mainWindow.show();
 
-    // Wydanie zasobów przed zakoñczeniem programu
     int result = app.exec();
 
     delete pointsManager;

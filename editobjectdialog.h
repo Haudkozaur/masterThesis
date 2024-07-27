@@ -1,10 +1,12 @@
+// EditObjectDialog.h
 #ifndef EDITOBJECTDIALOG_H
 #define EDITOBJECTDIALOG_H
 
 #include <QDialog>
-#include <QComboBox>
-#include <QLineEdit>
+#include <QString>
 #include <QWidget>
+#include <QLineEdit>
+#include <QCheckBox>
 #include <QUiLoader>
 
 namespace Ui {
@@ -19,26 +21,39 @@ public:
     explicit EditObjectDialog(QWidget *parent = nullptr);
     ~EditObjectDialog();
 
+    void initializeWithType(const QString &selectedType);
     QString getSelectedObjectType() const;
-    int getPointId();
+    int getPointToEditId();
+    int getNewXCord();
+    int getNewZCord();
     int getLineId();
+    int getNewStartPoint();
+    int getNewEndPoint();
     int getSupportPointId();
+    bool getTz();
+    bool getTx();
+    bool getRy();
     void moveToBottomLeft();
-
-private slots:
-    void onObjectTypeChanged(const QString &type);
 
 private:
     Ui::EditObjectDialog *ui;
-    QWidget *currentOptionsWidget;
-
     QUiLoader *uiLoader;
+    QWidget *currentOptionsWidget;
+    QLineEdit *pointToEditLineEdit;
+    QLineEdit *xEditLineEdit;
+    QLineEdit *zEditLineEdit;
+    QLineEdit *lineToEditLineEdit;
+    QLineEdit *fEditLineEdit;
+    QLineEdit *eEditLineEdit;
+    QLineEdit *pointSupportToEditLineEdit;
+    QCheckBox *Tz;
+    QCheckBox *Tx;
+    QCheckBox *Ry;
 
+    void onObjectTypeChanged(const QString &type);
     void loadLayoutFromFile(const QString &fileName);
     void updateLayoutForType(const QString &type);
-    QLineEdit *pointToEditLineEdit;
-    QLineEdit *lineToEditLineEdit;
-    QLineEdit *pointSupportToEditLineEdit;
+
 };
 
 #endif // EDITOBJECTDIALOG_H

@@ -61,8 +61,16 @@ void DataBasePointsManager::iterateOverTable()
 
 void DataBasePointsManager::editPoint(int id, int XCoordinate, int ZCoordinate) {
 
+    // Check if the new point already exists
+    if (checkIfDuplicate(TableType::POINTS, make_tuple(XCoordinate, ZCoordinate, 0))) {
+        cout << "Error: "
+             << "Point already exists in DB" << endl;
+        return;
+    }
+
     string queryEditPoint = "UPDATE points SET x_cord = " + to_string(XCoordinate) + ", z_cord = " + to_string(ZCoordinate) + " WHERE id = " + to_string(id);
     executeAndCheckIfSQLOk(queryEditPoint, TableType::POINTS);
+    return;
 }
 
 std::map<int, std::pair<int, int>> DataBasePointsManager::getPointsMap() const

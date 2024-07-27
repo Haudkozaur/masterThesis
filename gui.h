@@ -7,7 +7,7 @@
 #include "DataBasePointsManager.h"
 #include "DataBaseLinesManager.h"
 #include "DataBaseSupportsManager.h"
-
+#include "DataBaseStarter.h"
 
 namespace Ui {
 class Gui;
@@ -21,6 +21,7 @@ public:
     explicit Gui(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
                  DataBaseSupportsManager *supportsManager,
+                 DataBaseStarter *starter,
                  QWidget *parent = nullptr);
     ~Gui();
 
@@ -35,23 +36,29 @@ private slots:
     void on_addPointButton_clicked();
     void on_addLineButton_clicked();
     void on_addSupportButton_clicked();
-
     void on_deleteObjectButton_clicked();
-
     void on_refreshButton_clicked();
-    void on_editObjectButton_clicked();
     void on_clearButton_clicked();
+    void on_editObjectButton_clicked();
+
+public slots:
+    void handleDeletion(const QString& type);
 
 private:
     Ui::Gui *ui;
 
+    QString selectedType;
+
     DataBasePointsManager *dataBasePointsManager;
     DataBaseLinesManager *dataBaseLinesManager;
     DataBaseSupportsManager *dataBaseSupportsManager;
+    DataBaseStarter *dataBaseStarter;
 
     int xCoordinate;
     int zCoordinate;
     bool pointSet;
+
+    QString lastSelectedType;
 
     struct Point {
         int x;

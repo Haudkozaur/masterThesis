@@ -1,11 +1,13 @@
 #include "gui.h"
 #include <QDebug>
 #include <QFont>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QWheelEvent>
 #include "DataBaseLinesManager.h"
 #include "DataBasePointsManager.h"
+#include "DataBaseStarter.h"
 #include "DataBaseSupportsManager.h"
 #include "addboundariesdialog.h"
 #include "addlinedialog.h"
@@ -19,6 +21,7 @@
 Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseLinesManager *linesManager,
          DataBaseSupportsManager *supportsManager,
+         DataBaseStarter *starter,
          QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Gui)
@@ -28,8 +31,11 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBasePointsManager(pointsManager)
     , dataBaseLinesManager(linesManager)
     , dataBaseSupportsManager(supportsManager)
+    , dataBaseStarter(starter)
     , scaleFactor(1.0)
     , isDragging(false)
+    , lastSelectedType("Points") // Initialize with a default value
+
 {
     ui->setupUi(this);
 
@@ -273,8 +279,10 @@ void Gui::on_deleteObjectButton_clicked()
                 dataBaseSupportsManager->deleteObjectFromDataBase(supportPointId);
 
                 // Odświeżamy dane po usunięciu
-                on_refreshButton_clicked();
+
             }
+            on_refreshButton_clicked();
+            Gui::on_deleteObjectButton_clicked();
         }
     });
 
@@ -284,10 +292,14 @@ void Gui::on_deleteObjectButton_clicked()
     // Pokazujemy dialog nienachalnie
     dialog->show();
 }
+
 void Gui::on_editObjectButton_clicked()
 {
     // Create an instance of the edit dialog
     EditObjectDialog *dialog = new EditObjectDialog(this);
+
+    // Initialize the dialog with the last selected type
+    dialog->initializeWithType(lastSelectedType);
 
     // Move the dialog to the bottom left of the main window
     dialog->moveToBottomLeft();
@@ -301,27 +313,37 @@ void Gui::on_editObjectButton_clicked()
 
         // Handle editing based on the selected type
         if (selectedType == "Points") {
-            int pointId = dialog->getPointId();
-            // Update the point in the database and refresh the UI
-            // dataBasePointsManager->updatePointInDataBase(pointId, newX, newZ); // Example function
+            int pointId = dialog->getPointToEditId();
+            int newX = dialog->getNewXCord();
+            int newZ = dialog->getNewZCord();
+            dataBasePointsManager->editPoint(pointId, newX, newZ);
         } else if (selectedType == "Lines") {
             int lineId = dialog->getLineId();
-            // Update the line in the database and refresh the UI
-            // dataBaseLinesManager->updateLineInDataBase(lineId, newStartId, newEndId); // Example function
+            int newStartPoint = dialog->getNewStartPoint();
+            int newEndPoint = dialog->getNewEndPoint();
+            dataBaseLinesManager->editLine(lineId, newStartPoint, newEndPoint);
         } else if (selectedType == "Supports") {
             int supportPointId = dialog->getSupportPointId();
-            // Update the support in the database and refresh the UI
-            // dataBaseSupportsManager->updateSupportInDataBase(supportPointId, newRx, newRy, newRz); // Example function
+            bool ry = dialog->getRy();
+            bool tx = dialog->getTx();
+            bool tz = dialog->getTz();
+            dataBaseSupportsManager->editSupport(supportPointId, ry, tx, tz);
         }
 
         // Refresh the UI
         on_refreshButton_clicked();
-    });
 
+        // Update the last selected type
+        lastSelectedType = selectedType;
+        Gui::on_editObjectButton_clicked();
+        // Reopen the dialog with the updated selected type
+
+    });
+    connect(dialog, &EditObjectDialog::rejected, dialog, &EditObjectDialog::deleteLater);
     // Show the dialog non-modally
     dialog->show();
-}
 
+}
 
 void Gui::paintEvent(QPaintEvent *event)
 {
@@ -393,9 +415,6 @@ void Gui::paintSupports(QPainter &painter)
         qreal x = point.first;
         qreal z = -point.second;
 
-        qDebug() << "Drawing support for pointId:" << pointId << " x:" << x << " z:" << z
-                 << " ry:" << boundary.ry << " tx:" << boundary.tx << " tz:" << boundary.tz;
-
         qreal eccentricity = 30; // Adjust as needed
 
         painter.setBrush(Qt::magenta);
@@ -446,6 +465,7 @@ void Gui::paintSupports(QPainter &painter)
         }
     }
 }
+
 void Gui::drawAxes(QPainter &painter)
 {
     // Save the current transformation
@@ -563,9 +583,26 @@ void Gui::mouseReleaseEvent(QMouseEvent *event)
 
 void Gui::on_clearButton_clicked()
 {
-    // QTC_TEMP
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this,
+                                  "Clear Data",
+                                  "This operation will lead to losing all data about the "
+                                  "structure. Are you sure you want to proceed?",
+                                  QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        // Clear all data from the database managers
+        dataBasePointsManager->dropTable(TableType::POINTS);
+        dataBaseLinesManager->dropTable(TableType::LINES);
+        dataBaseSupportsManager->dropTable(TableType::SUPPORTS);
+
+        dataBaseStarter->createPointsTable();
+        dataBaseStarter->createLinesTable();
+        dataBaseStarter->createSupportsTable();
+        // Refresh the UI to reflect changes
+        on_refreshButton_clicked();
+
+        qDebug() << "Data has been cleared.";
+    } else {
+        qDebug() << "Clear operation canceled.";
+    }
 }
-
-
-
-

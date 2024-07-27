@@ -20,7 +20,7 @@ public:
 
     virtual void iterateOverTable();
 
-    //virtual void editObjectInDataBase();
+    void dropTable(const TableType &tableName);
 
     bool validate(int id, const TableType& tableName);
     void executeAndCheckIfSQLOk(const string& query, TableType tableName);

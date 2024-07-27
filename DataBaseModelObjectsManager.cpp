@@ -17,6 +17,14 @@ void DataBaseModelObjectsManager::deleteObjectFromDataBase() {}
 
 void DataBaseModelObjectsManager::iterateOverTable() {}
 
+void DataBaseModelObjectsManager::dropTable(const TableType &tableName)
+{
+    string queryDropTable = "DROP TABLE " + tableTypesMap.at(tableName);
+    cout << "Clearing table " + tableTypesMap.at(tableName) << "\n";
+    executeAndCheckIfSQLOk(queryDropTable, tableName);
+
+}
+
 bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableName)
 {
     if (objectID == 0) {

@@ -19,6 +19,7 @@ public:
 
     void iterateOverTable();
 
+    void editSupport(int pointID, bool Rx, bool Tz, bool Tx);
     //getter of map
     map<int, tuple<int, bool, bool, bool>> getSupportsMap() const;
 

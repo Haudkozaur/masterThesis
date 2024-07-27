@@ -14,7 +14,8 @@ enum class TableType {
     MATERIALS,
     SUPPORTS,
     NODAL_LOADS,
-    LINE_LOADS
+    LINE_LOADS,
+    ALL
 };
 
 static map<TableType, string> tableTypesMap = {
@@ -25,7 +26,8 @@ static map<TableType, string> tableTypesMap = {
         {TableType::MATERIALS, "materials"},
         {TableType::SUPPORTS, "supports"},
         {TableType::NODAL_LOADS, "nodal_loads"},
-        {TableType::LINE_LOADS, "line_loads"}
+        {TableType::LINE_LOADS, "line_loads"},
+        {TableType::ALL, "all tables"}
 };
 
 #endif // TABLETYPE_H

@@ -64,6 +64,25 @@ void DataBaseSupportsManager::iterateOverTable() {
     }
 
 }
+
+void DataBaseSupportsManager::editSupport(int pointID, bool Ry, bool Tz, bool Tx) {
+
+
+    //validate if point exists
+    if (!validate(pointID, TableType::POINTS)) {
+        cout << "Error: " << "Point doesn't exist in DB" << endl;
+        return;}
+
+    // Edit the support
+    string queryEditSupport = "UPDATE " + tableTypesMap.at(TableType::SUPPORTS) + " SET ry = " + to_string(Ry)
+                              + ", tz = " + to_string(Tz)
+                              + ", tx = " + to_string(Tx)
+                              + " WHERE point_id = " + to_string(pointID);
+    executeAndCheckIfSQLOk(queryEditSupport, TableType::SUPPORTS);
+    cout << "\n";
+    return;
+}
+
 map<int, tuple<int, bool, bool, bool>> DataBaseSupportsManager::getSupportsMap() const {
     return supportsMap;
 }
