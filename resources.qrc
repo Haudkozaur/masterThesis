@@ -8,5 +8,8 @@
         <file>editsupportslayout.ui</file>
         <file>static_scheme_layout.ui</file>
         <file>properties_layout.ui</file>
+        <file>rectangularCrossSectionLayout.ui</file>
+        <file>generalCrossSectionLayout.ui</file>
+        <file>circularCrossSectionLayout.ui</file>
     </qresource>
 </RCC>

@@ -12,6 +12,7 @@
 #include "DataBaseSupportsManager.h"
 #include "DataBaseMaterialsManager.h"
 #include "DataBaseCrossSectionsManager.h"
+#include "CrossSectionsAssistant.h"
 #include <vector>
 
 namespace Ui {
@@ -29,6 +30,7 @@ public:
                  DataBaseMaterialsManager *materialsManager,
                  DataBaseCrossSectionsManager *crossSectionsManager,
                  DataBaseStarter *starter,
+                 CrossSectionsAssistant *crossSectionsAssistant,
                  QWidget *parent = nullptr);
     ~Gui();
 
@@ -63,7 +65,9 @@ public slots:
     void on_addCrossSectionButton_clicked();
     void on_openCrossSectionManagerButton();
     void on_setPropertiesButton_clicked();
+
 private:
+    std::map<int, std::string> materialsMap;
     Ui::Gui *ui;
 
     //to update leftverticallayout depending on the selected option
@@ -79,6 +83,7 @@ private:
     DataBaseMaterialsManager *dataBaseMaterialsManager;
     DataBaseCrossSectionsManager *dataBaseCrossSectionsManager;
     DataBaseStarter *dataBaseStarter;
+    CrossSectionsAssistant *crossSectionsAssistant;
 
     //using in drawing coordinates system
     int xCoordinate;
@@ -88,6 +93,7 @@ private:
     // To save edit and delete dialog state after accept
     QString lastSelectedType;
     QString deleteLastSelectedType;
+    QString csLastSelectedType;
 
     //manually added pointers to buttons in .ui files to update leftverticallayout
     QPushButton *layoutAddPointButton;

@@ -25,6 +25,9 @@ void DataBaseModelObjectsManager::dropTable(const TableType &tableName)
 
 }
 
+
+
+
 bool DataBaseModelObjectsManager::validate(int objectID, const TableType &tableName)
 {
     if (objectID == 0) {
@@ -93,6 +96,15 @@ bool DataBaseModelObjectsManager::checkIfDuplicate(TableType tableName,
     sqlite3_close(DB);
     sqlite3_finalize(stmt);
     return isDuplicate;
+}
+
+bool DataBaseModelObjectsManager::checkIfNotNull(string value)
+{
+    if (value.empty()) {
+        cout << "Value cannot be empty" << endl;
+        return false;
+    }
+    return true;
 }
 
 void DataBaseModelObjectsManager::executeAndCheckIfSQLOk(const string &query, TableType tableName)

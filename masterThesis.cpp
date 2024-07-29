@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
                                                      171.000000000000 * pow(10.0, -8));
     crossSectionsManager->addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
+    CrossSectionsAssistant *crossSectionsAssistant = new CrossSectionsAssistant();
     DataBasePointsManager *pointsManager = new DataBasePointsManager(dateBaseName);
     DataBaseLinesManager *linesManager = new DataBaseLinesManager(dateBaseName);
     DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dateBaseName);
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     //Creating GUI
     QApplication app(argc, argv);
 
-    Gui mainWindow(pointsManager, linesManager, supportsManager, materialsManager, crossSectionsManager, dateBaseStarter);
+    Gui mainWindow(pointsManager, linesManager, supportsManager, materialsManager, crossSectionsManager, dateBaseStarter, crossSectionsAssistant);
     mainWindow.show();
 
     int result = app.exec();
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
     delete supportsManager;
     delete materialsManager;
     delete crossSectionsManager;
+    delete crossSectionsAssistant;
 
 
     // cout << "Eigen learning" << "\n" << endl;

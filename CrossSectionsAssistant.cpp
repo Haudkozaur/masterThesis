@@ -3,7 +3,6 @@
 #include <iostream>
 
 //For rectangular cross-sections
-
 double CrossSectionsAssistant::calculateArea(int b, int h) {
     double area = b * h;
     area = area/1000000;

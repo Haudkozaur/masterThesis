@@ -11,11 +11,12 @@
 #include <QWheelEvent>
 #include <QXmlStreamReader>
 #include "addboundariesdialog.h"
+#include "addcrosssectiondialog.h"
 #include "addlinedialog.h"
+#include "addmaterialdialog.h"
 #include "addpointdialog.h"
 #include "deleteobjectdialog.h"
 #include "editobjectdialog.h"
-#include "addmaterialdialog.h"
 #include "ui_gui.h"
 #include <cmath>
 
@@ -25,6 +26,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseMaterialsManager *materialsManager,
          DataBaseCrossSectionsManager *crossSectionsManager,
          DataBaseStarter *starter,
+         CrossSectionsAssistant *crossSectionsAssistant,
          QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Gui)
@@ -34,6 +36,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseStarter(starter)
     , dataBaseMaterialsManager(materialsManager)
     , dataBaseCrossSectionsManager(crossSectionsManager)
+    , crossSectionsAssistant(crossSectionsAssistant)
     , xCoordinate(0)
     , zCoordinate(0)
     , scaleFactor(1.0)
@@ -44,7 +47,10 @@ Gui::Gui(DataBasePointsManager *pointsManager,
 
     // Calculate initial translation offset to center the origin
     translationOffset = QPoint(width() / 2, height() / 2);
-    connect(ui->modelPhaseComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
+    connect(ui->modelPhaseComboBox,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(onComboBoxIndexChanged(int)));
 
     // Setting background style for button containers
     QWidget *leftButtonContainer = ui->leftverticalLayout->parentWidget();
@@ -85,8 +91,10 @@ void Gui::on_addMaterialButton_clicked()
         double poissonCoefficient = dialog->getPoissonCoefficient();
         double density = dialog->getDensity();
 
-
-        dataBaseMaterialsManager->addObjectToDataBase(materialName, youngModulus*std::pow(10,9), poissonCoefficient, density);
+        dataBaseMaterialsManager->addObjectToDataBase(materialName,
+                                                      youngModulus * std::pow(10, 9),
+                                                      poissonCoefficient,
+                                                      density);
 
         dataBaseMaterialsManager->iterateOverTable();
 
@@ -97,8 +105,59 @@ void Gui::on_addMaterialButton_clicked()
     dialog->show();
 }
 void Gui::on_addCrossSectionButton_clicked()
-{
-    cout << "Cross section button clicked" << endl;
+{   qDebug() << "AddCrossSectionDialog opened";
+    // Create an instance of the edit dialog
+    AddCrossSectionDialog *dialog = new AddCrossSectionDialog(this);
+
+    dataBaseMaterialsManager->iterateOverTable();
+    dialog->setMaterials(dataBaseMaterialsManager->getMaterialsMap());
+    dialog->updateMaterialsList();
+
+    // Initialize the dialog with the last selected type
+    dialog->initializeWithType(csLastSelectedType);
+
+    // Move the dialog to the bottom left of the main window
+    dialog->moveToBottomLeft();
+
+    // Set the attribute to delete the dialog on close
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Handle user acceptance
+    connect(dialog, &AddCrossSectionDialog::accepted, this, [this, dialog]() {
+         qDebug() << "AddCrossSectionDialog accepted";
+        QString selectedType = dialog->getSelectedObjectType();
+
+        // Handle editing based on the selected type
+        int materialId = dialog->getMaterialId();
+        if (selectedType == "General") {
+            string name = dialog->getName();
+            double area = dialog->getArea();
+            double innertia = dialog->getInnertia();
+
+            dataBaseCrossSectionsManager->addObjectToDataBase(name, materialId, area, innertia);
+        } else if (selectedType == "Rectangular") {
+            string name = dialog->getNameForRect();
+            int height = dialog->getHeight();
+            int width = dialog->getWidth();
+            dataBaseCrossSectionsManager->addObjectToDataBase(name, materialId, crossSectionsAssistant->calculateArea(height, width), crossSectionsAssistant->calculateInertia(height, width));
+        } else if (selectedType == "Circular") {
+            string name = dialog->getNameForCirc();
+            int r = dialog ->getRadius();
+            dataBaseCrossSectionsManager->addObjectToDataBase(name, materialId, crossSectionsAssistant->calculateArea(r), crossSectionsAssistant->calculateInertia(r));
+        }
+
+        // Refresh the UI
+        on_refreshButton_clicked();
+
+        // Update the last selected type
+        csLastSelectedType = selectedType;
+        qDebug() << "Calling on_addCrossSectionButton_clicked() recursively";
+        //Gui::on_addCrossSectionButton_clicked();
+
+    });
+    connect(dialog, &AddCrossSectionDialog::rejected, dialog, &AddCrossSectionDialog::deleteLater);
+    // Show the dialog non-modally
+    dialog->show();
 }
 
 void Gui::on_openCrossSectionManagerButton()

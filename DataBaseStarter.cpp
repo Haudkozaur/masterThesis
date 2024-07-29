@@ -61,7 +61,7 @@ void DataBaseStarter::createSurfacesTable() {
 void DataBaseStarter::createMaterialsTable() {
     sqlite3_open(dataBaseNameAsChar, &DB);
     string queryToCreateMaterialsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::MATERIALS) +
-                                         " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, E REAL, v REAL, ro REAL)";
+                                         " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, E REAL, v REAL, ro REAL)";
     int rc = sqlite3_exec(DB,
                           queryToCreateMaterialsTable.c_str(),
                           nullptr, nullptr, &zErrMsg);

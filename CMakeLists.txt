@@ -65,6 +65,7 @@ add_executable(masterThesis
     resources.qrc
     editobjectdialog.h editobjectdialog.cpp editobjectdialog.ui
     addmaterialdialog.h addmaterialdialog.cpp addmaterialdialog.ui
+    addcrosssectiondialog.h addcrosssectiondialog.cpp addcrosssectiondialog.ui
 
 )
 

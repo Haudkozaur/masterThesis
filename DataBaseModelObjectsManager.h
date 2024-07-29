@@ -30,7 +30,7 @@ public:
     int getNumberOfObjectsInTable(TableType tableName);
     vector<vector<string>> executeQuery(const string& query); // Function to execute SELECT queries
     bool checkIfDuplicate(TableType tableName, const tuple<int, int, int> &properties);
-
+    bool checkIfNotNull(string value);
     //Variables
     string dateBaseName;
     const char *dateBaseNameAsChar;
