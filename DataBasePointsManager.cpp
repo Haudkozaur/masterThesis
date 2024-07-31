@@ -35,6 +35,8 @@ void DataBasePointsManager::deleteObjectFromDataBase(int id)
     cout << "\n";
     string queryDeleteSupport = "DELETE FROM supports WHERE point_id = " + to_string(id);
     executeAndCheckIfSQLOk(queryDeleteSupport, TableType::SUPPORTS);
+    string queryDeleteNodalLoad = "DELETE FROM nodal_loads WHERE point_id = " + to_string(id);
+    executeAndCheckIfSQLOk(queryDeleteNodalLoad, TableType::NODAL_LOADS);
 }
 void DataBasePointsManager::iterateOverTable()
 {

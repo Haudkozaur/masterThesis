@@ -232,7 +232,10 @@ void Gui::on_addPointAppliedForceButton_clicked()
         nodalLoads.clear();
 
         for (const auto &nodalLoad : dataBaseNodalLoadsManager->getNodalLoadsMap()) {
-            nodalLoads.push_back({std::get<0>(nodalLoad.second), std::get<1>(nodalLoad.second), std::get<2>(nodalLoad.second), std::get<3>(nodalLoad.second)});
+            nodalLoads.push_back({std::get<0>(nodalLoad.second),
+                                  std::get<1>(nodalLoad.second),
+                                  std::get<2>(nodalLoad.second),
+                                  std::get<3>(nodalLoad.second)});
         }
     });
     connect(dialog, &SetPropertiesDialog::rejected, dialog, &SetPropertiesDialog::deleteLater);
@@ -253,7 +256,7 @@ void Gui::on_addLineLoadButton_clicked()
         int lineId = dialog->getLineId();
         double Fx = dialog->getFx();
         double Fz = dialog->getFz();
-        dataBaseLineLoadsManager->addObjectToDataBase(lineId,Fx,Fz);
+        dataBaseLineLoadsManager->addObjectToDataBase(lineId, Fx, Fz);
         cout << "Line load added" << endl;
         Gui::on_refreshButton_clicked();
         Gui::on_addLineLoadButton_clicked();
@@ -261,7 +264,6 @@ void Gui::on_addLineLoadButton_clicked()
     connect(dialog, &AddLineLoadDialog::rejected, dialog, &AddLineLoadDialog::deleteLater);
     dialog->show();
 }
-
 
 void Gui::on_openLoadsManagerButton_clicked()
 {
@@ -541,6 +543,10 @@ void Gui::on_addLineButton_clicked()
             // Add the new line to the lines vector
             lines.push_back(
                 {startPoint.first, startPoint.second, endPoint.first, endPoint.second, newLineId});
+            cout << "startPoint.first: " << startPoint.first
+                 << " startPoint.second: " << startPoint.second
+                 << " endPoint.first: " << endPoint.first << " endPoint.second: " << endPoint.second
+                 << " newLineId: " << newLineId << endl;
         }
 
         // Update the UI
@@ -710,6 +716,7 @@ void Gui::on_refreshButton_clicked()
     dataBaseLinesManager->iterateOverTable();
     dataBaseSupportsManager->iterateOverTable();
     dataBaseLineLoadsManager->iterateOverTable();
+    dataBaseNodalLoadsManager->iterateOverTable();
 
     // Clear current points, lines, and boundaries
     points.clear();
@@ -750,12 +757,14 @@ void Gui::on_refreshButton_clicked()
 
     //Update nodal loads from the database manager
     for (const auto &nodalLoad : dataBaseNodalLoadsManager->getNodalLoadsMap()) {
-        nodalLoads.push_back({std::get<0>(nodalLoad.second), std::get<1>(nodalLoad.second), std::get<2>(nodalLoad.second), std::get<3>(nodalLoad.second)});
+        nodalLoads.push_back({std::get<0>(nodalLoad.second),
+                              std::get<1>(nodalLoad.second),
+                              std::get<2>(nodalLoad.second),
+                              std::get<3>(nodalLoad.second)});
 
-
-    // Update the widget to trigger a repaint
-    update();
-}
+        // Update the widget to trigger a repaint
+        update();
+    }
 }
 
 void Gui::on_clearButton_clicked()
@@ -993,15 +1002,13 @@ void Gui::drawGrid(QPainter &painter,
                          QPointF(rightX * scaleFactor + centerX, centerZ + z * scaleFactor));
     }
 }
-
 void Gui::drawLoads(QPainter &painter) {
     painter.setPen(QPen(Qt::red, 1));
 
     for (const auto &nodalLoad : nodalLoads) {
         int pointId = nodalLoad.pointId;
 
-        if (dataBasePointsManager->getPointsMap().find(pointId)
-            == dataBasePointsManager->getPointsMap().end()) {
+        if (dataBasePointsManager->getPointsMap().find(pointId) == dataBasePointsManager->getPointsMap().end()) {
             qDebug() << "Point ID not found in pointsMap: " << pointId;
             continue;
         }
@@ -1010,52 +1017,72 @@ void Gui::drawLoads(QPainter &painter) {
         qreal x = point.first;
         qreal z = -point.second;
 
-        qreal scale = 10; // Skala do rysowania strzałek
-        qreal eccentricity = 30; // Adjust as needed
+        qreal scale = 2; // Skala do rysowania strzałek, jeszcze bardziej zmniejszona
+        qreal minScale = 5; // Minimalna długość strzałki
+        qreal eccentricity = 15; // Adjust as needed
 
         painter.setBrush(Qt::magenta);
 
         // Rysowanie strzałki dla Fx
         if (nodalLoad.Fx != 0) {
-            qreal endX = x + scale * nodalLoad.Fx;
+            qreal length = qMax(scale * qAbs(nodalLoad.Fx), minScale);
+            qreal endX = x + length * (nodalLoad.Fx / qAbs(nodalLoad.Fx));
             painter.drawLine(QPointF(x, z), QPointF(endX, z));
             drawArrowHead(painter, QPointF(endX, z), QPointF(x, z));
+
+            // Dodanie wartości Fx
+            QString fxText = QString::number(nodalLoad.Fx, 'f', 2) + " kN";
+            painter.drawText(QPointF(endX + 5, z - 5), fxText);
         }
 
         // Rysowanie strzałki dla Fz
         if (nodalLoad.Fz != 0) {
-            qreal endZ = z - scale * nodalLoad.Fz;
+            qreal length = qMax(scale * qAbs(nodalLoad.Fz), minScale);
+            qreal endZ = z - length * (nodalLoad.Fz / qAbs(nodalLoad.Fz));
             painter.drawLine(QPointF(x, z), QPointF(x, endZ));
             drawArrowHead(painter, QPointF(x, endZ), QPointF(x, z));
+
+            // Dodanie wartości Fz
+            QString fzText = QString::number(nodalLoad.Fz, 'f', 2) + " kN";
+            painter.drawText(QPointF(x + 5, endZ - 5), fzText);
         }
 
         // Rysowanie półkółka ze strzałką dla My
         if (nodalLoad.My != 0) {
-            // Save the current painter state
             painter.save();
 
-            // Translate to the point (x, z)
             painter.translate(QPointF(x, z));
 
-            // Set the rotation direction based on the sign of My
-            qreal rotationAngle = (nodalLoad.My > 0) ? 180 : -180;
+            qreal rotationAngle = (nodalLoad.My > 0) ? 0 : 180;
             painter.rotate(rotationAngle);
 
-            // Draw the arc
             QRectF rect(-eccentricity, -eccentricity, 2 * eccentricity, 2 * eccentricity);
             int startAngle = 0 * 16;
             int spanAngle = 180 * 16;
             painter.drawArc(rect, startAngle, spanAngle);
 
-            // Draw the arrowhead
+            // Grot strzałki skierowany w stronę końca łuku
             qreal arrowHeadLength = 10;
-            QPointF arrowP1 = QPointF(arrowHeadLength, -arrowHeadLength / 2);
-            QPointF arrowP2 = QPointF(arrowHeadLength, arrowHeadLength / 2);
-            painter.drawLine(QPointF(0, 0), arrowP1);
-            painter.drawLine(QPointF(0, 0), arrowP2);
+            QPointF arrowBase, arrowP1, arrowP2;
+            if (nodalLoad.My < 0) {
+                arrowBase = QPointF(eccentricity, 0);  // Koniec półkola po lewej
+                arrowP1 = arrowBase + QPointF((arrowHeadLength)/ 2, arrowHeadLength);
+                arrowP2 = arrowBase + QPointF((-arrowHeadLength-10)/ 2, arrowHeadLength);
+            } else {
+                arrowBase = QPointF(-eccentricity, 0);  // Koniec półkola po prawej
+                arrowP1 = arrowBase + QPointF((arrowHeadLength+10) / 2, arrowHeadLength);
+                arrowP2 = arrowBase + QPointF((-arrowHeadLength)/ 2, arrowHeadLength);
+            }
 
-            // Restore the painter state
+            painter.rotate(180);
+            painter.drawLine(arrowBase, arrowP1);
+            painter.drawLine(arrowBase, arrowP2);
+
             painter.restore();
+
+            // Dodanie wartości My
+            QString myText = QString::number(nodalLoad.My, 'f', 2) + " kNm";
+            painter.drawText(QPointF(x - eccentricity - 70, z -10 ), myText);
         }
     }
 }
@@ -1073,8 +1100,6 @@ void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &
     painter.drawLine(start, arrowP1);
     painter.drawLine(start, arrowP2);
 }
-
-
 
 
 

@@ -12,7 +12,8 @@ DataBaseLinesManager::DataBaseLinesManager(const string &dateBaseName)
 void DataBaseLinesManager::addObjectToDataBase(int startPointID, int endPointID)
 {
     //check if there is no duplicated lines in db
-    if (checkIfDuplicate(TableType::LINES, make_tuple(startPointID, endPointID, 0))) {
+    if (checkIfDuplicate(TableType::LINES, make_tuple(startPointID, endPointID, 0))
+        || checkIfDuplicate(TableType::LINES, make_tuple(endPointID, startPointID, 0))) {
         cout << "Error: "
              << "Line already exists in DB" << endl;
         return;
