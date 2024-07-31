@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddLineDialog</class>
- <widget class="QDialog" name="AddLineDialog">
+ <class>AddPointAppliedForce</class>
+ <widget class="QDialog" name="AddPointAppliedForce">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>250</width>
-    <height>192</height>
+    <height>206</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Add Line</string>
+   <string>Add Nodal Load</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>140</y>
+     <y>170</y>
      <width>171</width>
      <height>32</height>
     </rect>
@@ -35,35 +35,24 @@
      <x>10</x>
      <y>10</y>
      <width>233</width>
-     <height>121</height>
+     <height>144</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>Enter the IDs of the points to define the line.</string>
+       <string>Enter the ID of point and loads::</string>
       </property>
      </widget>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="FxLineEdit"/>
+      </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="sPointLineEdit">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>second point ID</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="fPointLineEdit">
+       <widget class="QLineEdit" name="FzLineEdit">
         <property name="text">
          <string/>
         </property>
@@ -72,7 +61,38 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>first point ID</string>
+         <string>Point ID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="pointIdLoadLineEdit">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Fz</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="MyLineEdit"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Fx</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>My</string>
         </property>
        </widget>
       </item>
@@ -86,7 +106,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddLineDialog</receiver>
+   <receiver>AddPointAppliedForce</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -102,7 +122,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddLineDialog</receiver>
+   <receiver>AddPointAppliedForce</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

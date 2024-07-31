@@ -13,10 +13,13 @@
 #include "addboundariesdialog.h"
 #include "addcrosssectiondialog.h"
 #include "addlinedialog.h"
+#include "addlineloaddialog.h"
 #include "addmaterialdialog.h"
+#include "addpointappliedforce.h"
 #include "addpointdialog.h"
 #include "deleteobjectdialog.h"
 #include "editobjectdialog.h"
+#include "setpropertiesdialog.h"
 #include "ui_gui.h"
 #include <cmath>
 
@@ -26,6 +29,8 @@ Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseMaterialsManager *materialsManager,
          DataBaseCrossSectionsManager *crossSectionsManager,
          DataBaseStarter *starter,
+         DataBaseNodalLoadsManager *nodalLoadsManager,
+         DataBaseLineLoadsManager *lineLoadsManager,
          CrossSectionsAssistant *crossSectionsAssistant,
          QWidget *parent)
     : QMainWindow(parent)
@@ -36,6 +41,8 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseStarter(starter)
     , dataBaseMaterialsManager(materialsManager)
     , dataBaseCrossSectionsManager(crossSectionsManager)
+    , dataBaseNodalLoadsManager(nodalLoadsManager)
+    , dataBaseLineLoadsManager(lineLoadsManager)
     , crossSectionsAssistant(crossSectionsAssistant)
     , xCoordinate(0)
     , zCoordinate(0)
@@ -105,7 +112,8 @@ void Gui::on_addMaterialButton_clicked()
     dialog->show();
 }
 void Gui::on_addCrossSectionButton_clicked()
-{   qDebug() << "AddCrossSectionDialog opened";
+{
+    qDebug() << "AddCrossSectionDialog opened";
     // Create an instance of the edit dialog
     AddCrossSectionDialog *dialog = new AddCrossSectionDialog(this);
 
@@ -124,7 +132,7 @@ void Gui::on_addCrossSectionButton_clicked()
 
     // Handle user acceptance
     connect(dialog, &AddCrossSectionDialog::accepted, this, [this, dialog]() {
-         qDebug() << "AddCrossSectionDialog accepted";
+        qDebug() << "AddCrossSectionDialog accepted";
         QString selectedType = dialog->getSelectedObjectType();
 
         // Handle editing based on the selected type
@@ -139,11 +147,19 @@ void Gui::on_addCrossSectionButton_clicked()
             string name = dialog->getNameForRect();
             int height = dialog->getHeight();
             int width = dialog->getWidth();
-            dataBaseCrossSectionsManager->addObjectToDataBase(name, materialId, crossSectionsAssistant->calculateArea(height, width), crossSectionsAssistant->calculateInertia(height, width));
+            dataBaseCrossSectionsManager
+                ->addObjectToDataBase(name,
+                                      materialId,
+                                      crossSectionsAssistant->calculateArea(height, width),
+                                      crossSectionsAssistant->calculateInertia(height, width));
         } else if (selectedType == "Circular") {
             string name = dialog->getNameForCirc();
-            int r = dialog ->getRadius();
-            dataBaseCrossSectionsManager->addObjectToDataBase(name, materialId, crossSectionsAssistant->calculateArea(r), crossSectionsAssistant->calculateInertia(r));
+            int r = dialog->getRadius();
+            dataBaseCrossSectionsManager
+                ->addObjectToDataBase(name,
+                                      materialId,
+                                      crossSectionsAssistant->calculateArea(r),
+                                      crossSectionsAssistant->calculateInertia(r));
         }
 
         // Refresh the UI
@@ -153,7 +169,6 @@ void Gui::on_addCrossSectionButton_clicked()
         csLastSelectedType = selectedType;
         qDebug() << "Calling on_addCrossSectionButton_clicked() recursively";
         //Gui::on_addCrossSectionButton_clicked();
-
     });
     connect(dialog, &AddCrossSectionDialog::rejected, dialog, &AddCrossSectionDialog::deleteLater);
     // Show the dialog non-modally
@@ -166,8 +181,93 @@ void Gui::on_openCrossSectionManagerButton()
 }
 void Gui::on_setPropertiesButton_clicked()
 {
+    SetPropertiesDialog *dialog = new SetPropertiesDialog(this);
+
+    dataBaseCrossSectionsManager->iterateOverTable();
+    dialog->setCrossSections(dataBaseCrossSectionsManager->getCrossSectionsMap());
+    dialog->updateCrossSectionsList();
+    dialog->initializeWithType(setPropLastSelectedType);
+
+    dialog->moveToBottomLeft();
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    connect(dialog, &SetPropertiesDialog::accepted, this, [this, dialog]() {
+        QString selectedType = dialog->getSelectedObjectType();
+        int lineId = dialog->getLineId();
+        int crossSectionId = dialog->getCrossSectionId();
+        dataBaseLinesManager->editLine(lineId, crossSectionId);
+
+        on_refreshButton_clicked();
+        setPropLastSelectedType = selectedType;
+        Gui::on_setPropertiesButton_clicked();
+    });
+
+    connect(dialog, &SetPropertiesDialog::rejected, dialog, &SetPropertiesDialog::deleteLater);
+    dialog->show();
+
     cout << "Properties button clicked" << endl;
 }
+
+void Gui::on_addPointAppliedForceButton_clicked()
+{
+    cout << "Point force button clicked" << endl;
+    AddPointAppliedForce *dialog = new AddPointAppliedForce(this);
+
+    dialog->moveToBottomLeft();
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    connect(dialog, &AddPointAppliedForce::accepted, this, [this, dialog]() {
+        int pointId = dialog->getPointId();
+        double Fx = dialog->getFx();
+        double Fz = dialog->getFz();
+        double My = dialog->getMy();
+        dataBaseNodalLoadsManager->addObjectToDataBase(pointId, My, Fz, Fx);
+
+        Gui::on_refreshButton_clicked();
+        Gui::on_addPointAppliedForceButton_clicked();
+
+        dataBaseNodalLoadsManager->iterateOverTable();
+        nodalLoads.clear();
+
+        for (const auto &nodalLoad : dataBaseNodalLoadsManager->getNodalLoadsMap()) {
+            nodalLoads.push_back({std::get<0>(nodalLoad.second), std::get<1>(nodalLoad.second), std::get<2>(nodalLoad.second), std::get<3>(nodalLoad.second)});
+        }
+    });
+    connect(dialog, &SetPropertiesDialog::rejected, dialog, &SetPropertiesDialog::deleteLater);
+    dialog->show();
+}
+
+void Gui::on_addLineLoadButton_clicked()
+{
+    cout << "Line load button clicked" << endl;
+
+    AddLineLoadDialog *dialog = new AddLineLoadDialog(this);
+
+    dialog->moveToBottomLeft();
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    connect(dialog, &AddLineLoadDialog::accepted, this, [this, dialog]() {
+        int lineId = dialog->getLineId();
+        double Fx = dialog->getFx();
+        double Fz = dialog->getFz();
+        dataBaseLineLoadsManager->addObjectToDataBase(lineId,Fx,Fz);
+        cout << "Line load added" << endl;
+        Gui::on_refreshButton_clicked();
+        Gui::on_addLineLoadButton_clicked();
+    });
+    connect(dialog, &AddLineLoadDialog::rejected, dialog, &AddLineLoadDialog::deleteLater);
+    dialog->show();
+}
+
+
+void Gui::on_openLoadsManagerButton_clicked()
+{
+    cout << "Loads manager button clicked" << endl;
+}
+
 void Gui::onComboBoxIndexChanged(int index)
 {
     switch (index) {
@@ -176,6 +276,9 @@ void Gui::onComboBoxIndexChanged(int index)
         break;
     case 1:
         loadPropertiesLayout();
+        break;
+    case 2:
+        loadLoadsLayout();
         break;
     default:
         break;
@@ -253,7 +356,36 @@ void Gui::loadStaticSchemeLayout()
         qWarning() << "Button 'layoutAddSupportButton' not found!";
     }
 }
+void Gui::loadLoadsLayout()
+{
+    loadLayoutFromFile(":/ui/loads_layout.ui");
 
+    // Znajdź przycisk w załadowanym layoutcie
+    addPointAppliedForceButton = findChild<QPushButton *>("addPointAppliedForceButton");
+    if (addPointAppliedForceButton) {
+        connect(addPointAppliedForceButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_addPointAppliedForceButton_clicked);
+    } else {
+        qWarning() << "Button 'addPointAppliedForceButton' not found!";
+    }
+    addLineLoadButton = findChild<QPushButton *>("addLineLoadButton");
+    if (addLineLoadButton) {
+        connect(addLineLoadButton, &QPushButton::clicked, this, &Gui::on_addLineLoadButton_clicked);
+    } else {
+        qWarning() << "Button 'addLineLoadButton' not found!";
+    }
+    openLoadsManagerButton = findChild<QPushButton *>("openLoadsManagerButton");
+    if (openLoadsManagerButton) {
+        connect(openLoadsManagerButton,
+                &QPushButton::clicked,
+                this,
+                &Gui::on_openLoadsManagerButton_clicked);
+    } else {
+        qWarning() << "Button 'openLoadsManagerButton' not found!";
+    }
+}
 void Gui::loadLayoutFromFile(const QString &fileName)
 {
     QFile file(fileName);
@@ -555,7 +687,7 @@ void Gui::on_editObjectButton_clicked()
             bool ry = dialog->getRy();
             bool tx = dialog->getTx();
             bool tz = dialog->getTz();
-            dataBaseSupportsManager->editSupport(supportPointId, ry, tx, tz);
+            dataBaseSupportsManager->editSupport(supportPointId, ry, tz, tx);
         }
 
         // Refresh the UI
@@ -577,11 +709,13 @@ void Gui::on_refreshButton_clicked()
     dataBasePointsManager->iterateOverTable();
     dataBaseLinesManager->iterateOverTable();
     dataBaseSupportsManager->iterateOverTable();
+    dataBaseLineLoadsManager->iterateOverTable();
 
     // Clear current points, lines, and boundaries
     points.clear();
     lines.clear();
     boundaries.clear();
+    nodalLoads.clear();
 
     // Update points from the database manager
     for (const auto &point : dataBasePointsManager->getPointsMap()) {
@@ -614,8 +748,14 @@ void Gui::on_refreshButton_clicked()
         boundaries.push_back({pointId, ry, tx, tz});
     }
 
+    //Update nodal loads from the database manager
+    for (const auto &nodalLoad : dataBaseNodalLoadsManager->getNodalLoadsMap()) {
+        nodalLoads.push_back({std::get<0>(nodalLoad.second), std::get<1>(nodalLoad.second), std::get<2>(nodalLoad.second), std::get<3>(nodalLoad.second)});
+
+
     // Update the widget to trigger a repaint
     update();
+}
 }
 
 void Gui::on_clearButton_clicked()
@@ -631,10 +771,19 @@ void Gui::on_clearButton_clicked()
         dataBasePointsManager->dropTable(TableType::POINTS);
         dataBaseLinesManager->dropTable(TableType::LINES);
         dataBaseSupportsManager->dropTable(TableType::SUPPORTS);
+        dataBaseMaterialsManager->dropTable(TableType::MATERIALS);
+        dataBaseCrossSectionsManager->dropTable(TableType::CROSS_SECTIONS);
+        dataBaseNodalLoadsManager->dropTable(TableType::NODAL_LOADS);
+        dataBaseLineLoadsManager->dropTable(TableType::LINE_LOADS);
 
         dataBaseStarter->createPointsTable();
         dataBaseStarter->createLinesTable();
         dataBaseStarter->createSupportsTable();
+        dataBaseStarter->createMaterialsTable();
+        dataBaseStarter->createCrossSectionsTable();
+        dataBaseStarter->createNodalLoadsTable();
+        dataBaseStarter->createLineLoadsTable();
+
         // Refresh the UI to reflect changes
         on_refreshButton_clicked();
 
@@ -663,6 +812,7 @@ void Gui::paintEvent(QPaintEvent *event)
     paintLines(painter);
     paintPoints(painter);
     paintSupports(painter);
+    drawLoads(painter);
 }
 void Gui::paintPoints(QPainter &painter)
 {
@@ -843,6 +993,90 @@ void Gui::drawGrid(QPainter &painter,
                          QPointF(rightX * scaleFactor + centerX, centerZ + z * scaleFactor));
     }
 }
+
+void Gui::drawLoads(QPainter &painter) {
+    painter.setPen(QPen(Qt::red, 1));
+
+    for (const auto &nodalLoad : nodalLoads) {
+        int pointId = nodalLoad.pointId;
+
+        if (dataBasePointsManager->getPointsMap().find(pointId)
+            == dataBasePointsManager->getPointsMap().end()) {
+            qDebug() << "Point ID not found in pointsMap: " << pointId;
+            continue;
+        }
+
+        auto point = dataBasePointsManager->getPointsMap()[pointId];
+        qreal x = point.first;
+        qreal z = -point.second;
+
+        qreal scale = 10; // Skala do rysowania strzałek
+        qreal eccentricity = 30; // Adjust as needed
+
+        painter.setBrush(Qt::magenta);
+
+        // Rysowanie strzałki dla Fx
+        if (nodalLoad.Fx != 0) {
+            qreal endX = x + scale * nodalLoad.Fx;
+            painter.drawLine(QPointF(x, z), QPointF(endX, z));
+            drawArrowHead(painter, QPointF(endX, z), QPointF(x, z));
+        }
+
+        // Rysowanie strzałki dla Fz
+        if (nodalLoad.Fz != 0) {
+            qreal endZ = z - scale * nodalLoad.Fz;
+            painter.drawLine(QPointF(x, z), QPointF(x, endZ));
+            drawArrowHead(painter, QPointF(x, endZ), QPointF(x, z));
+        }
+
+        // Rysowanie półkółka ze strzałką dla My
+        if (nodalLoad.My != 0) {
+            // Save the current painter state
+            painter.save();
+
+            // Translate to the point (x, z)
+            painter.translate(QPointF(x, z));
+
+            // Set the rotation direction based on the sign of My
+            qreal rotationAngle = (nodalLoad.My > 0) ? 180 : -180;
+            painter.rotate(rotationAngle);
+
+            // Draw the arc
+            QRectF rect(-eccentricity, -eccentricity, 2 * eccentricity, 2 * eccentricity);
+            int startAngle = 0 * 16;
+            int spanAngle = 180 * 16;
+            painter.drawArc(rect, startAngle, spanAngle);
+
+            // Draw the arrowhead
+            qreal arrowHeadLength = 10;
+            QPointF arrowP1 = QPointF(arrowHeadLength, -arrowHeadLength / 2);
+            QPointF arrowP2 = QPointF(arrowHeadLength, arrowHeadLength / 2);
+            painter.drawLine(QPointF(0, 0), arrowP1);
+            painter.drawLine(QPointF(0, 0), arrowP2);
+
+            // Restore the painter state
+            painter.restore();
+        }
+    }
+}
+
+void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end) {
+    QLineF line(start, end);
+    double angle = std::atan2(-line.dy(), line.dx());
+
+    double arrowSize = 10;
+    QPointF arrowP1 = start + QPointF(sin(angle + M_PI / 3) * arrowSize,
+                                      cos(angle + M_PI / 3) * arrowSize);
+    QPointF arrowP2 = start + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
+                                      cos(angle + M_PI - M_PI / 3) * arrowSize);
+
+    painter.drawLine(start, arrowP1);
+    painter.drawLine(start, arrowP2);
+}
+
+
+
+
 
 void Gui::wheelEvent(QWheelEvent *event)
 {

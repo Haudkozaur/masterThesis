@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>317</width>
-    <height>302</height>
+    <width>691</width>
+    <height>438</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
+     <x>0</x>
+     <y>0</y>
      <width>215</width>
-     <height>181</height>
+     <height>141</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -34,15 +34,25 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="csRadiusLineEdit"/>
+        </item>
+        <item row="1" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>R [cm]</string>
+           <string>R [mm]</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="csRadiusLineEdit"/>
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Name</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

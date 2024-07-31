@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddLineDialog</class>
- <widget class="QDialog" name="AddLineDialog">
+ <class>AddLineLoadDialog</class>
+ <widget class="QDialog" name="AddLineLoadDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>250</width>
-    <height>192</height>
+    <height>167</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Add Line</string>
+   <string>Dialog</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>140</y>
+     <y>130</y>
      <width>171</width>
      <height>32</height>
     </rect>
@@ -35,44 +35,54 @@
      <x>10</x>
      <y>10</y>
      <width>233</width>
-     <height>121</height>
+     <height>113</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>Enter the IDs of the points to define the line.</string>
+       <string>Enter the ID of of line and loads:</string>
       </property>
      </widget>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="sPointLineEdit">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>second point ID</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="fPointLineEdit">
-        <property name="text">
-         <string/>
+         <string>Fz</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>first point ID</string>
+         <string>Line ID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineFzLineEdit">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineIdLoadLineEdit">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineFxLineEdit"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Fx</string>
         </property>
        </widget>
       </item>
@@ -86,7 +96,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddLineDialog</receiver>
+   <receiver>AddLineLoadDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -102,7 +112,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddLineDialog</receiver>
+   <receiver>AddLineLoadDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

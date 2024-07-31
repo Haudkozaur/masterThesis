@@ -14,7 +14,10 @@ public:
     explicit DataBaseCrossSectionsManager(const string& dateBaseName);
 
     void addObjectToDataBase(const string &name, int materialID, double A, double I);
+    void iterateOverTable();
 
+    std::map<int, std::string> crossSectionsMap;
+    std::map<int, std::string> getCrossSectionsMap() const;
 };
 
 

@@ -9,6 +9,12 @@ public:
 
     void addObjectToDataBase(int pointID, double My, double Fz, double Fx);
     void deleteObjectFromDataBase(int id);
+
+    void iterateOverTable();
+
+    std::map<int, std::tuple<int, double, double, double>> getNodalLoadsMap();
+    std::map<int, std::tuple<int, double, double, double>> nodalLoadsMap;
+
 };
 
 

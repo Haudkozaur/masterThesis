@@ -76,7 +76,7 @@ void DataBaseStarter::createCrossSectionsTable() {
     sqlite3_open(dataBaseNameAsChar, &DB);
     string queryToCreateCrossSectionsTable =
             "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::CROSS_SECTIONS) +
-            " (id INTEGER PRIMARY KEY AUTOINCREMENT, material_id INTEGER, name TEXT, A REAL, I REAL, FOREIGN KEY (material_id) REFERENCES materials(id))";
+            " (id INTEGER PRIMARY KEY AUTOINCREMENT, material_id INTEGER, name TEXT UNIQUE, A REAL, I REAL, FOREIGN KEY (material_id) REFERENCES materials(id))";
     int rc = sqlite3_exec(DB,
                           queryToCreateCrossSectionsTable.c_str(),
                           nullptr, nullptr, &zErrMsg);

@@ -11,5 +11,6 @@
         <file>rectangularCrossSectionLayout.ui</file>
         <file>generalCrossSectionLayout.ui</file>
         <file>circularCrossSectionLayout.ui</file>
+        <file>loads_layout.ui</file>
     </qresource>
 </RCC>

@@ -30,8 +30,17 @@
    </item>
    <item>
     <widget class="QPushButton" name="openCrossSectionManagerButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>Open Cross Section Manager</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <property name="autoRepeat">
+      <bool>false</bool>
      </property>
     </widget>
    </item>

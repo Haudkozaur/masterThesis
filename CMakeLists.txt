@@ -66,6 +66,9 @@ add_executable(masterThesis
     editobjectdialog.h editobjectdialog.cpp editobjectdialog.ui
     addmaterialdialog.h addmaterialdialog.cpp addmaterialdialog.ui
     addcrosssectiondialog.h addcrosssectiondialog.cpp addcrosssectiondialog.ui
+    setpropertiesdialog.h setpropertiesdialog.cpp setpropertiesdialog.ui
+    addpointappliedforce.h addpointappliedforce.cpp addpointappliedforce.ui
+    addlineloaddialog.h addlineloaddialog.cpp addlineloaddialog.ui
 
 )
 

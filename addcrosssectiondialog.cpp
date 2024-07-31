@@ -104,8 +104,10 @@ void AddCrossSectionDialog::loadLayoutFromFile(const QString &fileName)
 
         csHeightLineEdit = currentOptionsWidget->findChild<QLineEdit *>("csHeightLineEdit");
         csWidthtLineEdit = currentOptionsWidget->findChild<QLineEdit *>("csWidthtLineEdit");
+        csRNameLineEdit = currentOptionsWidget->findChild<QLineEdit *>("csRNameLineEdit");
 
         csRadiusLineEdit = currentOptionsWidget->findChild<QLineEdit *>("csRadiusLineEdit");
+        csCNameLineEdit = currentOptionsWidget->findChild<QLineEdit *>("csCNameLineEdit");
     }
 }
 

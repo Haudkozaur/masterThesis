@@ -28,3 +28,25 @@ void DataBaseCrossSectionsManager::addObjectToDataBase(const string &name, int m
 
 }
 
+void DataBaseCrossSectionsManager::iterateOverTable()
+{
+    std::string querySelectAll = "SELECT id, name, material_id FROM " + tableTypesMap.at(TableType::CROSS_SECTIONS);
+    std::vector<std::vector<string>> results = executeQuery(querySelectAll);
+
+    crossSectionsMap.clear(); // Clear the map before populating it
+
+    for (const auto &row : results) {
+        if (row.size() == 3) {
+            int id = stoi(row[0]);
+            string name = row[1];
+            int materialID = stoi(row[2]);
+            crossSectionsMap[id] = name;
+        }
+    }
+
+}
+
+std::map<int, string> DataBaseCrossSectionsManager::getCrossSectionsMap() const
+{
+    return crossSectionsMap;
+}

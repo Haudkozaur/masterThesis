@@ -52,7 +52,6 @@ void DataBaseLinesManager::deleteObjectFromDataBase(int id)
 
 void DataBaseLinesManager::editLine(int id, int newStartPoint, int newEndPoint)
 {
-
     // Check if the new start and end points exist
     if (!validate(newStartPoint, TableType::POINTS) || !validate(newEndPoint, TableType::POINTS)) {
         cout << "Error: "
@@ -69,8 +68,29 @@ void DataBaseLinesManager::editLine(int id, int newStartPoint, int newEndPoint)
 
     // Edit the line
     string queryEditLine = "UPDATE lines SET start_point = " + to_string(newStartPoint)
-                    + ", end_point = " + to_string(newEndPoint)
-                    + " WHERE id = " + to_string(id);
+                           + ", end_point = " + to_string(newEndPoint)
+                           + " WHERE id = " + to_string(id);
+    executeAndCheckIfSQLOk(queryEditLine, TableType::LINES);
+    cout << "\n";
+    return;
+}
+void DataBaseLinesManager::editLine(int id, int crossSectionId)
+{
+    //debug
+    cout << "setting Cross section idas : " << crossSectionId << "for line: " << id << endl;
+
+    if (!validate(crossSectionId, TableType::CROSS_SECTIONS)) {
+        cout << "Error: "
+             << "Cross section doesn't exist in DB" << endl;
+        return;
+    }
+    if (!validate(id, TableType::LINES)) {
+        cout << "Error: "
+             << "Line doesn't exist in DB" << endl;
+    }
+    // Edit the line
+    string queryEditLine = "UPDATE lines SET cross_section_id = " + to_string(crossSectionId)
+                           + " WHERE id = " + to_string(id);
     executeAndCheckIfSQLOk(queryEditLine, TableType::LINES);
     cout << "\n";
     return;

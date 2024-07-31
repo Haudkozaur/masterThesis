@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>317</width>
-    <height>302</height>
+    <width>736</width>
+    <height>412</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>201</width>
-     <height>261</height>
+     <height>141</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -40,14 +40,14 @@
         <item row="0" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>name</string>
+           <string>Name</string>
           </property>
          </widget>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>A</string>
+           <string>A [m^2]</string>
           </property>
          </widget>
         </item>
@@ -60,7 +60,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>I</string>
+           <string>I [m^4]</string>
           </property>
          </widget>
         </item>

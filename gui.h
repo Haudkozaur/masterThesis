@@ -12,6 +12,8 @@
 #include "DataBaseSupportsManager.h"
 #include "DataBaseMaterialsManager.h"
 #include "DataBaseCrossSectionsManager.h"
+#include "DataBaseNodalLoadsManager.h"
+#include "DataBaseLineLoadsManager.h"
 #include "CrossSectionsAssistant.h"
 #include <vector>
 
@@ -30,6 +32,8 @@ public:
                  DataBaseMaterialsManager *materialsManager,
                  DataBaseCrossSectionsManager *crossSectionsManager,
                  DataBaseStarter *starter,
+                 DataBaseNodalLoadsManager *nodalLoadsManager,
+                 DataBaseLineLoadsManager *lineLoadsManager,
                  CrossSectionsAssistant *crossSectionsAssistant,
                  QWidget *parent = nullptr);
     ~Gui();
@@ -66,6 +70,10 @@ public slots:
     void on_openCrossSectionManagerButton();
     void on_setPropertiesButton_clicked();
 
+    void on_addPointAppliedForceButton_clicked();
+    void on_addLineLoadButton_clicked();
+    void on_openLoadsManagerButton_clicked();
+
 private:
     std::map<int, std::string> materialsMap;
     Ui::Gui *ui;
@@ -75,6 +83,7 @@ private:
     void clearLayout(QLayout *layout);
     void loadStaticSchemeLayout();
     void loadPropertiesLayout();
+    void loadLoadsLayout();
 
     // Pointers to DB managers used in the GUI
     DataBasePointsManager *dataBasePointsManager;
@@ -83,6 +92,8 @@ private:
     DataBaseMaterialsManager *dataBaseMaterialsManager;
     DataBaseCrossSectionsManager *dataBaseCrossSectionsManager;
     DataBaseStarter *dataBaseStarter;
+    DataBaseNodalLoadsManager *dataBaseNodalLoadsManager;
+    DataBaseLineLoadsManager *dataBaseLineLoadsManager;
     CrossSectionsAssistant *crossSectionsAssistant;
 
     //using in drawing coordinates system
@@ -94,15 +105,21 @@ private:
     QString lastSelectedType;
     QString deleteLastSelectedType;
     QString csLastSelectedType;
+    QString setPropLastSelectedType;
 
     //manually added pointers to buttons in .ui files to update leftverticallayout
     QPushButton *layoutAddPointButton;
     QPushButton *layoutAddLineButton;
     QPushButton *layoutAddSupportButton;
+
     QPushButton *addMaterialButton;
     QPushButton *addCrossSectionButton;
     QPushButton *setPropertiesButton;
     QPushButton *openCrossSectionManagerButton;
+
+    QPushButton *addPointAppliedForceButton;
+    QPushButton *addLineLoadButton;
+    QPushButton *openLoadsManagerButton;
 
     QComboBox modelPhaseComboBox;
     struct Point
@@ -128,9 +145,18 @@ private:
         bool tx;
     };
 
+    struct NodalLoad
+    {
+        int pointId;
+        qreal My;
+        qreal Fz;
+        qreal Fx;
+    };
+
     std::vector<Point> points;
     std::vector<Line> lines;
     std::vector<Boundary> boundaries;
+    std::vector<NodalLoad> nodalLoads;
 
     qreal scaleFactor = 1.0;
 
@@ -141,6 +167,7 @@ private:
     void paintPoints(QPainter &painter);
     void paintLines(QPainter &painter);
     void paintSupports(QPainter &painter);
+    void drawLoads(QPainter &painter);
     void drawAxes(QPainter &painter);
     void drawGrid(QPainter &painter,
                   qreal leftX,
@@ -151,6 +178,7 @@ private:
                   qreal centerX,
                   qreal centerZ);
 
+    void drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end);
 };
 
 #endif // GUI_H
