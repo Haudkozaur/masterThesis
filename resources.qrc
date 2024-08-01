@@ -12,5 +12,8 @@
         <file>generalCrossSectionLayout.ui</file>
         <file>circularCrossSectionLayout.ui</file>
         <file>loads_layout.ui</file>
+        <file>mesh_layout.ui</file>
+        <file>results_layout.ui</file>
+        <file>cords_system.jpg</file>
     </qresource>
 </RCC>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>857</width>
-    <height>600</height>
+    <width>856</width>
+    <height>564</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -155,8 +155,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>857</width>
-     <height>25</height>
+     <width>856</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMESOSOIC_Project_0_01">
@@ -176,6 +176,17 @@
    <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
   <action name="actionsave">
    <property name="text">
     <string>New</string>

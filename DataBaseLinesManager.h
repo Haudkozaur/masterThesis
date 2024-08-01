@@ -24,10 +24,10 @@ public:
     void iterateOverTable();
 
     // Map of lines with parameters
-    map<int, tuple<int, int>> getLinesMap() const;
+    map<int, tuple<int, int, int>> getLinesMap() const;
 
 private:
-    map<int, tuple<int, int>> linesMap;
+    map<int, tuple<int, int, int>> linesMap;
     int defaultCrossSectionID;
 };
 

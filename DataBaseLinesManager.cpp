@@ -123,28 +123,31 @@ double DataBaseLinesManager::getLineInclinationAngleFromPoints(int startPointID,
 }
 void DataBaseLinesManager::iterateOverTable()
 {
-    string querySelectAllLines = "SELECT id, start_point, end_point FROM lines";
+    string querySelectAllLines = "SELECT id, start_point, end_point, cross_section_id FROM lines";
     vector<vector<string>> results = executeQuery(querySelectAllLines);
 
     linesMap.clear(); // Clear the map before populating it
 
     for (const auto &row : results) {
-        if (row.size() == 3) {
+        if (row.size() == 4) {
             int id = stoi(row[0]);
             int startPoint = stoi(row[1]);
             int endPoint = stoi(row[2]);
-            linesMap[id] = make_tuple(startPoint, endPoint);
+            int crossSectionId = stoi(row[3]);
+            linesMap[id] = make_tuple(startPoint, endPoint, crossSectionId);
         }
     }
 
     // Print lines for debugging
+
     for (const auto &line : linesMap) {
-        cout << "ID: " << line.first << ", Start Point: " << get<0>(line.second)
-             << ", End Point: " << get<1>(line.second) << endl;
+        cout << "Line ID: " << line.first << " Start Point: " << get<0>(line.second)
+             << " End Point: " << get<1>(line.second)
+             << " Cross Section ID: " << get<2>(line.second) << endl;
     }
 }
 
-map<int, tuple<int, int>> DataBaseLinesManager::getLinesMap() const
+map<int, tuple<int, int, int>> DataBaseLinesManager::getLinesMap() const
 {
     return linesMap;
 }

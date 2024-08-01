@@ -3,18 +3,18 @@
 
 #include <QComboBox>
 #include <QMainWindow>
+#include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QPushButton>
+#include "CrossSectionsAssistant.h"
+#include "DataBaseCrossSectionsManager.h"
+#include "DataBaseLineLoadsManager.h"
 #include "DataBaseLinesManager.h"
+#include "DataBaseMaterialsManager.h"
+#include "DataBaseNodalLoadsManager.h"
 #include "DataBasePointsManager.h"
 #include "DataBaseStarter.h"
 #include "DataBaseSupportsManager.h"
-#include "DataBaseMaterialsManager.h"
-#include "DataBaseCrossSectionsManager.h"
-#include "DataBaseNodalLoadsManager.h"
-#include "DataBaseLineLoadsManager.h"
-#include "CrossSectionsAssistant.h"
 #include <vector>
 
 namespace Ui {
@@ -39,7 +39,6 @@ public:
     ~Gui();
 
 protected:
-
     void paintEvent(QPaintEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -84,6 +83,8 @@ private:
     void loadStaticSchemeLayout();
     void loadPropertiesLayout();
     void loadLoadsLayout();
+    void loadMeshLayout();
+    void loadResultsLayout();
 
     // Pointers to DB managers used in the GUI
     DataBasePointsManager *dataBasePointsManager;
@@ -99,7 +100,6 @@ private:
     //using in drawing coordinates system
     int xCoordinate;
     int zCoordinate;
-
 
     // To save edit and delete dialog state after accept
     QString lastSelectedType;
@@ -135,6 +135,7 @@ private:
         int endX;
         int endZ;
         int id; // New field id
+        int crossSectionId;
     };
 
     struct Boundary
@@ -153,12 +154,20 @@ private:
         qreal Fx;
     };
 
+    struct LineLoad
+    {
+        int lineId;
+        qreal Fx;
+        qreal Fz;
+    };
+
     std::vector<Point> points;
     std::vector<Line> lines;
     std::vector<Boundary> boundaries;
     std::vector<NodalLoad> nodalLoads;
+    std::vector<LineLoad> lineLoads;
 
-    qreal scaleFactor = 1.0;
+    qreal scaleFactor = 20;
 
     QPointF translationOffset;
     QPointF lastMousePosition;
@@ -167,7 +176,10 @@ private:
     void paintPoints(QPainter &painter);
     void paintLines(QPainter &painter);
     void paintSupports(QPainter &painter);
-    void drawLoads(QPainter &painter);
+    void drawNodalLoads(QPainter &painter);
+    void drawLineLoads(QPainter &painter);
+    void drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end);
+    void paintAssignedCrossSections(QPainter &painter);
     void drawAxes(QPainter &painter);
     void drawGrid(QPainter &painter,
                   qreal leftX,
@@ -178,7 +190,6 @@ private:
                   qreal centerX,
                   qreal centerZ);
 
-    void drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end);
 };
 
 #endif // GUI_H
