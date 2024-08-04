@@ -1,7 +1,8 @@
 #include "DataBaseLinesManager.h"
 #include "DataBaseModelObjectsManager.h"
 #include <cmath>
-
+#include "toStringWithPrecision.h"
+namespace DataBaseManagers {
 DataBaseLinesManager::DataBaseLinesManager(const string &dateBaseName)
     : DataBaseModelObjectsManager(dateBaseName)
 {
@@ -150,4 +151,5 @@ void DataBaseLinesManager::iterateOverTable()
 map<int, tuple<int, int, int>> DataBaseLinesManager::getLinesMap() const
 {
     return linesMap;
+}
 }

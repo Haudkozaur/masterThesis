@@ -2,7 +2,7 @@
 #define MASTERTHESIS_DATABASELINELOADSMANAGER_H
 
 #include "DataBaseModelObjectsManager.h"
-
+namespace DataBaseManagers {
 class DataBaseLineLoadsManager : public DataBaseModelObjectsManager
 {
 private:
@@ -19,5 +19,5 @@ public:
 
     std::map<int, tuple<int, double, double>> getLineLoadsMap();
 };
-
+}
 #endif //MASTERTHESIS_DATABASELINELOADSMANAGER_H

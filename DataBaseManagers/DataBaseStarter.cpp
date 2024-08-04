@@ -3,7 +3,7 @@
 #include "TableTypes.h"
 
 using namespace std;
-
+namespace DataBaseManagers {
 DataBaseStarter::DataBaseStarter(const string &dataBaseName) {
     this->dataBaseName = dataBaseName;
     this->dataBaseNameAsChar = dataBaseName.c_str();
@@ -131,4 +131,5 @@ void DataBaseStarter::createLineLoadsTable() {
         cout << "Line loads Table created successfully" << endl;
     }
     cout << "\n";
+}
 }

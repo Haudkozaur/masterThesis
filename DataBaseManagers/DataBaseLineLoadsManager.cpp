@@ -1,5 +1,6 @@
 #include "DataBaseLineLoadsManager.h"
-
+#include "toStringWithPrecision.h"
+namespace DataBaseManagers {
 DataBaseLineLoadsManager::DataBaseLineLoadsManager(const string &dateBaseName)
     : DataBaseModelObjectsManager(dateBaseName)
 {}
@@ -57,4 +58,5 @@ void DataBaseLineLoadsManager::iterateOverTable()
     }
 
 
+}
 }

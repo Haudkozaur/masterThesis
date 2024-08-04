@@ -2,7 +2,7 @@
 #ifndef MASTERTHESIS_DATEBASEMATERIALSMANAGER_H
 #define MASTERTHESIS_DATEBASEMATERIALSMANAGER_H
 
-
+namespace DataBaseManagers {
 class DataBaseMaterialsManager : public DataBaseModelObjectsManager{
 
 
@@ -20,4 +20,5 @@ private:
     //void deleteObjectFromDataBase(int id);
 
 };
+}
 #endif //MASTERTHESIS_DATEBASEMATERIALSMANAGER_H

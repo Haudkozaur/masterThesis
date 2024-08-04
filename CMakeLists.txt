@@ -6,7 +6,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-
 # wykrycie vcpkg
 if(DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
@@ -24,6 +23,9 @@ find_package(Qt6Core REQUIRED)
 find_package(Qt6Gui REQUIRED)
 find_package(Qt6UiTools REQUIRED)
 
+# dodajemy foldery DataBaseManagers i sqlite do ścieżek include
+include_directories(${CMAKE_SOURCE_DIR}/DataBaseManagers ${CMAKE_SOURCE_DIR}/sqlite)
+
 add_executable(masterThesis
     masterThesis.cpp
     MatrixAggregator.cpp
@@ -34,26 +36,26 @@ add_executable(masterThesis
     RodsHandler.h
     sqlite/sqlite3.h
     sqlite/sqlite3.c
-    DataBaseStarter.h
-    DataBaseStarter.cpp
-    DataBaseModelObjectsManager.cpp
-    DataBaseModelObjectsManager.h
-    DataBasePointsManager.cpp
-    DataBasePointsManager.h
-    DataBaseLinesManager.cpp
-    DataBaseLinesManager.h
-    TableTypes.h
-    DateBaseCrossSectionsManager.cpp
-    DataBaseCrossSectionsManager.h
-    DataBaseMaterialsManager.cpp
-    DataBaseMaterialsManager.h
-    DataBaseSupportsManager.cpp
-    DataBaseSupportsManager.h
-    DataBaseNodalLoadsManager.cpp
-    DataBaseNodalLoadsManager.h
-    toStringWithPrecision.h
-    DataBaseLineLoadsManager.cpp
-    DataBaseLineLoadsManager.h
+    DataBaseManagers/DataBaseStarter.h
+    DataBaseManagers/DataBaseStarter.cpp
+    DataBaseManagers/DataBaseModelObjectsManager.cpp
+    DataBaseManagers/DataBaseModelObjectsManager.h
+    DataBaseManagers/DataBasePointsManager.cpp
+    DataBaseManagers/DataBasePointsManager.h
+    DataBaseManagers/DataBaseLinesManager.cpp
+    DataBaseManagers/DataBaseLinesManager.h
+    DataBaseManagers/TableTypes.h
+    DataBaseManagers/DateBaseCrossSectionsManager.cpp
+    DataBaseManagers/DataBaseCrossSectionsManager.h
+    DataBaseManagers/DataBaseMaterialsManager.cpp
+    DataBaseManagers/DataBaseMaterialsManager.h
+    DataBaseManagers/DataBaseSupportsManager.cpp
+    DataBaseManagers/DataBaseSupportsManager.h
+    DataBaseManagers/DataBaseNodalLoadsManager.cpp
+    DataBaseManagers/DataBaseNodalLoadsManager.h
+    DataBaseManagers/toStringWithPrecision.h
+    DataBaseManagers/DataBaseLineLoadsManager.cpp
+    DataBaseManagers/DataBaseLineLoadsManager.h
     CrossSectionsAssistant.cpp
     CrossSectionsAssistant.h
     vcpkg.json
@@ -69,7 +71,6 @@ add_executable(masterThesis
     setpropertiesdialog.h setpropertiesdialog.cpp setpropertiesdialog.ui
     addpointappliedforce.h addpointappliedforce.cpp addpointappliedforce.ui
     addlineloaddialog.h addlineloaddialog.cpp addlineloaddialog.ui
-
 )
 
 # linkowanie bibliotek

@@ -1,11 +1,11 @@
 
 #include "DataBaseCrossSectionsManager.h"
-
+#include "toStringWithPrecision.h"
 using namespace std;
 
 #include <iostream>
 #include <sstream>
-
+namespace DataBaseManagers {
 DataBaseCrossSectionsManager::DataBaseCrossSectionsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
         dateBaseName) {
 
@@ -49,4 +49,5 @@ void DataBaseCrossSectionsManager::iterateOverTable()
 std::map<int, string> DataBaseCrossSectionsManager::getCrossSectionsMap() const
 {
     return crossSectionsMap;
+}
 }

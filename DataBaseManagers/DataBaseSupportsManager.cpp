@@ -3,7 +3,7 @@
 //
 
 #include "DataBaseSupportsManager.h"
-
+namespace DataBaseManagers {
 DataBaseSupportsManager::DataBaseSupportsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
         dateBaseName) {}
 
@@ -85,4 +85,5 @@ void DataBaseSupportsManager::editSupport(int pointID, bool Ry, bool Tz, bool Tx
 
 map<int, tuple<int, bool, bool, bool>> DataBaseSupportsManager::getSupportsMap() const {
     return supportsMap;
+}
 }

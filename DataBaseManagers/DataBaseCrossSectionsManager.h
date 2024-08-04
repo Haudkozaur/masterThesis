@@ -7,7 +7,7 @@
 
 
 #include "DataBaseModelObjectsManager.h"
-
+namespace DataBaseManagers {
 class DataBaseCrossSectionsManager : public DataBaseModelObjectsManager{
 
 public:
@@ -19,6 +19,6 @@ public:
     std::map<int, std::string> crossSectionsMap;
     std::map<int, std::string> getCrossSectionsMap() const;
 };
-
+}
 
 #endif //MASTERTHESIS_DATABASECROSSSECTIONSMANAGER_H

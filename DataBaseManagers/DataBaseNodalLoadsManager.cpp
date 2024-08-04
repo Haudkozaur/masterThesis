@@ -1,6 +1,7 @@
 #include "DataBaseNodalLoadsManager.h"
 #include "DataBaseModelObjectsManager.h"
-
+#include "toStringWithPrecision.h"
+namespace DataBaseManagers {
 DataBaseNodalLoadsManager::DataBaseNodalLoadsManager(const string &dateBaseName)
     : DataBaseModelObjectsManager(dateBaseName)
 {}
@@ -60,4 +61,5 @@ void DataBaseNodalLoadsManager::iterateOverTable()
              << ", My: " << get<1>(load.second) << ", Fz: " << get<2>(load.second)
              << ", Fx: " << get<3>(load.second) << endl;
     }
+}
 }

@@ -17,6 +17,8 @@
 #include "DataBaseSupportsManager.h"
 #include <vector>
 
+using namespace DataBaseManagers;
+
 namespace Ui {
 class Gui;
 }

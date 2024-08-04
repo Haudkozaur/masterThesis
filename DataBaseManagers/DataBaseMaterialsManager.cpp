@@ -1,6 +1,7 @@
 
 #include "DataBaseMaterialsManager.h"
-
+#include "toStringWithPrecision.h"
+namespace DataBaseManagers {
 DataBaseMaterialsManager::DataBaseMaterialsManager(const string &dateBaseName) : DataBaseModelObjectsManager(
         dateBaseName) {
 }
@@ -58,4 +59,4 @@ std::map<int, string> DataBaseMaterialsManager::getMaterialsMap() const
 //        cout << "Material deleted successfully" << endl << "\n";
 //    }
 //}
-
+}

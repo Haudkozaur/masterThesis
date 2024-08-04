@@ -6,7 +6,7 @@
 #include "DataBaseModelObjectsManager.h"
 #include <map>
 #include <tuple>
-
+namespace DataBaseManagers {
 class DataBaseSupportsManager : public DataBaseModelObjectsManager{
 
 public:
@@ -28,5 +28,5 @@ private:
     map<int, tuple<int, bool, bool, bool>> supportsMap;
 
 };
-
+}
 #endif //MASTERTHESIS_DATABASESUPPORTSMANAGER_H

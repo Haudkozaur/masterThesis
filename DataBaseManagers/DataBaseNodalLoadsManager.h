@@ -2,7 +2,7 @@
 #ifndef MASTERTHESIS_NODALLOADSMANAGER_H
 #define MASTERTHESIS_NODALLOADSMANAGER_H
 
-
+namespace DataBaseManagers {
 class DataBaseNodalLoadsManager : public DataBaseModelObjectsManager{
 public:
     explicit DataBaseNodalLoadsManager(const string& dateBaseName);
@@ -16,7 +16,7 @@ public:
     std::map<int, std::tuple<int, double, double, double>> nodalLoadsMap;
 
 };
-
+}
 
 
 

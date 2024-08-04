@@ -8,7 +8,7 @@
 #include <string>
 
 using namespace std;
-
+namespace DataBaseManagers {
 class DataBaseLinesManager : public DataBaseModelObjectsManager
 {
 public:
@@ -30,5 +30,5 @@ private:
     map<int, tuple<int, int, int>> linesMap;
     int defaultCrossSectionID;
 };
-
+}
 #endif // MASTERTHESIS_DATABASELINESMANAGER_H
