@@ -2,7 +2,8 @@
 #include "ui_setpropertiesdialog.h"
 
 SetPropertiesDialog::SetPropertiesDialog(QWidget *parent)
-    : QDialog(parent), ui(new Ui::SetPropertiesDialog)
+    : BaseDialog(parent)
+    , ui(new Ui::SetPropertiesDialog)
 {
     ui->setupUi(this);
     connect(ui->crossSectionsListComboBox,
@@ -39,17 +40,6 @@ int SetPropertiesDialog::getLineId() const
     } else {
         qWarning() << "lineToSetParamLineEdit not found!";
         return -1;
-    }
-}
-
-void SetPropertiesDialog::moveToBottomLeft()
-{
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
     }
 }
 

@@ -23,17 +23,8 @@ find_package(Qt6Core REQUIRED)
 find_package(Qt6Gui REQUIRED)
 find_package(Qt6UiTools REQUIRED)
 
-# dodajemy foldery DataBaseManagers i sqlite do ścieżek include
-include_directories(${CMAKE_SOURCE_DIR}/DataBaseManagers ${CMAKE_SOURCE_DIR}/sqlite)
-
 add_executable(masterThesis
     masterThesis.cpp
-    MatrixAggregator.cpp
-    MatrixAggregator.h
-    matrixHandler.cpp
-    matrixHandler.h
-    RodsHandler.cpp
-    RodsHandler.h
     sqlite/sqlite3.h
     sqlite/sqlite3.c
     DataBaseManagers/DataBaseStarter.h
@@ -56,21 +47,47 @@ add_executable(masterThesis
     DataBaseManagers/toStringWithPrecision.h
     DataBaseManagers/DataBaseLineLoadsManager.cpp
     DataBaseManagers/DataBaseLineLoadsManager.h
-    CrossSectionsAssistant.cpp
-    CrossSectionsAssistant.h
+    DataBaseManagers/CrossSectionsAssistant.cpp
+    DataBaseManagers/CrossSectionsAssistant.h
     vcpkg.json
-    gui.h gui.cpp gui.ui
-    addpointdialog.h addpointdialog.cpp addpointdialog.ui
-    addlinedialog.h addlinedialog.cpp addlinedialog.ui
-    addboundariesdialog.h addboundariesdialog.cpp addboundariesdialog.ui
-    deleteobjectdialog.h deleteobjectdialog.cpp deleteobjectdialog.ui
+    GUI/gui.h
+    GUI/gui.cpp
+    GUI/gui.ui
+    GUI/addpointdialog.h
+    GUI/addpointdialog.cpp
+    GUI/addpointdialog.ui
+    GUI/addlinedialog.h
+    GUI/addlinedialog.cpp
+    GUI/addlinedialog.ui
+    GUI/addboundariesdialog.h
+    GUI/addboundariesdialog.cpp
+    GUI/addboundariesdialog.ui
+    GUI/deleteobjectdialog.h
+    GUI/deleteobjectdialog.cpp
+    GUI/deleteobjectdialog.ui
     resources.qrc
-    editobjectdialog.h editobjectdialog.cpp editobjectdialog.ui
-    addmaterialdialog.h addmaterialdialog.cpp addmaterialdialog.ui
-    addcrosssectiondialog.h addcrosssectiondialog.cpp addcrosssectiondialog.ui
-    setpropertiesdialog.h setpropertiesdialog.cpp setpropertiesdialog.ui
-    addpointappliedforce.h addpointappliedforce.cpp addpointappliedforce.ui
-    addlineloaddialog.h addlineloaddialog.cpp addlineloaddialog.ui
+    GUI/editobjectdialog.h
+    GUI/editobjectdialog.cpp
+    GUI/editobjectdialog.ui
+    GUI/addmaterialdialog.h
+    GUI/addmaterialdialog.cpp
+    GUI/addmaterialdialog.ui
+    GUI/addcrosssectiondialog.h
+    GUI/addcrosssectiondialog.cpp
+    GUI/addcrosssectiondialog.ui
+    GUI/setpropertiesdialog.h
+    GUI/setpropertiesdialog.cpp
+    GUI/setpropertiesdialog.ui
+    GUI/addpointappliedforce.h
+    GUI/addpointappliedforce.cpp
+    GUI/addpointappliedforce.ui
+    GUI/addlineloaddialog.h
+    GUI/addlineloaddialog.cpp
+    GUI/addlineloaddialog.ui
+    GUI/basedialog.h
+    GUI/basedialog.cpp
+    DataBaseManagers/DataBaseManagers.h
+
 )
 
 # linkowanie bibliotek

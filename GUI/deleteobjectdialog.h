@@ -1,6 +1,7 @@
 #ifndef DELETEOBJECTDIALOG_H
 #define DELETEOBJECTDIALOG_H
 
+#include "basedialog.h"
 #include <QDialog>
 #include <QLineEdit> // Dodaj ten nagłówek
 #include <QUiLoader>
@@ -9,7 +10,7 @@ namespace Ui {
 class DeleteObjectDialog;
 }
 
-class DeleteObjectDialog : public QDialog
+class DeleteObjectDialog : public BaseDialog
 {
     Q_OBJECT
 
@@ -23,7 +24,7 @@ public:
     int getPointId();
     int getLineId();
     int getSupportPointId();
-    void moveToBottomLeft();
+
 
 
 private:

@@ -1,13 +1,14 @@
 #ifndef ADDPOINTAPPLIEDFORCE_H
 #define ADDPOINTAPPLIEDFORCE_H
 
+#include "basedialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddPointAppliedForce;
 }
 
-class AddPointAppliedForce : public QDialog
+class AddPointAppliedForce : public BaseDialog
 {
     Q_OBJECT
 
@@ -20,7 +21,7 @@ public:
     double getFx();
     double getMy();
 
-    void moveToBottomLeft();
+
 
 private:
     Ui::AddPointAppliedForce *ui;

@@ -1,13 +1,14 @@
 #ifndef ADDBOUNDARIESDIALOG_H
 #define ADDBOUNDARIESDIALOG_H
 
+#include "basedialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddBoundariesDialog;
 }
 
-class AddBoundariesDialog : public QDialog
+class AddBoundariesDialog : public BaseDialog
 {
     Q_OBJECT
 
@@ -19,7 +20,6 @@ public:
     bool getRy() const;
     bool getTx() const;
     bool getTz() const;
-    void moveToBottomLeft();
 
 private:
     Ui::AddBoundariesDialog *ui;

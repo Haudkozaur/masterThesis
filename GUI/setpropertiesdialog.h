@@ -1,6 +1,7 @@
 #ifndef SETPROPERTIESDIALOG_H
 #define SETPROPERTIESDIALOG_H
 
+#include "basedialog.h"
 #include <QDialog>
 #include <QLineEdit>
 #include <QComboBox>
@@ -9,7 +10,7 @@ namespace Ui {
 class SetPropertiesDialog;
 }
 
-class SetPropertiesDialog : public QDialog
+class SetPropertiesDialog : public BaseDialog
 {
     Q_OBJECT
 
@@ -18,11 +19,9 @@ public:
     ~SetPropertiesDialog();
 
     int getLineId() const;
-    void moveToBottomLeft();
+    int getCrossSectionId() const;
 
     void setCrossSections(const std::map<int, std::string> &crossSections);
-
-    int getCrossSectionId() const;
 
     void onCrossSectionIndexChanged(int index);
 

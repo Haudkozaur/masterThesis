@@ -1,13 +1,14 @@
 #ifndef ADDLINELOADDIALOG_H
 #define ADDLINELOADDIALOG_H
 
+#include "basedialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddLineLoadDialog;
 }
 
-class AddLineLoadDialog : public QDialog
+class AddLineLoadDialog : public BaseDialog
 {
     Q_OBJECT
 
@@ -19,8 +20,6 @@ public:
     double getFz();
     double getFx();
 
-
-    void moveToBottomLeft();
 
 private:
     Ui::AddLineLoadDialog *ui;

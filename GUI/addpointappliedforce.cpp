@@ -2,7 +2,7 @@
 #include "ui_addpointappliedforce.h"
 
 AddPointAppliedForce::AddPointAppliedForce(QWidget *parent)
-    : QDialog(parent)
+    : BaseDialog(parent)
     , ui(new Ui::AddPointAppliedForce)
 {
     ui->setupUi(this);
@@ -34,13 +34,4 @@ double AddPointAppliedForce::getMy()
     return ui->MyLineEdit->text().toDouble();
 }
 
-void AddPointAppliedForce::moveToBottomLeft()
-{
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+

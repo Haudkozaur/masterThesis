@@ -7,7 +7,7 @@
 #include "ui_addcrosssectiondialog.h"
 
 AddCrossSectionDialog::AddCrossSectionDialog(QWidget *parent)
-    : QDialog(parent)
+    : BaseDialog(parent)
     , ui(new Ui::AddCrossSectionDialog)
     , uiLoader(new QUiLoader(this))
     , currentOptionsWidget(nullptr)
@@ -116,16 +116,6 @@ void AddCrossSectionDialog::updateLayoutForType(const QString &type)
     onObjectTypeChanged(type);
 }
 
-void AddCrossSectionDialog::moveToBottomLeft()
-{
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
 
 double AddCrossSectionDialog::getInnertia()
 {
@@ -234,5 +224,4 @@ int AddCrossSectionDialog::getMaterialId() const
 void AddCrossSectionDialog::onMaterialIndexChanged(int index)
 {
     materialId = index + 1;
-    // You can perform any necessary actions with the selected material here
 }

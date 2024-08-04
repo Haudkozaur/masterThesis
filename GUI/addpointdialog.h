@@ -1,13 +1,14 @@
 #ifndef ADDPOINTDIALOG_H
 #define ADDPOINTDIALOG_H
 
+#include "basedialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddPointDialog;
 }
 
-class AddPointDialog : public QDialog
+class AddPointDialog : public BaseDialog
 {
     Q_OBJECT
 
@@ -17,7 +18,7 @@ public:
 
     double getXCoordinate() const;
     double getZCoordinate() const;
-    void moveToBottomLeft();
+
 
 private:
     Ui::AddPointDialog *ui;

@@ -10,7 +10,6 @@
 #include <QUiLoader>
 #include <QWheelEvent>
 #include <QXmlStreamReader>
-
 #include "addboundariesdialog.h"
 #include "addcrosssectiondialog.h"
 #include "addlinedialog.h"
@@ -52,10 +51,6 @@ Gui::Gui(DataBasePointsManager *pointsManager,
 
 {
     ui->setupUi(this);
-
-
-
-
 
     // Calculate initial translation offset to center the origin
     translationOffset = QPoint(width() / 2, height() / 2);
@@ -461,7 +456,6 @@ void Gui::loadLayoutFromFile(const QString &fileName)
     ui->leftverticalLayout->update();   // Force layout update
     ui->verticalLayoutWidget->update(); // Force container update
 }
-
 
 void Gui::clearLayout(QLayout *layout)
 {
@@ -913,12 +907,6 @@ void Gui::paintAssignedCrossSections(QPainter &painter)
             auto crossSectionsMap = dataBaseCrossSectionsManager->getCrossSectionsMap();
             auto crossSectionIt = crossSectionsMap.find(line.crossSectionId);
 
-            if (crossSectionIt == crossSectionsMap.end()) {
-                qDebug() << "Cross-section ID not found in crossSectionsMap: "
-                         << line.crossSectionId;
-                continue;
-            }
-
             auto crossSectionName = QString::fromStdString(crossSectionIt->second);
 
             auto linesMap = dataBaseLinesManager->getLinesMap();
@@ -1275,9 +1263,9 @@ void Gui::drawLineLoads(QPainter &painter)
         // Liczba strzałek do narysowania na linii
         int numArrows = 10;
         qreal arrowSpacing = length / (numArrows + 1);
-        qreal scale = 30; // Skala dla długości strzałek
-        qreal minScale = 75; // Minimalna długość strzałki
-        qreal arrowLength = 150; // Długość strzałki
+        qreal scale = 30;                 // Skala dla długości strzałek
+        qreal minScale = 75;              // Minimalna długość strzałki
+        qreal arrowLength = 150;          // Długość strzałki
         qreal offset = arrowLength + 150; // Odległość wartości od środka linii
 
         QVector<QPointF> arrowStarts; // Wektor do przechowywania punktów startowych strzałek
@@ -1291,7 +1279,11 @@ void Gui::drawLineLoads(QPainter &painter)
                 qreal pz = z1 + i * arrowSpacing * unitDz;
 
                 qreal length = qMax(scale * qAbs(lineLoad.Fx), minScale);
-                qreal startX = px + length * (lineLoad.Fx / qAbs(lineLoad.Fx)); // Przesunięcie startu w odpowiednim kierunku
+                qreal startX
+                    = px
+                      + length
+                            * (lineLoad.Fx
+                               / qAbs(lineLoad.Fx)); // Przesunięcie startu w odpowiednim kierunku
                 painter.drawLine(QPointF(startX, pz), QPointF(px, pz));
                 drawArrowHead(painter, QPointF(startX, pz), QPointF(px, pz));
 
@@ -1344,7 +1336,6 @@ void Gui::drawLineLoads(QPainter &painter)
         }
     }
 }
-
 
 void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end)
 {

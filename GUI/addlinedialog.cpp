@@ -2,7 +2,7 @@
 #include "ui_addlinedialog.h"
 
 AddLineDialog::AddLineDialog(QWidget *parent)
-    : QDialog(parent)
+    : BaseDialog(parent)
     , ui(new Ui::AddLineDialog)
 {
     ui->setupUi(this);
@@ -22,13 +22,4 @@ int AddLineDialog::getSecondPointId() const
 {
     return ui->sPointLineEdit->text().toInt();
 }
-void AddLineDialog::moveToBottomLeft()
-{
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+

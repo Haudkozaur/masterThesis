@@ -1,6 +1,7 @@
 #ifndef ADDCROSSSECTIONDIALOG_H
 #define ADDCROSSSECTIONDIALOG_H
 
+#include "basedialog.h"
 #include <QDialog>
 #include <QUiLoader>
 #include <QWidget>
@@ -11,7 +12,7 @@ namespace Ui {
 class AddCrossSectionDialog;
 }
 
-class AddCrossSectionDialog : public QDialog
+class AddCrossSectionDialog : public BaseDialog
 {
     Q_OBJECT
 
@@ -22,7 +23,7 @@ public:
     void initializeWithType(const QString &selectedType);
     QString getSelectedObjectType() const;
 
-    void moveToBottomLeft();
+
 
     double getInnertia();
     std::string getName();

@@ -6,19 +6,11 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
-#include "CrossSectionsAssistant.h"
-#include "DataBaseCrossSectionsManager.h"
-#include "DataBaseLineLoadsManager.h"
-#include "DataBaseLinesManager.h"
-#include "DataBaseMaterialsManager.h"
-#include "DataBaseNodalLoadsManager.h"
-#include "DataBasePointsManager.h"
-#include "DataBaseStarter.h"
-#include "DataBaseSupportsManager.h"
+
+#include "../DataBaseManagers/DataBaseManagers.h"
 #include <vector>
 
 using namespace DataBaseManagers;
-
 namespace Ui {
 class Gui;
 }

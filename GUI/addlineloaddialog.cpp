@@ -2,7 +2,7 @@
 #include "ui_addlineloaddialog.h"
 
 AddLineLoadDialog::AddLineLoadDialog(QWidget *parent)
-    : QDialog(parent)
+    : BaseDialog(parent)
     , ui(new Ui::AddLineLoadDialog)
 {
     ui->setupUi(this);
@@ -28,13 +28,4 @@ double AddLineLoadDialog::getFx()
     return ui->lineFxLineEdit->text().toDouble();
 }
 
-void AddLineLoadDialog::moveToBottomLeft()
-{
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+
