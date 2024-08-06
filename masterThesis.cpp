@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     string dateBaseName = "mesosoic_test";
     dateBaseName = dateBaseName + ".db";
 
-    //Creating DB starter and initializate tables
+    //Creating DB starter and initialize tables
     DataBaseStarter *dateBaseStarter = new DataBaseStarter(dateBaseName);
     dateBaseStarter->startDateBase();
     dateBaseStarter->createPointsTable();
@@ -33,12 +33,8 @@ int main(int argc, char *argv[])
     materialsManager->addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
     materialsManager->addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
-    DataBaseCrossSectionsManager *crossSectionsManager = new DataBaseCrossSectionsManager(
-        dateBaseName);
-    crossSectionsManager->addObjectToDataBase("IPE 100",
-                                              1,
-                                              10.3 * pow(10.0, -4.0),
-                                              171.000000000000 * pow(10.0, -8));
+    DataBaseCrossSectionsManager *crossSectionsManager = new DataBaseCrossSectionsManager(dateBaseName);
+    crossSectionsManager->addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0), 171.000000000000 * pow(10.0, -8));
     crossSectionsManager->addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
     CrossSectionsAssistant *crossSectionsAssistant = new CrossSectionsAssistant();
@@ -48,18 +44,22 @@ int main(int argc, char *argv[])
     DataBaseNodalLoadsManager *nodalLoadsManager = new DataBaseNodalLoadsManager(dateBaseName);
     DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dateBaseName);
 
+    //Creating and testing DataBaseSolverPreparer
+    DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dateBaseName);
+    solverPreparer->fetchAllData();
+
     //Creating GUI
     QApplication app(argc, argv);
 
     ::Gui mainWindow(pointsManager,
-                   linesManager,
-                   supportsManager,
-                   materialsManager,
-                   crossSectionsManager,
-                   dateBaseStarter,
-                   nodalLoadsManager,
-                   lineLoadsManager,
-                   crossSectionsAssistant);
+                     linesManager,
+                     supportsManager,
+                     materialsManager,
+                     crossSectionsManager,
+                     dateBaseStarter,
+                     nodalLoadsManager,
+                     lineLoadsManager,
+                     crossSectionsAssistant);
     mainWindow.show();
 
     int result = app.exec();
@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
     delete materialsManager;
     delete crossSectionsManager;
     delete crossSectionsAssistant;
+    delete solverPreparer;
 
     return result;
 }

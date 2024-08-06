@@ -10,5 +10,6 @@
 #include "DataBaseStarter.h"
 #include "DataBaseSupportsManager.h"
 #include "CrossSectionsAssistant.h"
+#include "databasesolverpreparer.h"
 
 #endif // DATABASEMANAGERS_H

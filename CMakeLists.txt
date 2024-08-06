@@ -87,6 +87,17 @@ add_executable(masterThesis
     GUI/basedialog.h
     GUI/basedialog.cpp
     DataBaseManagers/DataBaseManagers.h
+    DataBaseManagers/databasesolverpreparer.h DataBaseManagers/databasesolverpreparer.cpp
+    Solver/solver.h Solver/solver.cpp
+    Solver/member.h Solver/member.cpp
+    Solver/nodeload.h Solver/nodeload.cpp
+    Solver/nodesupport.h Solver/nodesupport.cpp
+    Solver/matrixoperations.h Solver/matrixoperations.cpp
+    Solver/node.h Solver/node.cpp
+    Solver/UniformLoad.h Solver/UniformLoad.cpp
+
+
+
 
 )
 
