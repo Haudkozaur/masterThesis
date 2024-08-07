@@ -22,6 +22,8 @@ void DataBaseSolverPreparer::fetchAllData()
     createMembers();
     createNodeLoads();
     createUniformLoads();
+    createNodeSupports();
+    createMemberSupportConditions();
 }
 
 void DataBaseSolverPreparer::fetchPoints()
@@ -151,8 +153,8 @@ void DataBaseSolverPreparer::createNodes()
     nodesMap.clear();
     for (const auto &point : pointsMap) {
         int id = point.first;
-        double xCord = point.second.first;
-        double zCord = point.second.second;
+        double xCord = point.second.first / 1000; // for nodes we operate in [m]
+        double zCord = point.second.second / 1000;
         nodesMap.emplace(id, SolverFEM::Node(id, xCord, zCord));
     }
 
@@ -171,7 +173,7 @@ void DataBaseSolverPreparer::createMembers()
         int startPoint = std::get<0>(line.second);
         int endPoint = std::get<1>(line.second);
         int crossSectionId = std::get<2>(line.second);
-        double length = std::get<3>(line.second);
+        double length = std::get<3>(line.second) / 1000; //for members we operate in [m]
 
         auto crossSection = crossSectionsMap[crossSectionId];
         std::string crossSectionName = std::get<0>(crossSection);
@@ -189,9 +191,8 @@ void DataBaseSolverPreparer::createMembers()
         double x2 = nodesMap.at(endPoint).getX();
         double z2 = nodesMap.at(endPoint).getZ();
 
-        membersMap
-            .emplace(id,
-                     SolverFEM::Member(startPoint, endPoint, x1, z1, x2, z2, E, v, I, A, length));
+        membersMap.emplace(id,
+                           SolverFEM::Member(startPoint, endPoint, x1, z1, x2, z2, E, v, I, A, length));
     }
 
     // Print members for debugging
@@ -248,6 +249,77 @@ void DataBaseSolverPreparer::createUniformLoads()
     }
 }
 
+void DataBaseSolverPreparer::createNodeSupports()
+{
+    nodeSupportsMap.clear();
+    for (const auto &support : supportsMap) {
+        int id = support.first;
+        int nodeId = std::get<0>(support.second);
+        bool Ry = std::get<1>(support.second);
+        bool Tz = std::get<2>(support.second);
+        bool Tx = std::get<3>(support.second);
+        nodeSupportsMap.emplace(id, SolverFEM::NodeSupport(id, nodeId, Tx, Tz, Ry));
+    }
+
+    // Print node supports for debugging
+    for (const auto &nodeSupport : nodeSupportsMap) {
+        std::cout << "Node Support ID: " << nodeSupport.first
+                  << ", Node ID: " << nodeSupport.second.getNodeId()
+                  << ", Tx: " << nodeSupport.second.getTx()
+                  << ", Tz: " << nodeSupport.second.getTz()
+                  << ", Ry: " << nodeSupport.second.getRy() << std::endl;
+    }
+}
+
+void DataBaseSolverPreparer::createMemberSupportConditions()
+{
+    memberSupportConditionsMap.clear();
+    for (const auto &member : membersMap) {
+        int memberId = member.first;
+        int startNodeId = member.second.getFirstNodeNumber();
+        int endNodeId = member.second.getSecondNodeNumber();
+
+        // Fetch support conditions for start node
+        bool startTx = false, startTz = false, startRy = false;
+        for (const auto &support : supportsMap) {
+            if (std::get<0>(support.second) == startNodeId) {
+                startTx = std::get<3>(support.second);
+                startTz = std::get<2>(support.second);
+                startRy = std::get<1>(support.second);
+                break;
+            }
+        }
+
+        // Fetch support conditions for end node
+        bool endTx = false, endTz = false, endRy = false;
+        for (const auto &support : supportsMap) {
+            if (std::get<0>(support.second) == endNodeId) {
+                endTx = std::get<3>(support.second);
+                endTz = std::get<2>(support.second);
+                endRy = std::get<1>(support.second);
+                break;
+            }
+        }
+
+        memberSupportConditionsMap.emplace(memberId, SolverFEM::MemberSupportConditions(
+                                                         memberId, startNodeId, endNodeId, startTx, startTz, startRy, endTx, endTz, endRy));
+    }
+
+    // Print member support conditions for debugging
+    for (const auto &memberSupportCondition : memberSupportConditionsMap) {
+        std::cout << "Member ID: " << memberSupportCondition.first
+                  << ", Start Node ID: " << memberSupportCondition.second.getStartNodeId()
+                  << ", End Node ID: " << memberSupportCondition.second.getEndNodeId()
+                  << ", Start Tx: " << memberSupportCondition.second.getStartTx()
+                  << ", Start Tz: " << memberSupportCondition.second.getStartTz()
+                  << ", Start Ry: " << memberSupportCondition.second.getStartRy()
+                  << ", End Tx: " << memberSupportCondition.second.getEndTx()
+                  << ", End Tz: " << memberSupportCondition.second.getEndTz()
+                  << ", End Ry: " << memberSupportCondition.second.getEndRy() << std::endl;
+    }
+}
+
+
 const std::map<int, std::pair<int, int>> &DataBaseSolverPreparer::getPoints() const
 {
     return pointsMap;
@@ -271,6 +343,16 @@ const std::map<int, SolverFEM::NodeLoad> &DataBaseSolverPreparer::getNodeLoads()
 const std::map<int, SolverFEM::UniformLoad> &DataBaseSolverPreparer::getUniformLoads() const
 {
     return uniformLoadsMap;
+}
+
+const std::map<int, SolverFEM::NodeSupport> &DataBaseSolverPreparer::getNodeSupports() const
+{
+    return nodeSupportsMap;
+}
+
+const std::map<int, SolverFEM::MemberSupportConditions> &DataBaseSolverPreparer::getMemberSupportConditions() const
+{
+    return memberSupportConditionsMap;
 }
 
 } // namespace DataBaseManagers

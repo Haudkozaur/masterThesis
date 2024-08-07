@@ -95,6 +95,7 @@ add_executable(masterThesis
     Solver/matrixoperations.h Solver/matrixoperations.cpp
     Solver/node.h Solver/node.cpp
     Solver/UniformLoad.h Solver/UniformLoad.cpp
+    Solver/MemberSupportConditions.h Solver/membersupportconditions.cpp
 
 
 

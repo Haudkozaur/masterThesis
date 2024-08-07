@@ -7,6 +7,7 @@
 #include "member.h"
 #include "uniformload.h"
 #include "matrixoperations.h"
+#include "MemberSupportConditions.h"
 
 namespace SolverFEM {
 

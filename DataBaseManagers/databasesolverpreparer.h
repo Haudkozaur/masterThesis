@@ -21,6 +21,8 @@ public:
     const std::map<int, SolverFEM::Member> &getMembers() const;
     const std::map<int, SolverFEM::NodeLoad> &getNodeLoads() const;
     const std::map<int, SolverFEM::UniformLoad> &getUniformLoads() const;
+    const std::map<int, SolverFEM::NodeSupport> &getNodeSupports() const;
+    const std::map<int, SolverFEM::MemberSupportConditions> &getMemberSupportConditions() const;
 
 private:
     void fetchPoints();
@@ -35,6 +37,8 @@ private:
     void createMembers();
     void createNodeLoads();
     void createUniformLoads();
+    void createNodeSupports();
+    void createMemberSupportConditions();
 
     std::map<int, std::pair<int, int>> pointsMap;
     std::map<int, std::tuple<int, int, int, double>> linesMap;
@@ -48,6 +52,8 @@ private:
     std::map<int, std::tuple<int, bool, bool, bool>> supportsMap;
     std::map<int, std::tuple<int, double, double, double>> nodalLoadsMap;
     std::map<int, std::tuple<int, double, double>> lineLoadsMap;
+    std::map<int, SolverFEM::NodeSupport> nodeSupportsMap;
+    std::map<int, SolverFEM::MemberSupportConditions> memberSupportConditionsMap; // New map for member support conditions
 };
 
 } // namespace DataBaseManagers

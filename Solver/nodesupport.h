@@ -1,27 +1,26 @@
 #ifndef NODESUPPORT_H
 #define NODESUPPORT_H
 
-#include <string>
-
 namespace SolverFEM {
 
 class NodeSupport {
 private:
-    std::string supportType;
-    int d1, d2, d3; // d1 corresponds to x, d2 to y, d3 to z
-
-    void updateConstraints(const std::string &supportType);
+    int id;       // Unique ID for the support
+    int nodeId;   // Node ID associated with the support
+    bool Tx;      // Constraint on displacement in the x-direction
+    bool Tz;      // Constraint on displacement in the z-direction
+    bool Ry;      // Constraint on rotation about the y-axis
 
 public:
-    NodeSupport(const std::string &supportType);
+    // Constructor to initialize support constraints and IDs
+    NodeSupport(int id, int nodeId, bool Tx, bool Tz, bool Ry);
 
-    void setSupport(const std::string &supportType);
-    void deleteSupport();
-
-    std::string getSupportType() const;
-    int getD1() const;
-    int getD2() const;
-    int getD3() const;
+    // Getters
+    int getId() const;
+    int getNodeId() const;
+    bool getTx() const;
+    bool getTz() const;
+    bool getRy() const;
 };
 
 } // namespace SolverFEM
