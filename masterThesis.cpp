@@ -2,6 +2,7 @@
 #include "DataBaseManagers/DataBaseManagers.h"
 #include "GUI/gui.h"
 #include "sqlite/sqlite3.h"
+#include "Solver/solver.h"
 #include <Eigen/Dense>
 #include <cmath>
 
@@ -47,6 +48,9 @@ int main(int argc, char *argv[])
     //Creating and testing DataBaseSolverPreparer
     DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dateBaseName);
     solverPreparer->fetchAllData();
+
+    SolverFEM::Solver solver(solverPreparer);
+    solver.solve();
 
     //Creating GUI
     QApplication app(argc, argv);

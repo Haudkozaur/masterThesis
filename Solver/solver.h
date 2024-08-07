@@ -8,13 +8,48 @@
 #include "uniformload.h"
 #include "matrixoperations.h"
 #include "MemberSupportConditions.h"
+#include "../DataBaseManagers/DataBaseManagers.h"
+#include <Eigen/Dense>
+#include <map>
+
+// Forward declaration of DataBaseSolverPreparer
+namespace DataBaseManagers {
+class DataBaseSolverPreparer;
+}
 
 namespace SolverFEM {
 
 class Solver
 {
 public:
-    Solver();
+    Solver(DataBaseManagers::DataBaseSolverPreparer* dbSolverPreparer);
+
+    void solve();
+
+private:
+    std::map<int, SolverFEM::Node> nodes;
+    std::map<int, SolverFEM::NodeLoad> nodeLoads;
+    std::map<int, SolverFEM::NodeSupport> nodeSupports;
+    std::map<int, SolverFEM::Member> members;
+    std::map<int, SolverFEM::UniformLoad> uniformLoads;
+    std::map<int, SolverFEM::MemberSupportConditions> memberSupportConditions;
+
+    Eigen::MatrixXd K; // Global stiffness matrix
+    Eigen::VectorXd loadVector; // Global load vector
+    Eigen::VectorXd displacementVector; // Global displacement vector
+
+    std::map<int, Eigen::MatrixXd> memberStiffnessMatrices;
+    std::map<int, int> nodeIdToDofMap; // Map node IDs to DOF indices
+
+    void createNodeIdToDofMap();
+    void calculateStiffnessMatrices();
+    void initializeGlobalStiffnessMatrix();
+    void aggregateStiffnessMatrix(Eigen::MatrixXd& globalMatrix, const Eigen::MatrixXd& localMatrix, int startNodeId, int endNodeId);
+    void assembleGlobalStiffnessMatrix();
+    void createForceVector();
+    void applyBoundaryConditions();
+    void solveSystemOfEquations();
+    void calculateInternalForces();
 };
 
 } // namespace SolverFEM
