@@ -6,7 +6,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
-
 #include "../DataBaseManagers/DataBaseManagers.h"
 #include <vector>
 

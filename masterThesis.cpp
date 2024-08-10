@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
     DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dateBaseName);
     solverPreparer->fetchAllData();
 
-    // SolverFEM::Solver solver(solverPreparer);
-    // solver.solve();
+    SolverFEM::Solver solver(solverPreparer);
+    solver.solve();
 
     //Creating GUI
     QApplication app(argc, argv);

@@ -40,6 +40,16 @@
         <string>Supports</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>LineLoads</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>NodalLoads</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item>

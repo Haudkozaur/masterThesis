@@ -24,11 +24,21 @@ void DataBaseNodalLoadsManager::addObjectToDataBase(int pointID, double My, doub
     cout << "\n";
 }
 
-void DataBaseNodalLoadsManager::deleteObjectFromDataBase(int id)
+void DataBaseNodalLoadsManager::deleteObjectFromDataBase(int pointId)
 {
     string queryDeleteNodalLoad = "DELETE FROM " + tableTypesMap.at(TableType::NODAL_LOADS)
-                                  + " WHERE id = " + to_string(id);
+                                  + " WHERE point_id = " + to_string(pointId);
     executeAndCheckIfSQLOk(queryDeleteNodalLoad, TableType::NODAL_LOADS);
+    cout << "\n";
+}
+
+void DataBaseNodalLoadsManager::editObjectInDataBase(int pointId, double My, double Fz, double Fx)
+{
+    string queryEditNodalLoad = "UPDATE " + tableTypesMap.at(TableType::NODAL_LOADS)
+                                + " SET My = " + toStringWithPrecision(My) + ", Fz = "
+                                + toStringWithPrecision(Fz) + ", Fx = " + toStringWithPrecision(Fx)
+                                + " WHERE point_id = " + to_string(pointId);
+    executeAndCheckIfSQLOk(queryEditNodalLoad, TableType::NODAL_LOADS);
     cout << "\n";
 }
 

@@ -24,11 +24,20 @@ void DataBaseLineLoadsManager::addObjectToDataBase(int lineID, double Fx, double
     cout << "\n";
 }
 
-void DataBaseLineLoadsManager::deleteObjectFromDataBase(int id)
+void DataBaseLineLoadsManager::deleteObjectFromDataBase(int lineId)
 {
     string queryDeleteLineLoad = "DELETE FROM " + tableTypesMap.at(TableType::LINE_LOADS)
-                                 + " WHERE id = " + to_string(id);
+                                 + " WHERE line_id = " + to_string(lineId);
     executeAndCheckIfSQLOk(queryDeleteLineLoad, TableType::LINE_LOADS);
+    cout << "\n";
+}
+
+void DataBaseLineLoadsManager::editObjectInDataBase(int lineId, double Fx, double Fz)
+{
+    string queryEditLineLoad = "UPDATE " + tableTypesMap.at(TableType::LINE_LOADS)
+                               + " SET Fx = " + toStringWithPrecision(Fx) + ", Fz = "
+                               + toStringWithPrecision(Fz) + " WHERE line_id = " + to_string(lineId);
+    executeAndCheckIfSQLOk(queryEditLineLoad, TableType::LINE_LOADS);
     cout << "\n";
 }
 

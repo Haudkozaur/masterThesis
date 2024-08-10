@@ -65,6 +65,10 @@ void EditObjectDialog::onObjectTypeChanged(const QString &type)
         fileName = ":/ui/editlineslayout.ui";
     } else if (type == "Supports") {
         fileName = ":/ui/editsupportslayout.ui";
+    } else if (type == "LineLoads") {
+        fileName = ":/ui/EditLineLoadsLayout.ui";
+    } else if (type == "NodalLoads") {
+        fileName = ":/ui/EditNodalLoadsLayout.ui";
     }
 
     loadLayoutFromFile(fileName);
@@ -96,6 +100,16 @@ void EditObjectDialog::loadLayoutFromFile(const QString &fileName)
         Tz = currentOptionsWidget->findChild<QCheckBox *>("Tz");
         Tx = currentOptionsWidget->findChild<QCheckBox *>("Tx");
         Ry = currentOptionsWidget->findChild<QCheckBox *>("Ry");
+
+        pointLoadToEditLineEdit = currentOptionsWidget->findChild<QLineEdit *>("pointLoadToEditLineEdit");
+        newFzNodalLineEdit = currentOptionsWidget->findChild<QLineEdit *>("newFzNodalLineEdit");
+        newFxNodalLineEdit = currentOptionsWidget->findChild<QLineEdit *>("newFxNodalLineEdit");
+        newMyNodalLineEdit = currentOptionsWidget->findChild<QLineEdit *>("newMyNodalLineEdit");
+
+
+        lineLineLoadtToEditLineEdit = currentOptionsWidget->findChild<QLineEdit *>("lineLineLoadtToEditLineEdit");
+        newFxLineEdit = currentOptionsWidget->findChild<QLineEdit *>("newFxLineEdit");
+        newFzLineEdit = currentOptionsWidget->findChild<QLineEdit *>("newFzLineEdit");
     }
 }
 
@@ -202,5 +216,80 @@ bool EditObjectDialog::getRy()
     } else {
         qWarning() << "Ry not found!";
         return false;
+    }
+}
+
+int EditObjectDialog::getNodalLoadPointId()
+{
+    if (pointLoadToEditLineEdit) {
+        return pointLoadToEditLineEdit->text().toInt();
+    } else {
+        qWarning() << "pointLoadToEditLineEdit not found!";
+        return -1;
+    }
+}
+
+
+double EditObjectDialog::getNewFz()
+{
+    if (newFzNodalLineEdit) {
+        return newFzNodalLineEdit->text().toDouble();
+    } else {
+        qWarning() << "newFzNodalLineEdit not found!";
+        return -1.0;
+    }
+}
+
+double EditObjectDialog::getNewFx()
+{
+    if (newFxNodalLineEdit) {
+        return newFxNodalLineEdit->text().toDouble();
+    } else {
+        qWarning() << "newFxNodalLineEdit not found!";
+        return -1.0;
+    }
+}
+
+
+double EditObjectDialog::getNewMy()
+{
+    if (newMyNodalLineEdit) {
+        return newMyNodalLineEdit->text().toDouble();
+    } else {
+        qWarning() << "newMyNodalLineEdit not found!";
+        return -1.0;
+    }
+}
+
+
+int EditObjectDialog::getLineLoadId()
+{
+    if (lineLineLoadtToEditLineEdit) {
+        return lineLineLoadtToEditLineEdit->text().toInt();
+    } else {
+        qWarning() << "lineLineLoadtToEditLineEdit not found!";
+        return -1;
+    }
+}
+
+
+double EditObjectDialog::getNewFxLineLoad()
+{
+    if (newFxLineEdit) {
+        return newFxLineEdit->text().toDouble();
+    } else {
+        qWarning() << "newFxLineEdit not found!";
+        return -1.0;
+    }
+}
+
+
+double EditObjectDialog::getNewFzLineLoad()
+{
+    if (newFzLineEdit) {
+        return newFzLineEdit->text().toDouble();
+    } else {
+        qWarning() << "newFzLineEdit not found!";
+        return -1.0;
     }
 }

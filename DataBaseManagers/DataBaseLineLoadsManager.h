@@ -15,6 +15,8 @@ public:
 
     void deleteObjectFromDataBase(int id);
 
+    void editObjectInDataBase(int lineId, double Fx, double Fz);
+
     void iterateOverTable();
 
     std::map<int, tuple<int, double, double>> getLineLoadsMap();

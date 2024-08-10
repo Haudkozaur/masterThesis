@@ -34,6 +34,13 @@ public:
     bool getTz();
     bool getTx();
     bool getRy();
+    int getNodalLoadPointId();
+    double getNewFz();
+    double getNewFx();
+    double getNewMy();
+    int getLineLoadId();
+    double getNewFxLineLoad();
+    double getNewFzLineLoad();
 
 
 private:
@@ -50,11 +57,19 @@ private:
     QCheckBox *Tz;
     QCheckBox *Tx;
     QCheckBox *Ry;
+    QLineEdit *pointLoadToEditLineEdit;
+    QLineEdit *newFzNodalLineEdit;
+    QLineEdit *newFxNodalLineEdit;
+    QLineEdit *newMyNodalLineEdit;
+    QLineEdit *lineLineLoadtToEditLineEdit;
+    QLineEdit *newFxLineEdit;
+    QLineEdit *newFzLineEdit;
+
 
     void onObjectTypeChanged(const QString &type);
     void loadLayoutFromFile(const QString &fileName);
     void updateLayoutForType(const QString &type);
-
 };
+
 
 #endif // EDITOBJECTDIALOG_H

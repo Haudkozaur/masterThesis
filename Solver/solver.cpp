@@ -362,10 +362,17 @@ void Solver::calculateInternalForces()
         Eigen::MatrixXd kGlobal = T.transpose() * kLocal * T;
         Eigen::VectorXd fInternal = kGlobal * uLocal;
 
-        // Store or print the internal forces for debugging
-        std::cout << "Member ID: " << memberId << ", Internal Forces: " << fInternal.transpose() << std::endl;
+        // Print the internal forces with labels
+        std::cout << "Member ID: " << memberId << ", Internal Forces: "
+                  << "Nx1=" << fInternal(0) << " "
+                  << "Vz1=" << fInternal(1) << " "
+                  << "My1=" << fInternal(2) << " "
+                  << "Nx2=" << fInternal(3) << " "
+                  << "Vz2=" << fInternal(4) << " "
+                  << "My2=" << fInternal(5) << std::endl;
     }
 }
+
 
 void Solver::solve()
 {

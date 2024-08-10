@@ -33,6 +33,7 @@ void DataBasePointsManager::deleteObjectFromDataBase(int id) {
     executeAndCheckIfSQLOk(queryDeleteSupport, TableType::SUPPORTS);
     std::string queryDeleteNodalLoad = "DELETE FROM nodal_loads WHERE point_id = " + std::to_string(id);
     executeAndCheckIfSQLOk(queryDeleteNodalLoad, TableType::NODAL_LOADS);
+
 }
 
 void DataBasePointsManager::iterateOverTable() {

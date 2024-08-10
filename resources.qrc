@@ -15,5 +15,9 @@
         <file>mesh_layout.ui</file>
         <file>results_layout.ui</file>
         <file>cords_system.jpg</file>
+        <file>DeleteLineLoadsLayout.ui</file>
+        <file>DeleteNodalLoadsLayout.ui</file>
+        <file>EditLineLoadsLayout.ui</file>
+        <file>EditNodalLoadsLayout.ui</file>
     </qresource>
 </RCC>

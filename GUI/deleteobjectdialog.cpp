@@ -54,6 +54,10 @@ void DeleteObjectDialog::onObjectTypeChanged(const QString &type)
         fileName = ":/ui/deletelineslayout.ui";
     } else if (type == "Supports") {
         fileName = ":/ui/deletesupportslayout.ui";
+    } else if (type == "LineLoads") {
+        fileName = ":/ui/DeleteLineLoadsLayout.ui";
+    } else if (type == "NodalLoads") {
+        fileName = ":/ui/DeleteNodalLoadsLayout.ui";
     }
 
     loadLayoutFromFile(fileName);
@@ -79,6 +83,10 @@ void DeleteObjectDialog::loadLayoutFromFile(const QString &fileName)
         lineToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>("lineToDeleteLineEdit");
         pointSupportToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>(
             "pointSupportToDeleteLineEdit");
+        nodalLoadToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>(
+            "nodalLoadToDeleteLineEdit");
+        lineLoadToDeleteLineEdit = currentOptionsWidget->findChild<QLineEdit *>(
+            "lineLoadToDeleteLineEdit");
     }
 }
 
@@ -111,6 +119,26 @@ int DeleteObjectDialog::getSupportPointId()
         return -1; // Return an invalid ID or handle the error appropriately
     }
 }
+int DeleteObjectDialog::getNodalLoadId()
+{
+    if (nodalLoadToDeleteLineEdit) {
+        return nodalLoadToDeleteLineEdit->text().toInt();
+    } else {
+        qWarning() << "nodalLoadToDeleteLineEdit not found!";
+        return -1; // Return an invalid ID or handle the error appropriately
+    }
+}
+
+int DeleteObjectDialog::getLineLoadId()
+{
+    if (lineLoadToDeleteLineEdit) {
+        return lineLoadToDeleteLineEdit->text().toInt();
+    } else {
+        qWarning() << "lineLoadToDeleteLineEdit not found!";
+        return -1; // Return an invalid ID or handle the error appropriately
+    }
+}
+
 void DeleteObjectDialog::updateLayoutForType(const QString &type)
 {
     onObjectTypeChanged(type);

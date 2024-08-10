@@ -8,7 +8,8 @@ public:
     explicit DataBaseNodalLoadsManager(const string& dateBaseName);
 
     void addObjectToDataBase(int pointID, double My, double Fz, double Fx);
-    void deleteObjectFromDataBase(int id);
+    void deleteObjectFromDataBase(int pointId);
+    void editObjectInDataBase(int pointId, double My, double Fz, double Fx);
 
     void iterateOverTable();
 

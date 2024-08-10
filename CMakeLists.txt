@@ -100,6 +100,7 @@ add_executable(masterThesis
 
 
 
+
 )
 
 # linkowanie bibliotek

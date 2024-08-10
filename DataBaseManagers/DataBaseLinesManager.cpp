@@ -48,6 +48,8 @@ void DataBaseLinesManager::deleteObjectFromDataBase(int id)
 {
     string queryDeleteLine = "DELETE FROM lines WHERE id = " + to_string(id);
     executeAndCheckIfSQLOk(queryDeleteLine, TableType::LINES);
+    string queryDeleteLineLoads = "DELETE FROM line_loads WHERE line_id = " + to_string(id);
+    executeAndCheckIfSQLOk(queryDeleteLineLoads, TableType::LINE_LOADS);
     cout << "\n";
     return;
 }

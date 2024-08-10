@@ -661,7 +661,20 @@ void Gui::on_deleteObjectButton_clicked()
                 // Usuwamy podporę z bazy danych
                 dataBaseSupportsManager->deleteObjectFromDataBase(supportPointId);
             }
+        } else if (selectedType == "LineLoads") {
+            int loadLineId = dialog->getLineLoadId();
+            if (loadLineId != -1) {
+                // Usuwamy obciążenie liniowe z bazy danych
+                dataBaseLineLoadsManager->deleteObjectFromDataBase(loadLineId);
+            }
+        } else if (selectedType == "NodalLoads") {
+            int loadPointId = dialog->getNodalLoadId();
+            if (loadPointId != -1) {
+                // Usuwamy obciążenie węzłowe z bazy danych
+                dataBaseNodalLoadsManager->deleteObjectFromDataBase(loadPointId);
+            }
         }
+
         on_refreshButton_clicked();
         deleteLastSelectedType = selectedType;
         Gui::on_deleteObjectButton_clicked();
@@ -709,6 +722,17 @@ void Gui::on_editObjectButton_clicked()
             bool tx = dialog->getTx();
             bool tz = dialog->getTz();
             dataBaseSupportsManager->editSupport(supportPointId, ry, tz, tx);
+        } else if (selectedType == "NodalLoads") {
+            int loadPointId = dialog->getNodalLoadPointId();
+            double newFz = dialog->getNewFz();
+            double newFx = dialog->getNewFx();
+            double newMy = dialog->getNewMy();
+            dataBaseNodalLoadsManager->editObjectInDataBase(loadPointId, newMy, newFz, newFx);
+        } else if (selectedType == "LineLoads") {
+            int loadLineId = dialog->getLineLoadId();
+            double newFx = dialog->getNewFxLineLoad();
+            double newFz = dialog->getNewFzLineLoad();
+            dataBaseLineLoadsManager->editObjectInDataBase(loadLineId, newFx, newFz);
         }
 
         // Refresh the UI
@@ -740,10 +764,14 @@ void Gui::on_refreshButton_clicked()
     nodalLoads.clear();
     lineLoads.clear();
 
+    // Debug: Print the status before populating the vectors
+    qDebug() << "Cleared vectors, starting to populate them";
+
     // Update points from the database manager
     for (const auto &point : dataBasePointsManager->getPointsMap()) {
         points.push_back({point.second.first, point.second.second, point.first});
     }
+    qDebug() << "Points populated, size:" << points.size();
 
     // Update lines from the database manager
     for (const auto &lineEntry : dataBaseLinesManager->getLinesMap()) {
@@ -765,6 +793,7 @@ void Gui::on_refreshButton_clicked()
                              crossSectionId});
         }
     }
+    qDebug() << "Lines populated, size:" << lines.size();
 
     // Update supports from the database manager
     for (const auto &support : dataBaseSupportsManager->getSupportsMap()) {
@@ -775,24 +804,27 @@ void Gui::on_refreshButton_clicked()
 
         boundaries.push_back({pointId, ry, tx, tz});
     }
+    qDebug() << "Boundaries populated, size:" << boundaries.size();
 
-    //Update nodal loads from the database manager
+    // Update nodal loads from the database manager
     for (const auto &nodalLoad : dataBaseNodalLoadsManager->getNodalLoadsMap()) {
         nodalLoads.push_back({std::get<0>(nodalLoad.second),
                               std::get<1>(nodalLoad.second),
                               std::get<2>(nodalLoad.second),
                               std::get<3>(nodalLoad.second)});
-
-        // Update the widget to trigger a repaint
-        update();
     }
+    qDebug() << "Nodal Loads populated, size:" << nodalLoads.size();
 
-    //Update line loads from the database manager
+    // Update line loads from the database manager
     for (const auto &lineLoad : dataBaseLineLoadsManager->getLineLoadsMap()) {
         lineLoads.push_back({std::get<0>(lineLoad.second),
                              std::get<1>(lineLoad.second),
                              std::get<2>(lineLoad.second)});
     }
+    qDebug() << "Line Loads populated, size:" << lineLoads.size();
+
+    // Update the widget to trigger a repaint
+    update();
 }
 
 void Gui::on_clearButton_clicked()
@@ -837,22 +869,18 @@ void Gui::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // Draw axes with labels
     drawAxes(painter);
-
-    // Apply transformations for points, lines, and supports
     painter.setTransform(QTransform()
                              .translate(translationOffset.x(), translationOffset.y())
                              .scale(scaleFactor, scaleFactor));
-
-    // Draw points, lines, and supports
     paintLines(painter);
     paintPoints(painter);
     paintSupports(painter);
     drawNodalLoads(painter);
     drawLineLoads(painter);
-    paintAssignedCrossSections(painter);
+    // paintAssignedCrossSections(painter);
 }
+
 void Gui::paintPoints(QPainter &painter)
 {
     painter.setBrush(Qt::blue);
@@ -1263,12 +1291,16 @@ void Gui::drawLineLoads(QPainter &painter)
         // Liczba strzałek do narysowania na linii
         int numArrows = 10;
         qreal arrowSpacing = length / (numArrows + 1);
-        qreal scale = 30;                 // Skala dla długości strzałek
-        qreal minScale = 75;              // Minimalna długość strzałki
-        qreal arrowLength = 150;          // Długość strzałki
-        qreal offset = arrowLength + 150; // Odległość wartości od środka linii
+        qreal fxScale = 30;                 // Skala dla długości strzałek Fx
+        qreal fxMinScale = 75;              // Minimalna długość strzałki Fx
+        qreal arrowLength = 150;            // Długość strzałki
+        qreal offset = arrowLength + 150;   // Odległość wartości od środka linii
 
-        QVector<QPointF> arrowStarts; // Wektor do przechowywania punktów startowych strzałek
+        qreal fzScale = 15;                 // Skala dla długości strzałek Fz (zmniejszona)
+        qreal fzMinScale = 50;              // Minimalna długość strzałki Fz (zmniejszona)
+
+        QVector<QPointF> fxArrowStarts; // Wektor do przechowywania punktów startowych strzałek dla Fx
+        QVector<QPointF> fzArrowStarts; // Wektor do przechowywania punktów startowych strzałek dla Fz
 
         // Rysowanie strzałek wzdłuż linii dla Fx
         if (lineLoad.Fx != 0) {
@@ -1278,17 +1310,14 @@ void Gui::drawLineLoads(QPainter &painter)
                 qreal px = x1 + i * arrowSpacing * unitDx;
                 qreal pz = z1 + i * arrowSpacing * unitDz;
 
-                qreal length = qMax(scale * qAbs(lineLoad.Fx), minScale);
-                qreal startX
-                    = px
-                      + length
-                            * (lineLoad.Fx
-                               / qAbs(lineLoad.Fx)); // Przesunięcie startu w odpowiednim kierunku
-                painter.drawLine(QPointF(startX, pz), QPointF(px, pz));
-                drawArrowHead(painter, QPointF(startX, pz), QPointF(px, pz));
+                qreal startX = px; // Start point is directly on the line
+                qreal endX = startX + fxScale * (lineLoad.Fx / qAbs(lineLoad.Fx)); // Draw arrow in direction of Fx
 
-                // Dodanie punktu startowego strzałki do wektora
-                arrowStarts.append(QPointF(startX, pz));
+                painter.drawLine(QPointF(startX, pz), QPointF(endX, pz));
+                drawArrowHead(painter, QPointF(endX, pz), QPointF(startX, pz));
+
+                // Dodanie punktu startowego strzałki do wektora Fx
+                fxArrowStarts.append(QPointF(startX, pz));
             }
 
             // Dodanie wartości Fx w środku linii, odsunięte o długość strzałek + offset
@@ -1299,25 +1328,24 @@ void Gui::drawLineLoads(QPainter &painter)
         }
 
         // Rysowanie strzałek wzdłuż linii dla Fz
-        // Rysowanie strzałek wzdłuż linii dla Fz
         if (lineLoad.Fz != 0) {
-            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii na 15
+            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii na 8
 
             for (int i = 0; i <= numArrows + 1; ++i) {
                 qreal px = x1 + i * arrowSpacing * unitDx;
                 qreal pz = z1 + i * arrowSpacing * unitDz;
 
-                qreal length = qMax(scale * qAbs(lineLoad.Fz), minScale);
+                qreal length = qMax(fzScale * qAbs(lineLoad.Fz), fzMinScale);
                 qreal startZ
                     = pz
                       + length
                             * (lineLoad.Fz
-                               / qAbs(lineLoad.Fz)); // Przesunięcie startu w przeciwnym kierunku
+                               / qAbs(lineLoad.Fz)); // Original logic: offset based on load value
                 painter.drawLine(QPointF(px, startZ), QPointF(px, pz));
                 drawArrowHead(painter, QPointF(px, pz), QPointF(px, startZ));
 
-                // Dodanie punktu startowego strzałki do wektora
-                arrowStarts.append(QPointF(px, startZ));
+                // Dodanie punktu startowego strzałki do wektora Fz
+                fzArrowStarts.append(QPointF(px, startZ));
             }
 
             // Dodanie wartości Fz w środku linii, odsunięte o długość strzałek + offset
@@ -1327,11 +1355,19 @@ void Gui::drawLineLoads(QPainter &painter)
             painter.drawText(QPointF(midX - offset * unitDx, midZ - offset * unitDz - 150), fzText);
         }
 
-        // Rysowanie linii łączącej wszystkie początki strzałek
-        if (arrowStarts.size() > 1) {
+        // Rysowanie linii łączącej wszystkie początki strzałek Fx
+        if (fxArrowStarts.size() > 1) {
             painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii
-            for (int i = 1; i < arrowStarts.size(); ++i) {
-                painter.drawLine(arrowStarts[i - 1], arrowStarts[i]);
+            for (int i = 1; i < fxArrowStarts.size(); ++i) {
+                painter.drawLine(fxArrowStarts[i - 1], fxArrowStarts[i]);
+            }
+        }
+
+        // Rysowanie linii łączącej wszystkie początki strzałek Fz
+        if (fzArrowStarts.size() > 1) {
+            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii
+            for (int i = 1; i < fzArrowStarts.size(); ++i) {
+                painter.drawLine(fzArrowStarts[i - 1], fzArrowStarts[i]);
             }
         }
     }
@@ -1353,6 +1389,7 @@ void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &
     painter.drawLine(start, arrowP1);
     painter.drawLine(start, arrowP2);
 }
+
 
 void Gui::wheelEvent(QWheelEvent *event)
 {
