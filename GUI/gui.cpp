@@ -386,12 +386,13 @@ void Gui::loadMeshLayout()
     )";
 
     // Populate the dynamic layout with QLabel and QSlider for each Line's id
+    // Inside the loadMeshLayout method
     for (const auto &line : lines) {
         qDebug() << "Processing Line ID:" << line.id;
 
         QHBoxLayout *hLayout = new QHBoxLayout();
 
-        QLabel *label = new QLabel(QString("Line ID %1:").arg(line.id), this);
+        QLabel *label = new QLabel(QString("ID %1:").arg(line.id), this);
         hLayout->addWidget(label);
         qDebug() << "Label created and added for Line ID:" << line.id;
 
@@ -406,28 +407,74 @@ void Gui::loadMeshLayout()
         hLayout->addWidget(valueLabel);
         qDebug() << "Value label created and added for Line ID:" << line.id;
 
-        // Connect the slider's valueChanged signal to update the value label
-        connect(slider, &QSlider::valueChanged, [valueLabel](int value) {
-            valueLabel->setText(QString::number(value));
+        // Connect the slider's valueChanged signal to update the value label and call the slot
+        connect(slider, &QSlider::valueChanged, [this, line](int value) {
+            handleSliderValueChanged(value, line.id);
         });
         qDebug() << "Slider valueChanged signal connected for Line ID:" << line.id;
 
         // Add the horizontal layout to the dynamic layout
         dynamicLayout->addLayout(hLayout);
         qDebug() << "Horizontal layout added to dynamic layout for Line ID:" << line.id;
+
+        // Initially add the default value (10) to meshVector
+        handleSliderValueChanged(10, line.id);
     }
+
 
     dynamicLayout->addStretch();  // Add stretch at the end for better layout
     qDebug() << "Stretch added to dynamic layout";
 
     // Set the Apply button behavior
-    connect(applyButton, &QPushButton::clicked, [this]() {
-        qDebug() << "Apply button clicked!";
-        // Handle apply action here
-    });
+    connect(applyButton, &QPushButton::clicked, this, &Gui::on_applyButton_clicked);
+
 
     qDebug() << "Load mesh layout complete.";
 }
+
+
+void Gui::handleSliderValueChanged(int value, int lineId)
+{
+    qDebug() << "Slider value changed for Line ID" << lineId << ": " << value;
+
+    // Find the line with the given lineId
+    auto it = std::find_if(lines.begin(), lines.end(), [lineId](const Line &line) {
+        return line.id == lineId;
+    });
+
+    if (it != lines.end()) {
+        // Clear existing nodes for this lineId
+        meshNodesVector.erase(std::remove_if(meshNodesVector.begin(), meshNodesVector.end(),
+                                             [lineId](const MeshNode &node) { return node.lineId == lineId; }),
+                              meshNodesVector.end());
+
+        // Calculate the step size
+        double length = it->length;
+        double stepSize = length / value;
+
+        // Generate new nodes and store them in the vector
+        for (int i = 1; i < value; ++i) { // We already have start and end points
+            double factor = i * stepSize / length;
+            double newX = it->startX + factor * (it->endX - it->startX);
+            double newZ = it->startZ + factor * (it->endZ - it->startZ);
+            meshNodesVector.push_back({lineId, newX, newZ});
+        }
+    }
+}
+
+
+void Gui::on_applyButton_clicked()
+{
+    qDebug() << "Apply button clicked! Processing mesh nodes...";
+
+    for (const auto &node : meshNodesVector) {
+        qDebug() << "Line ID:" << node.lineId << ", Node X:" << node.x << ", Node Z:" << node.z;
+    }
+
+    // Further processing or use the meshNodesVector as needed
+}
+
+
 
 void Gui::loadResultsLayout()
 {
@@ -642,19 +689,25 @@ void Gui::on_addLineButton_clicked()
             auto startPoint = pointsMap[startId];
             auto endPoint = pointsMap[endId];
 
+            // Calculate the length of the line using the distance formula
+            double length = sqrt(pow(endPoint.first - startPoint.first, 2) + pow(endPoint.second - startPoint.second, 2));
+
             // Generate a unique ID for the new line
             int newLineId = lines.empty() ? 1 : lines.back().id + 1;
 
             // Add the new line to the database
             dataBaseLinesManager->addObjectToDataBase(startId, endId);
 
-            // Add the new line to the lines vector
+            // Add the new line to the lines vector with the calculated length
             lines.push_back(
-                {startPoint.first, startPoint.second, endPoint.first, endPoint.second, newLineId});
+                {startPoint.first, startPoint.second, endPoint.first, endPoint.second, newLineId, 0, length});
+
+            // Debugging output
             cout << "startPoint.first: " << startPoint.first
                  << " startPoint.second: " << startPoint.second
                  << " endPoint.first: " << endPoint.first << " endPoint.second: " << endPoint.second
-                 << " newLineId: " << newLineId << endl;
+                 << " newLineId: " << newLineId
+                 << " length: " << length << endl;
         }
 
         // Update the UI
@@ -669,6 +722,7 @@ void Gui::on_addLineButton_clicked()
     // Show the dialog non-modally
     dialog->show();
 }
+
 void Gui::on_addSupportButton_clicked()
 {
     // Create a new AddBoundariesDialog instance
@@ -1084,6 +1138,13 @@ void Gui::paintAssignedCrossSections(QPainter &painter)
     }
 }
 
+void Gui::paintMeshNodes(QPainter &painter)
+{
+    //painter.setPen(QPen(Qt::Grey, 8));
+
+
+}
+
 void Gui::paintSupports(QPainter &painter)
 {
     painter.setPen(QPen(Qt::darkBlue, 15)); // Powiększ grubość linii 15 razy
@@ -1482,6 +1543,7 @@ void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &
     painter.drawLine(start, arrowP1);
     painter.drawLine(start, arrowP2);
 }
+
 
 
 void Gui::wheelEvent(QWheelEvent *event)

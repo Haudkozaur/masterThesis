@@ -49,6 +49,8 @@ private slots:
     void on_clearButton_clicked();
     void on_editObjectButton_clicked();
 
+    void handleSliderValueChanged(int value, int lineId);
+
     //cover changing layouts options
     void onComboBoxIndexChanged(int index);
 public slots:
@@ -65,6 +67,8 @@ public slots:
     void on_addPointAppliedForceButton_clicked();
     void on_addLineLoadButton_clicked();
     void on_openLoadsManagerButton_clicked();
+
+    void on_applyButton_clicked();
 
 private:
     std::map<int, std::string> materialsMap;
@@ -114,6 +118,8 @@ private:
     QPushButton *addLineLoadButton;
     QPushButton *openLoadsManagerButton;
 
+    QPushButton *applyButton;
+
     QComboBox modelPhaseComboBox;
     struct Point
     {
@@ -129,6 +135,7 @@ private:
         int endZ;
         int id; // New field id
         int crossSectionId;
+        double length; // New field to store the length of the line
     };
 
     struct Boundary
@@ -153,12 +160,24 @@ private:
         qreal Fx;
         qreal Fz;
     };
+    struct Mesh {
+        int lineId;         // The ID of the line
+        int numberOfElements; // The value of the slider representing the number of elements
+    };
+
+    struct MeshNode {
+        int lineId;        // ID of the line
+        double x;          // X-coordinate of the node
+        double z;          // Z-coordinate of the node
+    };
 
     std::vector<Point> points;
     std::vector<Line> lines;
     std::vector<Boundary> boundaries;
     std::vector<NodalLoad> nodalLoads;
     std::vector<LineLoad> lineLoads;
+    vector<Mesh> meshVector;
+    vector<MeshNode> meshNodesVector;
 
     qreal scaleFactor = 20;
 
@@ -173,6 +192,7 @@ private:
     void drawLineLoads(QPainter &painter);
     void drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end);
     void paintAssignedCrossSections(QPainter &painter);
+    void paintMeshNodes(QPainter &painter);
     void drawAxes(QPainter &painter);
     void drawGrid(QPainter &painter,
                   qreal leftX,
