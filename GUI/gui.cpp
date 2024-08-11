@@ -10,6 +10,12 @@
 #include <QUiLoader>
 #include <QWheelEvent>
 #include <QXmlStreamReader>
+#include <QLabel>            // Include for QLabel
+#include <QSlider>           // Include for QSlider
+#include <QVBoxLayout>       // Include for QVBoxLayout
+#include <QHBoxLayout>       // Include for QHBoxLayout
+#include <QScrollArea>
+#include <QScrollBar>
 #include "addboundariesdialog.h"
 #include "addcrosssectiondialog.h"
 #include "addlinedialog.h"
@@ -283,6 +289,7 @@ void Gui::onComboBoxIndexChanged(int index)
         loadLoadsLayout();
         break;
     case 3:
+        on_refreshButton_clicked();
         loadMeshLayout();
         break;
     case 4:
@@ -330,10 +337,96 @@ void Gui::loadPropertiesLayout()
         qWarning() << "Button 'openCrossSectionManagerButton' not found!";
     }
 }
-
 void Gui::loadMeshLayout()
 {
+    qDebug() << "Starting loadMeshLayout";
+
+    // Load the UI layout from the file
     loadLayoutFromFile(":/ui/mesh_layout.ui");
+    qDebug() << "UI layout loaded from file";
+
+    // Find the main layout and widgets in the loaded UI
+    QVBoxLayout *mainLayout = findChild<QVBoxLayout*>("mainLayout");
+    QScrollArea *scrollArea = findChild<QScrollArea*>("scrollArea");
+    QWidget *scrollAreaWidgetContents = findChild<QWidget*>("scrollAreaWidgetContents");
+    QVBoxLayout *dynamicLayout = findChild<QVBoxLayout*>("dynamicLayout");
+    QLabel *numberOfFeLabel = findChild<QLabel*>("numberOfFeLabel");
+    QPushButton *applyButton = findChild<QPushButton*>("applyButton");
+
+    if (!mainLayout || !scrollArea || !scrollAreaWidgetContents || !dynamicLayout || !numberOfFeLabel || !applyButton) {
+        qWarning() << "Layouts or widgets not found!";
+        return;
+    }
+
+    qDebug() << "Layouts and widgets found, clearing existing widgets";
+
+    // Clear any existing widgets in the dynamic layout
+    QLayoutItem *child;
+    while ((child = dynamicLayout->takeAt(0)) != nullptr) {
+        delete child->widget();
+        delete child;
+    }
+
+    qDebug() << "Populating dynamic layout with new content";
+
+    // Apply a consistent style to the horizontal sliders
+    QString sliderStyle = R"(
+        QSlider::groove:horizontal {
+            border: 1px solid #999999;
+            height: 8px; /* Adjust height for horizontal */
+            background: #b0b0b0;
+        }
+        QSlider::handle:horizontal {
+            background: #007bff;
+            border: 1px solid #5c5c5c;
+            width: 18px; /* Adjust width for horizontal */
+            margin: -5px 0; /* Move handle a bit */
+            border-radius: 9px; /* Rounded corners */
+        }
+    )";
+
+    // Populate the dynamic layout with QLabel and QSlider for each Line's id
+    for (const auto &line : lines) {
+        qDebug() << "Processing Line ID:" << line.id;
+
+        QHBoxLayout *hLayout = new QHBoxLayout();
+
+        QLabel *label = new QLabel(QString("Line ID %1:").arg(line.id), this);
+        hLayout->addWidget(label);
+        qDebug() << "Label created and added for Line ID:" << line.id;
+
+        QSlider *slider = new QSlider(Qt::Horizontal, this);
+        slider->setRange(1, 100);
+        slider->setValue(10);  // Set the default slider value to 10
+        slider->setStyleSheet(sliderStyle);  // Apply the same style to horizontal sliders
+        hLayout->addWidget(slider);
+        qDebug() << "Slider created and added for Line ID:" << line.id;
+
+        QLabel *valueLabel = new QLabel(QString::number(slider->value()), this);
+        hLayout->addWidget(valueLabel);
+        qDebug() << "Value label created and added for Line ID:" << line.id;
+
+        // Connect the slider's valueChanged signal to update the value label
+        connect(slider, &QSlider::valueChanged, [valueLabel](int value) {
+            valueLabel->setText(QString::number(value));
+        });
+        qDebug() << "Slider valueChanged signal connected for Line ID:" << line.id;
+
+        // Add the horizontal layout to the dynamic layout
+        dynamicLayout->addLayout(hLayout);
+        qDebug() << "Horizontal layout added to dynamic layout for Line ID:" << line.id;
+    }
+
+    dynamicLayout->addStretch();  // Add stretch at the end for better layout
+    qDebug() << "Stretch added to dynamic layout";
+
+    // Set the Apply button behavior
+    connect(applyButton, &QPushButton::clicked, [this]() {
+        qDebug() << "Apply button clicked!";
+        // Handle apply action here
+    });
+
+    qDebug() << "Load mesh layout complete.";
 }
 
 void Gui::loadResultsLayout()
