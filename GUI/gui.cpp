@@ -386,7 +386,6 @@ void Gui::loadMeshLayout()
     )";
 
     // Populate the dynamic layout with QLabel and QSlider for each Line's id
-    // Inside the loadMeshLayout method
     for (const auto &line : lines) {
         qDebug() << "Processing Line ID:" << line.id;
 
@@ -408,7 +407,8 @@ void Gui::loadMeshLayout()
         qDebug() << "Value label created and added for Line ID:" << line.id;
 
         // Connect the slider's valueChanged signal to update the value label and call the slot
-        connect(slider, &QSlider::valueChanged, [this, line](int value) {
+        connect(slider, &QSlider::valueChanged, [this, line, valueLabel](int value) {
+            valueLabel->setText(QString::number(value));
             handleSliderValueChanged(value, line.id);
         });
         qDebug() << "Slider valueChanged signal connected for Line ID:" << line.id;
@@ -417,17 +417,15 @@ void Gui::loadMeshLayout()
         dynamicLayout->addLayout(hLayout);
         qDebug() << "Horizontal layout added to dynamic layout for Line ID:" << line.id;
 
-        // Initially add the default value (10) to meshVector
+        // Initially add the default value (10) to meshNodesVector
         handleSliderValueChanged(10, line.id);
     }
-
 
     dynamicLayout->addStretch();  // Add stretch at the end for better layout
     qDebug() << "Stretch added to dynamic layout";
 
     // Set the Apply button behavior
     connect(applyButton, &QPushButton::clicked, this, &Gui::on_applyButton_clicked);
-
 
     qDebug() << "Load mesh layout complete.";
 }
@@ -448,20 +446,26 @@ void Gui::handleSliderValueChanged(int value, int lineId)
                                              [lineId](const MeshNode &node) { return node.lineId == lineId; }),
                               meshNodesVector.end());
 
-        // Calculate the step size
-        double length = it->length;
-        double stepSize = length / value;
+        // Calculate the length of the line
+        double length = sqrt(pow(it->endX - it->startX, 2) + pow(it->endZ - it->startZ, 2));
+
+        // Avoid division by zero by checking the length and value
+        if (length == 0 || value <= 1) {
+            qWarning() << "Invalid line length or number of elements.";
+            return;
+        }
 
         // Generate new nodes and store them in the vector
         for (int i = 1; i < value; ++i) { // We already have start and end points
-            double factor = i * stepSize / length;
+            double factor = static_cast<double>(i) / value;
             double newX = it->startX + factor * (it->endX - it->startX);
             double newZ = it->startZ + factor * (it->endZ - it->startZ);
             meshNodesVector.push_back({lineId, newX, newZ});
         }
+    } else {
+        qWarning() << "Line ID " << lineId << " not found!";
     }
 }
-
 
 void Gui::on_applyButton_clicked()
 {
@@ -472,6 +476,7 @@ void Gui::on_applyButton_clicked()
     }
 
     // Further processing or use the meshNodesVector as needed
+    Gui::on_refreshButton_clicked();
 }
 
 
@@ -1025,6 +1030,7 @@ void Gui::paintEvent(QPaintEvent *event)
     paintSupports(painter);
     drawNodalLoads(painter);
     drawLineLoads(painter);
+    paintMeshNodes(painter);
     // paintAssignedCrossSections(painter);
 }
 
@@ -1140,10 +1146,27 @@ void Gui::paintAssignedCrossSections(QPainter &painter)
 
 void Gui::paintMeshNodes(QPainter &painter)
 {
-    //painter.setPen(QPen(Qt::Grey, 8));
+    // Step 1: Set up the brush and pen for drawing nodes
+    painter.setBrush(Qt::gray);
+    painter.setPen(Qt::gray);
 
+    // Step 2: Adjust the font size for node labels
+    QFont font = painter.font();
+    font.setPointSize(30); // 1/5 of the font size used in paintPoints
+    painter.setFont(font);
 
+    // Step 3: Iterate over meshNodesVector and draw each node
+    for (const auto &node : meshNodesVector) {
+        // Draw the node as an ellipse with 1/5 of the size of points
+        painter.drawEllipse(QPointF(node.x, -node.z), 15, 15); // 1/5 of the size of points
+
+        // Draw the label with coordinates (x, z)
+        QString label = QString("(%1, %2)").arg(node.x).arg(node.z);
+        painter.drawText(QPointF(node.x + 18, -node.z - 18), label); // Adjust the label position slightly
+    }
 }
+
+
 
 void Gui::paintSupports(QPainter &painter)
 {
