@@ -18,16 +18,17 @@ int main(int argc, char *argv[])
     dateBaseName = dateBaseName + ".db";
 
     //Creating DB starter and initialize tables
-    DataBaseStarter *dateBaseStarter = new DataBaseStarter(dateBaseName);
-    dateBaseStarter->startDateBase();
-    dateBaseStarter->createPointsTable();
-    dateBaseStarter->createLinesTable();
-    dateBaseStarter->createSurfacesTable();
-    dateBaseStarter->createMaterialsTable();
-    dateBaseStarter->createCrossSectionsTable();
-    dateBaseStarter->createSupportsTable();
-    dateBaseStarter->createNodalLoadsTable();
-    dateBaseStarter->createLineLoadsTable();
+    DataBaseStarter *dataBaseStarter = new DataBaseStarter(dateBaseName);
+    dataBaseStarter->startDateBase();
+    dataBaseStarter->createPointsTable();
+    dataBaseStarter->createLinesTable();
+    dataBaseStarter->createSurfacesTable();
+    dataBaseStarter->createMaterialsTable();
+    dataBaseStarter->createCrossSectionsTable();
+    dataBaseStarter->createSupportsTable();
+    dataBaseStarter->createNodalLoadsTable();
+    dataBaseStarter->createLineLoadsTable();
+    dataBaseStarter->createMeshTable();
 
     //Creating DB managers and create basic objects
     DataBaseMaterialsManager *materialsManager = new DataBaseMaterialsManager(dateBaseName);
@@ -44,13 +45,14 @@ int main(int argc, char *argv[])
     DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dateBaseName);
     DataBaseNodalLoadsManager *nodalLoadsManager = new DataBaseNodalLoadsManager(dateBaseName);
     DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dateBaseName);
+    DataBaseMeshManager *meshManager = new DataBaseMeshManager(dateBaseName);
 
     //Creating and testing DataBaseSolverPreparer
     DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dateBaseName);
     solverPreparer->fetchAllData();
 
-    SolverFEM::Solver solver(solverPreparer);
-    solver.solve();
+    // SolverFEM::Solver solver(solverPreparer);
+    // solver.solve();
 
     //Creating GUI
     QApplication app(argc, argv);
@@ -60,9 +62,10 @@ int main(int argc, char *argv[])
                      supportsManager,
                      materialsManager,
                      crossSectionsManager,
-                     dateBaseStarter,
+                     dataBaseStarter,
                      nodalLoadsManager,
                      lineLoadsManager,
+                     meshManager,
                      crossSectionsAssistant);
     mainWindow.show();
 

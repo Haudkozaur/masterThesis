@@ -11,5 +11,6 @@
 #include "DataBaseSupportsManager.h"
 #include "CrossSectionsAssistant.h"
 #include "databasesolverpreparer.h"
+#include "DataBaseMeshManager.h"
 
 #endif // DATABASEMANAGERS_H

@@ -32,6 +32,8 @@ public:
 
     void createLineLoadsTable();
 
+    void createMeshTable();
+
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;

@@ -132,4 +132,21 @@ void DataBaseStarter::createLineLoadsTable() {
     }
     cout << "\n";
 }
+
+void DataBaseStarter::createMeshTable() {
+    sqlite3_open(dataBaseNameAsChar, &DB);
+    //query that creates mesg table with id as primary key, line id as foreign key and double node_x and double node_Z
+    string queryToCreateMeshTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::MESH) +
+                                    " (id INTEGER PRIMARY KEY AUTOINCREMENT, line_id INTEGER, node_x REAL, node_z REAL, FOREIGN KEY (line_id) REFERENCES lines(id))";
+    int rc = sqlite3_exec(DB,
+                          queryToCreateMeshTable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Mesh Table created successfully" << endl;
+    }
+    cout << "\n";
+}
+
 }

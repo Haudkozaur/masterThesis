@@ -27,6 +27,7 @@ public:
                  DataBaseStarter *starter,
                  DataBaseNodalLoadsManager *nodalLoadsManager,
                  DataBaseLineLoadsManager *lineLoadsManager,
+                 DataBaseMeshManager *meshManager,
                  CrossSectionsAssistant *crossSectionsAssistant,
                  QWidget *parent = nullptr);
     ~Gui();
@@ -93,6 +94,7 @@ private:
     DataBaseNodalLoadsManager *dataBaseNodalLoadsManager;
     DataBaseLineLoadsManager *dataBaseLineLoadsManager;
     CrossSectionsAssistant *crossSectionsAssistant;
+    DataBaseMeshManager *dataBaseMeshManager;
 
     //using in drawing coordinates system
     int xCoordinate;

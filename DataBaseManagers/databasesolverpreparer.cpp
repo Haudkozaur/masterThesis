@@ -17,6 +17,7 @@ void DataBaseSolverPreparer::fetchAllData()
     fetchSupports();
     fetchNodalLoads();
     fetchLineLoads();
+    fetchMesh();
 
     createNodes();
     createMembers();
@@ -147,14 +148,54 @@ void DataBaseSolverPreparer::fetchLineLoads()
         }
     }
 }
+void DataBaseSolverPreparer::fetchMesh()
+{
+    // SQL query to select all data from the mesh table
+    std::string query = "SELECT id, line_id, node_x, node_z FROM mesh";
+    std::vector<std::vector<std::string>> results = executeQuery(query);
+
+    // Clear meshMap before populating it with new data
+    meshMap.clear();
+
+    // Iterate over the results and populate the meshMap
+    for (const auto &row : results) {
+        if (row.size() == 4) {
+            int id = std::stoi(row[0]); // Mesh ID
+            int lineId = std::stoi(row[1]); // Line ID
+            double nodeX = std::stod(row[2]); // Node X-coordinate
+            double nodeZ = std::stod(row[3]); // Node Z-coordinate
+
+            // Store the data in meshMap
+            meshMap[id] = std::make_pair(lineId, std::make_pair(nodeX, nodeZ));
+        }
+    }
+
+    // Print meshMap for debugging
+    for (const auto &mesh : meshMap) {
+        std::cout << "Mesh ID: " << mesh.first
+                  << ", Line ID: " << mesh.second.first
+                  << ", X: " << mesh.second.second.first
+                  << ", Z: " << mesh.second.second.second << std::endl;
+    }
+}
 
 void DataBaseSolverPreparer::createNodes()
 {
     nodesMap.clear();
+
+    // Process nodes from pointsMap
     for (const auto &point : pointsMap) {
         int id = point.first;
         double xCord = point.second.first / 1000; // for nodes we operate in [m]
         double zCord = point.second.second / 1000;
+        nodesMap.emplace(id, SolverFEM::Node(id, xCord, zCord));
+    }
+
+    // Process nodes from meshMap
+    for (const auto &mesh : meshMap) {
+        int id = mesh.first; // Mesh node ID
+        double xCord = mesh.second.second.first / 1000; // Node X-coordinate in meters
+        double zCord = mesh.second.second.second / 1000; // Node Z-coordinate in meters
         nodesMap.emplace(id, SolverFEM::Node(id, xCord, zCord));
     }
 
@@ -165,48 +206,84 @@ void DataBaseSolverPreparer::createNodes()
     }
 }
 
+
 void DataBaseSolverPreparer::createMembers()
 {
     membersMap.clear();
+
     for (const auto &line : linesMap) {
-        int id = line.first;
-        int startPoint = std::get<0>(line.second);
-        int endPoint = std::get<1>(line.second);
+        int lineId = line.first;
+        int startPointId = std::get<0>(line.second);
+        int endPointId = std::get<1>(line.second);
         int crossSectionId = std::get<2>(line.second);
-        double length = std::get<3>(line.second) / 1000; //for members we operate in [m]
 
-        auto crossSection = crossSectionsMap[crossSectionId];
-        std::string crossSectionName = std::get<0>(crossSection);
-        int materialId = std::get<1>(crossSection);
-        double A = std::get<2>(crossSection);
-        double I = std::get<3>(crossSection);
+        // Step 1: Gather all relevant nodes (start, mesh, end) for the line
+        std::vector<std::pair<int, SolverFEM::Node>> lineNodes;
 
-        auto material = materialsMap[materialId];
-        std::string materialName = std::get<0>(material);
-        double E = std::get<1>(material);
-        double v = std::get<2>(material);
+        // Add the start point node
+        lineNodes.push_back({startPointId, nodesMap.at(startPointId)});
 
-        double x1 = nodesMap.at(startPoint).getX();
-        double z1 = nodesMap.at(startPoint).getZ();
-        double x2 = nodesMap.at(endPoint).getX();
-        double z2 = nodesMap.at(endPoint).getZ();
+        // Add mesh nodes associated with this line
+        for (const auto &mesh : meshMap) {
+            if (mesh.second.first == lineId) {
+                lineNodes.push_back({mesh.first, nodesMap.at(mesh.first)});
+            }
+        }
 
-        membersMap.emplace(id,
-                           SolverFEM::Member(startPoint, endPoint, x1, z1, x2, z2, E, v, I, A, length));
+        // Add the end point node
+        lineNodes.push_back({endPointId, nodesMap.at(endPointId)});
+
+        // Step 2: Sort nodes by their X-coordinate along the line (or another criterion if needed)
+        std::sort(lineNodes.begin(), lineNodes.end(), [](const auto &a, const auto &b) {
+            return a.second.getX() < b.second.getX();
+        });
+
+        // Step 3: Create members between consecutive nodes
+        for (size_t i = 0; i < lineNodes.size() - 1; ++i) {
+            int nodeId1 = lineNodes[i].first;
+            int nodeId2 = lineNodes[i + 1].first;
+
+            double x1 = lineNodes[i].second.getX();
+            double z1 = lineNodes[i].second.getZ();
+            double x2 = lineNodes[i + 1].second.getX();
+            double z2 = lineNodes[i + 1].second.getZ();
+
+            // Calculate member properties (length, cross-section, material)
+            double length = std::sqrt(std::pow(x2 - x1, 2) + std::pow(z2 - z1, 2));
+            auto crossSection = crossSectionsMap[crossSectionId];
+            std::string crossSectionName = std::get<0>(crossSection);
+            int materialId = std::get<1>(crossSection);
+            double A = std::get<2>(crossSection);
+            double I = std::get<3>(crossSection);
+
+            auto material = materialsMap[materialId];
+            std::string materialName = std::get<0>(material);
+            double E = std::get<1>(material);
+            double v = std::get<2>(material);
+
+            // Add the member to membersMap
+            int memberId = membersMap.size() + 1; // Ensure unique ID for each member
+            membersMap.emplace(memberId, SolverFEM::Member(nodeId1, nodeId2, x1, z1, x2, z2, E, v, I, A, length));
+        }
     }
 
-    // Print members for debugging
+    // Step 4: Print members for debugging
     for (const auto &member : membersMap) {
         std::cout << "Member ID: " << member.first
                   << ", Start Node: " << member.second.getFirstNodeNumber()
                   << ", End Node: " << member.second.getSecondNodeNumber()
-                  << ", E: " << member.second.getE() << ", v: " << member.second.getV()
-                  << ", I: " << member.second.getI() << ", A: " << member.second.getA()
-                  << ", Length: " << member.second.getLength() << ", X1: " << member.second.getX1()
-                  << ", Z1: " << member.second.getZ1() << ", X2: " << member.second.getX2()
+                  << ", E: " << member.second.getE()
+                  << ", v: " << member.second.getV()
+                  << ", I: " << member.second.getI()
+                  << ", A: " << member.second.getA()
+                  << ", Length: " << member.second.getLength()
+                  << ", X1: " << member.second.getX1()
+                  << ", Z1: " << member.second.getZ1()
+                  << ", X2: " << member.second.getX2()
                   << ", Z2: " << member.second.getZ2() << std::endl;
     }
 }
+
 
 void DataBaseSolverPreparer::createNodeLoads()
 {

@@ -37,6 +37,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseStarter *starter,
          DataBaseNodalLoadsManager *nodalLoadsManager,
          DataBaseLineLoadsManager *lineLoadsManager,
+         DataBaseMeshManager *meshManager,
          CrossSectionsAssistant *crossSectionsAssistant,
          QWidget *parent)
     : QMainWindow(parent)
@@ -49,6 +50,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseCrossSectionsManager(crossSectionsManager)
     , dataBaseNodalLoadsManager(nodalLoadsManager)
     , dataBaseLineLoadsManager(lineLoadsManager)
+    , dataBaseMeshManager(meshManager)
     , crossSectionsAssistant(crossSectionsAssistant)
     , xCoordinate(0)
     , zCoordinate(0)
@@ -471,14 +473,24 @@ void Gui::on_applyButton_clicked()
 {
     qDebug() << "Apply button clicked! Processing mesh nodes...";
 
-    for (const auto &node : meshNodesVector) {
-        qDebug() << "Line ID:" << node.lineId << ", Node X:" << node.x << ", Node Z:" << node.z;
+    // Step 1: Validate the database connection
+    if (!dataBaseMeshManager) {
+        qWarning() << "Database connection is not initialized!";
+        return;
     }
 
-    // Further processing or use the meshNodesVector as needed
+    // Step 2: Clear the MESH table before populating it again
+    dataBaseMeshManager->clearTable();
+
+    // Step 3: Iterate over meshNodesVector and add each node to the database
+    for (const auto &node : meshNodesVector) {
+        qDebug() << "Adding to DB - Line ID:" << node.lineId << ", Node X:" << node.x << ", Node Z:" << node.z;
+        dataBaseMeshManager->addObjectToDataBase(node.lineId, node.x, node.z);
+    }
+
+    // Step 4: Refresh the UI to reflect changes
     Gui::on_refreshButton_clicked();
 }
-
 
 
 void Gui::loadResultsLayout()

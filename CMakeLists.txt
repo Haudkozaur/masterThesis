@@ -96,6 +96,7 @@ add_executable(masterThesis
     Solver/node.h Solver/node.cpp
     Solver/UniformLoad.h Solver/UniformLoad.cpp
     Solver/MemberSupportConditions.h Solver/membersupportconditions.cpp
+    DataBaseManagers/DataBaseMeshManager.h DataBaseManagers/DataBaseMeshManager.cpp
 
 
 
