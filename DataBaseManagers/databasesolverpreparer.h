@@ -35,8 +35,9 @@ private:
     void fetchLineLoads();
     void fetchMesh();
 
-    void createNodes();
-    void createMembers();
+    // void createNodes();
+    // void createMembers();
+    void createFiniteElements();
     void createNodeLoads();
     void createUniformLoads();
     void createNodeSupports();

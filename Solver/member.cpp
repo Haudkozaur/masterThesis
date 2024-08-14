@@ -13,7 +13,8 @@ Member::Member(int firstNode,
                double v,
                double I,
                double A,
-               double length)
+               double length,
+               int lineId)  // Add lineId here
     : firstNode(firstNode)
     , secondNode(secondNode)
     , x1(x1)
@@ -25,9 +26,15 @@ Member::Member(int firstNode,
     , I(I)
     , A(A)
     , length(length)
+    , lineId(lineId)  // Initialize lineId
 {
     lambdaZ = (z2 - z1) / length;
     lambdaX = (x2 - x1) / length;
+}
+
+int Member::getLineId() const
+{
+    return lineId;
 }
 
 double Member::getLambdaZ() const

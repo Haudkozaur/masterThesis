@@ -51,11 +51,14 @@ bool DataBaseModelObjectsManager::validate(int objectID, const TableType& tableN
 
 bool DataBaseModelObjectsManager::checkIfDuplicate(TableType tableName, const std::tuple<int, int, int>& properties) {
     bool isDuplicate = false;
+    cout << "Checking if object already exists in table " + tableTypesMap.at(tableName) << endl;
+    cout << "DataBaseName: " << dateBaseName << endl;
     std::string queryCheckIfDuplicate;
     if (tableName == TableType::POINTS) {
         queryCheckIfDuplicate = "SELECT * FROM " + tableTypesMap.at(tableName)
                                 + " WHERE x_cord = " + std::to_string(std::get<0>(properties))
                                 + " AND z_cord = " + std::to_string(std::get<1>(properties));
+        cout << queryCheckIfDuplicate << endl;
     } else if (tableName == TableType::LINES) {
         queryCheckIfDuplicate = "SELECT * FROM " + tableTypesMap.at(tableName)
                                 + " WHERE start_point = " + std::to_string(std::get<0>(properties))
@@ -64,7 +67,9 @@ bool DataBaseModelObjectsManager::checkIfDuplicate(TableType tableName, const st
         queryCheckIfDuplicate = "SELECT * FROM " + tableTypesMap.at(tableName)
                                 + " WHERE point_id = " + std::to_string(std::get<0>(properties));
     }
-    sqlite3_open(dateBaseNameAsChar, &DB);
+    // sqlite3_open(dateBaseNameAsChar, &DB);
+    // cout << "db opened" << endl;
+    // cout << dateBaseNameAsChar << endl;
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(DB, queryCheckIfDuplicate.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         std::printf("ERROR: while compiling sql: %s\n", sqlite3_errmsg(DB));

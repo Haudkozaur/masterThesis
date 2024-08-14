@@ -927,6 +927,7 @@ void Gui::on_refreshButton_clicked()
     boundaries.clear();
     nodalLoads.clear();
     lineLoads.clear();
+    //meshNodesVector.clear();
 
     // Debug: Print the status before populating the vectors
     qDebug() << "Cleared vectors, starting to populate them";
@@ -1008,6 +1009,7 @@ void Gui::on_clearButton_clicked()
         // dataBaseCrossSectionsManager->dropTable(TableType::CROSS_SECTIONS);
         dataBaseNodalLoadsManager->dropTable(TableType::NODAL_LOADS);
         dataBaseLineLoadsManager->dropTable(TableType::LINE_LOADS);
+        dataBaseMeshManager->dropTable(TableType::MESH);
 
         dataBaseStarter->createPointsTable();
         dataBaseStarter->createLinesTable();
@@ -1016,6 +1018,7 @@ void Gui::on_clearButton_clicked()
         // dataBaseStarter->createCrossSectionsTable();
         dataBaseStarter->createNodalLoadsTable();
         dataBaseStarter->createLineLoadsTable();
+        dataBaseStarter->createMeshTable();
 
         // Refresh the UI to reflect changes
         on_refreshButton_clicked();

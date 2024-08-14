@@ -41,7 +41,7 @@ private:
     std::map<int, Eigen::MatrixXd> memberStiffnessMatrices;
     std::map<int, int> nodeIdToDofMap; // Map node IDs to DOF indices
 
-    void createNodeIdToDofMap();
+    void createNodeIdToDofMap(); // Initializes the nodeIdToDofMap
     void calculateStiffnessMatrices();
     void initializeGlobalStiffnessMatrix();
     void aggregateStiffnessMatrix(Eigen::MatrixXd& globalMatrix, const Eigen::MatrixXd& localMatrix, int startNodeId, int endNodeId);

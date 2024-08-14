@@ -6,7 +6,9 @@
 namespace DataBaseManagers {
 
 DataBasePointsManager::DataBasePointsManager(std::string dateBaseName)
-    : DataBaseModelObjectsManager(std::move(dateBaseName)) {}
+    : DataBaseModelObjectsManager(std::move(dateBaseName)) {
+    cout << dateBaseName << endl;
+}
 
 void DataBasePointsManager::addObjectToDataBase(int XCoordinate, int ZCoordinate) {
     // check if there is no duplicated points in db
@@ -60,6 +62,7 @@ void DataBasePointsManager::iterateOverTable() {
 
 void DataBasePointsManager::editPoint(int id, int XCoordinate, int ZCoordinate) {
     // Check if the new point already exists
+
     if (checkIfDuplicate(TableType::POINTS, std::make_tuple(XCoordinate, ZCoordinate, 0))) {
         std::cout << "Error: Point already exists in DB" << std::endl;
         return;

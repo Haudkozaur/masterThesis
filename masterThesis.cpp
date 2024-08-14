@@ -14,11 +14,11 @@ using namespace DataBaseManagers;
 int main(int argc, char *argv[])
 {
     //Setting DB name
-    string dateBaseName = "mesosoic_test";
-    dateBaseName = dateBaseName + ".db";
+    string dataBaseName = "mesosoic_test";
+    dataBaseName = dataBaseName + ".db";
 
     //Creating DB starter and initialize tables
-    DataBaseStarter *dataBaseStarter = new DataBaseStarter(dateBaseName);
+    DataBaseStarter *dataBaseStarter = new DataBaseStarter(dataBaseName);
     dataBaseStarter->startDateBase();
     dataBaseStarter->createPointsTable();
     dataBaseStarter->createLinesTable();
@@ -31,28 +31,30 @@ int main(int argc, char *argv[])
     dataBaseStarter->createMeshTable();
 
     //Creating DB managers and create basic objects
-    DataBaseMaterialsManager *materialsManager = new DataBaseMaterialsManager(dateBaseName);
+    DataBaseMaterialsManager *materialsManager = new DataBaseMaterialsManager(dataBaseName);
     materialsManager->addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
     materialsManager->addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
-    DataBaseCrossSectionsManager *crossSectionsManager = new DataBaseCrossSectionsManager(dateBaseName);
+    DataBaseCrossSectionsManager *crossSectionsManager = new DataBaseCrossSectionsManager(dataBaseName);
     crossSectionsManager->addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0), 171.000000000000 * pow(10.0, -8));
     crossSectionsManager->addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
     CrossSectionsAssistant *crossSectionsAssistant = new CrossSectionsAssistant();
-    DataBasePointsManager *pointsManager = new DataBasePointsManager(dateBaseName);
-    DataBaseLinesManager *linesManager = new DataBaseLinesManager(dateBaseName);
-    DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dateBaseName);
-    DataBaseNodalLoadsManager *nodalLoadsManager = new DataBaseNodalLoadsManager(dateBaseName);
-    DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dateBaseName);
-    DataBaseMeshManager *meshManager = new DataBaseMeshManager(dateBaseName);
+    DataBasePointsManager *pointsManager = new DataBasePointsManager(dataBaseName);
+    DataBaseLinesManager *linesManager = new DataBaseLinesManager(dataBaseName);
+    DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dataBaseName);
+    DataBaseNodalLoadsManager *nodalLoadsManager = new DataBaseNodalLoadsManager(dataBaseName);
+    DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dataBaseName);
+    DataBaseMeshManager *meshManager = new DataBaseMeshManager(dataBaseName);
 
     //Creating and testing DataBaseSolverPreparer
-    DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dateBaseName);
-    solverPreparer->fetchAllData();
+    DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dataBaseName);
+    std::cout << "Solver Preparer created successfully" << std::endl;
+    solverPreparer->fetchAllData();  // Add logging inside this method to trace execution
+    std::cout << "fetchAllData completed successfully" << std::endl;
 
-    // SolverFEM::Solver solver(solverPreparer);
-    // solver.solve();
+    SolverFEM::Solver solver(solverPreparer);
+    solver.solve();
 
     //Creating GUI
     QApplication app(argc, argv);
@@ -76,6 +78,7 @@ int main(int argc, char *argv[])
     delete supportsManager;
     delete materialsManager;
     delete crossSectionsManager;
+    delete meshManager;
     delete crossSectionsAssistant;
     delete solverPreparer;
 

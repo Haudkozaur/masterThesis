@@ -13,6 +13,7 @@ private:
     double E, I, A, v; // User Input as GPa, mm^4, mm^2, [-]
     double lambdaZ;    // = z2 - z1 / length
     double lambdaX;    // = x2 - x1 / length
+    int lineId; // Add this to store the line ID associated with this member
 
 public:
     Member(int firstNode,
@@ -25,7 +26,8 @@ public:
            double v,
            double I,
            double A,
-           double length);
+           double length,
+           int lineId);  // Add lineId to the constructor
 
     double getLambdaZ() const;
     double getLambdaX() const;
@@ -40,6 +42,7 @@ public:
     double getZ1() const;
     double getX2() const;
     double getZ2() const;
+    int getLineId() const;  // Add this getter to retrieve lineId
 };
 
 } // namespace SolverFEM

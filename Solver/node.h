@@ -14,7 +14,12 @@ private:
     double d3; // Displacements
 
 public:
+    // Parameterized constructor
     Node(int id, double x, double z);
+
+    // No need for a default constructor if every node needs an id, x, z
+    // Node() = delete;
+
     void setDisplacements(double newD1, double newD2, double newD3);
     int getId() const;
     double getX() const;
