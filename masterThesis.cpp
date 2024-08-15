@@ -46,15 +46,9 @@ int main(int argc, char *argv[])
     DataBaseNodalLoadsManager *nodalLoadsManager = new DataBaseNodalLoadsManager(dataBaseName);
     DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dataBaseName);
     DataBaseMeshManager *meshManager = new DataBaseMeshManager(dataBaseName);
+    DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dataBaseName);
 
     //Creating and testing DataBaseSolverPreparer
-    DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dataBaseName);
-    std::cout << "Solver Preparer created successfully" << std::endl;
-    solverPreparer->fetchAllData();  // Add logging inside this method to trace execution
-    std::cout << "fetchAllData completed successfully" << std::endl;
-
-    SolverFEM::Solver solver(solverPreparer);
-    solver.solve();
 
     //Creating GUI
     QApplication app(argc, argv);
@@ -68,7 +62,8 @@ int main(int argc, char *argv[])
                      nodalLoadsManager,
                      lineLoadsManager,
                      meshManager,
-                     crossSectionsAssistant);
+                     crossSectionsAssistant,
+                     solverPreparer);
     mainWindow.show();
 
     int result = app.exec();

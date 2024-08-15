@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QCheckBox>
 #include "../DataBaseManagers/DataBaseManagers.h"
 #include <vector>
 
@@ -29,6 +30,7 @@ public:
                  DataBaseLineLoadsManager *lineLoadsManager,
                  DataBaseMeshManager *meshManager,
                  CrossSectionsAssistant *crossSectionsAssistant,
+                 DataBaseSolverPreparer *solverPreparer,
                  QWidget *parent = nullptr);
     ~Gui();
 
@@ -49,11 +51,16 @@ private slots:
     void on_refreshButton_clicked();
     void on_clearButton_clicked();
     void on_editObjectButton_clicked();
-
+    void on_calculateButton_clicked();
+    void on_viewButton_clicked();
     void handleSliderValueChanged(int value, int lineId);
 
     //cover changing layouts options
     void onComboBoxIndexChanged(int index);
+
+
+
+
 public slots:
     //slots for buttons from static scheme
     //TODO: refactor it to not using functions from basic gui layout
@@ -64,6 +71,7 @@ public slots:
     void on_addCrossSectionButton_clicked();
     void on_openCrossSectionManagerButton();
     void on_setPropertiesButton_clicked();
+    void on_showResultsButton_clicked();
 
     void on_addPointAppliedForceButton_clicked();
     void on_addLineLoadButton_clicked();
@@ -84,6 +92,7 @@ private:
     void loadMeshLayout();
     void loadResultsLayout();
 
+
     // Pointers to DB managers used in the GUI
     DataBasePointsManager *dataBasePointsManager;
     DataBaseLinesManager *dataBaseLinesManager;
@@ -95,6 +104,7 @@ private:
     DataBaseLineLoadsManager *dataBaseLineLoadsManager;
     CrossSectionsAssistant *crossSectionsAssistant;
     DataBaseMeshManager *dataBaseMeshManager;
+    DataBaseSolverPreparer *dataBaseSolverPreparer;
 
     //using in drawing coordinates system
     int xCoordinate;
@@ -121,6 +131,12 @@ private:
     QPushButton *openLoadsManagerButton;
 
     QPushButton *applyButton;
+
+    QPushButton *showResultsButton;
+    QCheckBox *showMyCheckBox;
+    QCheckBox *showVzCheckBox;
+    QCheckBox *showNxCheckBox;
+    QCheckBox *showDeformationsCheckBox;
 
     QComboBox modelPhaseComboBox;
     struct Point
@@ -187,11 +203,43 @@ private:
     QPointF lastMousePosition;
     bool isDragging;
 
+
+    void setVisabilityState(bool points,
+                            bool pointsLabels,
+                            bool lines,
+                            bool linesLabels,
+                            bool supports,
+                            bool assignedCS,
+                            bool mesh,
+                            bool meshNodesCoords,
+                            bool nodalLoads,
+                            bool nodalLoadsLabels,
+                            bool lineLoads,
+                            bool lineLoadsLabels);
+
+    //boolean var's to manage the visibility of the drawing objects
+    bool showPoints;
+    bool showPointsLabels;
+    bool showLines;
+    bool showLinesLabels;
+    bool showSupports;
+    bool showAssignedCS;
+    bool showMesh;
+    bool showMeshNodesCoords;
+    bool showNodalLoads;
+    bool showNodalLoadsLabels;
+    bool showLineLoads;
+    bool showLineLoadsLabels;
+
+    //paint/draw methods
     void paintPoints(QPainter &painter);
+    void paintPointsLabels(QPainter &painter);
     void paintLines(QPainter &painter);
+    void paintLinesLabels(QPainter &painter);
     void paintSupports(QPainter &painter);
     void drawNodalLoads(QPainter &painter);
     void drawLineLoads(QPainter &painter);
+    void drawLineLoadsLabels(QPainter &painter);
     void drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end);
     void paintAssignedCrossSections(QPainter &painter);
     void paintMeshNodes(QPainter &painter);

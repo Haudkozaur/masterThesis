@@ -10,10 +10,10 @@
 #include <QUiLoader>
 #include <QWheelEvent>
 #include <QXmlStreamReader>
-#include <QLabel>            // Include for QLabel
-#include <QSlider>           // Include for QSlider
-#include <QVBoxLayout>       // Include for QVBoxLayout
-#include <QHBoxLayout>       // Include for QHBoxLayout
+#include <QLabel>
+#include <QSlider>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QScrollArea>
 #include <QScrollBar>
 #include "addboundariesdialog.h"
@@ -26,6 +26,7 @@
 #include "deleteobjectdialog.h"
 #include "editobjectdialog.h"
 #include "setpropertiesdialog.h"
+#include "ViewDialog.h"
 #include "ui_gui.h"
 #include <cmath>
 
@@ -39,6 +40,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseLineLoadsManager *lineLoadsManager,
          DataBaseMeshManager *meshManager,
          CrossSectionsAssistant *crossSectionsAssistant,
+         DataBaseSolverPreparer *solverPreparer,
          QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Gui)
@@ -52,10 +54,23 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseLineLoadsManager(lineLoadsManager)
     , dataBaseMeshManager(meshManager)
     , crossSectionsAssistant(crossSectionsAssistant)
+    , dataBaseSolverPreparer(solverPreparer)
     , xCoordinate(0)
     , zCoordinate(0)
     , scaleFactor(0.1)
     , isDragging(false)
+    ,showPoints(true)
+    ,showPointsLabels(true)
+    ,showLines(true)
+    ,showLinesLabels(true)
+    ,showSupports(true)
+    ,showAssignedCS(false)
+    ,showMesh(false)
+    ,showMeshNodesCoords(false)
+    ,showNodalLoads(false)
+    ,showNodalLoadsLabels(false)
+    ,showLineLoads(false)
+    ,showLineLoadsLabels(false)
 
 {
     ui->setupUi(this);
@@ -79,7 +94,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
 Gui::~Gui()
 {
     delete ui;
-    // Cleanup ...
+
 }
 
 void Gui::on_layoutAddPointButton_clicked()
@@ -273,6 +288,33 @@ void Gui::on_addLineLoadButton_clicked()
     dialog->show();
 }
 
+void Gui::on_viewButton_clicked()
+{
+    ViewDialog *dialog = new ViewDialog(this);
+
+    dialog->moveToBottomLeft();
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    connect(dialog, &ViewDialog::accepted, this, [this, dialog]() {
+        setVisabilityState(dialog->getShowPoints(),
+                           dialog->getShowPointsLabels(),
+                           dialog->getShowLines(),
+                           dialog->getShowLinesLabels(),
+                           dialog->getShowSupports(),
+                           dialog->getShowAssignedCS(),
+                           dialog->getShowMesh(),
+                           dialog->getShowMeshNodesCoords(),
+                           dialog->getShowNodalLoads(),
+                           dialog->getShowNodalLoadsLabels(),
+                           dialog->getShowLineLoads(),
+                           dialog->getShowLineLoadsLabels());
+
+        Gui::on_refreshButton_clicked();
+    });
+    connect(dialog, &ViewDialog::rejected, dialog, &ViewDialog::deleteLater);
+    dialog->show();
+}
 void Gui::on_openLoadsManagerButton_clicked()
 {
     cout << "Loads manager button clicked" << endl;
@@ -304,6 +346,7 @@ void Gui::onComboBoxIndexChanged(int index)
 void Gui::loadPropertiesLayout()
 {
     loadLayoutFromFile(":/ui/properties_layout.ui");
+    setVisabilityState(false,false,true,true,true,true,false,false,false,false,false,false);
     // Znajdź przycisk w załadowanym layoutcie
     addMaterialButton = findChild<QPushButton *>("addMaterialButton");
     if (addMaterialButton) {
@@ -341,11 +384,10 @@ void Gui::loadPropertiesLayout()
 }
 void Gui::loadMeshLayout()
 {
-    qDebug() << "Starting loadMeshLayout";
 
     // Load the UI layout from the file
     loadLayoutFromFile(":/ui/mesh_layout.ui");
-    qDebug() << "UI layout loaded from file";
+    setVisabilityState(false,false,true,true,true,false,true,true,false,false,false,false);
 
     // Find the main layout and widgets in the loaded UI
     QVBoxLayout *mainLayout = findChild<QVBoxLayout*>("mainLayout");
@@ -496,13 +538,47 @@ void Gui::on_applyButton_clicked()
 void Gui::loadResultsLayout()
 {
     loadLayoutFromFile(":/ui/results_layout.ui");
+    setVisabilityState(false,false,true,false,false,false,false,false,false,false,false,false);
+    if (showResultsButton) {
+        connect(showResultsButton, &QPushButton::clicked, this, &Gui::on_showResultsButton_clicked);
+    } else {
+        qWarning() << "Button 'showResultsButton' not found!";
+    }
 }
+void Gui::on_showResultsButton_clicked()
+{
+    cout << "Show results button clicked" << endl;
+    if (showMyCheckBox && showMyCheckBox->isChecked()) {
+        cout << "My checked";
+        bool My = true;
+    } else {
+        bool My = false;
+    }
 
+    if (showVzCheckBox && showVzCheckBox->isChecked()) {
+        bool Vz = true;
+    } else {
+        bool Vz = false;
+    }
+
+    if (showNxCheckBox && showNxCheckBox->isChecked()) {
+        bool Nx = true;
+    } else {
+        bool Nx = false;
+    }
+
+    if (showDeformationsCheckBox && showDeformationsCheckBox->isChecked()) {
+        bool deformations = true;
+    } else {
+        bool deformations = false;
+    }
+    //TODO: PaintResults;
+}
 void Gui::loadStaticSchemeLayout()
 {
     loadLayoutFromFile(":/ui/static_scheme_layout.ui");
-
-    // Znajdź przycisk w załadowanym layoutcie
+    setVisabilityState(true,true,true,true,true,false,false,false,false,false,false,false);
+    // find buttons
     layoutAddPointButton = findChild<QPushButton *>("layoutAddPointButton");
     if (layoutAddPointButton) {
         connect(layoutAddPointButton,
@@ -534,7 +610,7 @@ void Gui::loadStaticSchemeLayout()
 void Gui::loadLoadsLayout()
 {
     loadLayoutFromFile(":/ui/loads_layout.ui");
-
+    setVisabilityState(true,true,true,true,true,false,false,false,true,true,true,true);
     // Znajdź przycisk w załadowanym layoutcie
     addPointAppliedForceButton = findChild<QPushButton *>("addPointAppliedForceButton");
     if (addPointAppliedForceButton) {
@@ -1040,63 +1116,93 @@ void Gui::paintEvent(QPaintEvent *event)
     painter.setTransform(QTransform()
                              .translate(translationOffset.x(), translationOffset.y())
                              .scale(scaleFactor, scaleFactor));
+    if (showLines){
     paintLines(painter);
+    } if (showLinesLabels){
+    paintLinesLabels(painter);
+    } if (showPoints){
     paintPoints(painter);
+    } if (showPointsLabels){
+    paintPointsLabels(painter);
+    } if (showSupports){
     paintSupports(painter);
+    } if (showNodalLoads){
     drawNodalLoads(painter);
+    } if (showLineLoads){
     drawLineLoads(painter);
+    } if (showLineLoadsLabels){
+    drawLineLoadsLabels(painter);
+    } if (showMesh){
     paintMeshNodes(painter);
-    // paintAssignedCrossSections(painter);
+    } if (showAssignedCS){
+    //paintAssignedCrossSections(painter);
+    }
 }
-
 void Gui::paintPoints(QPainter &painter)
 {
     painter.setBrush(Qt::blue);
     painter.setPen(Qt::blue);
 
+    for (const auto &point : points) {
+        // Draw the point as a circle (ellipse)
+        painter.drawEllipse(QPointF(point.x, -point.z), 75, 75); // Increase the radius of the ellipse to 75
+    }
+}
+
+void Gui::paintPointsLabels(QPainter &painter)
+{
+    painter.setPen(Qt::blue);
+
     QFont font = painter.font();
-    font.setPointSize(150); // Powiększ rozmiar czcionki 15 razy
+    font.setPointSize(150); // Increase the font size 15 times
     painter.setFont(font);
 
     for (const auto &point : points) {
-        // Powiększ promień elipsy 15 razy, ale współrzędne pozostają takie same
-        painter.drawEllipse(QPointF(point.x, -point.z), 75, 75); // Zwiększ promień elipsy do 75
-        // Delikatnie bardziej odsunięta etykieta od środka elipsy
+        // Draw the text label slightly offset from the center of the circle
         painter.drawText(QPointF(point.x + 85, -point.z - 85),
-                         QString::number(point.id)); // Zwiększ przesunięcie etykiety
+                         QString::number(point.id)); // Increase the label offset
     }
 }
+
 
 void Gui::paintLines(QPainter &painter)
 {
-    // Ustawienie grubości linii 15 razy większej
-    QPen pen(Qt::black, 15); // Zwiększ grubość linii i ustaw kolor na czarny
+    // Set the pen to draw thicker black lines
+    QPen pen(Qt::black, 15); // Increase line thickness and set color to black
     painter.setPen(pen);
 
     for (const auto &line : lines) {
-        // Współrzędne linii pozostają takie same
+        // Draw the line between the start and end points
         painter.drawLine(QPointF(line.startX, -line.startZ), QPointF(line.endX, -line.endZ));
+    }
+}
 
-        // Ustawienie czcionki i rysowanie ID
-        QFont font = painter.font();
-        font.setPointSize(150); // Powiększ rozmiar czcionki 15 razy
-        painter.setFont(font);
+void Gui::paintLinesLabels(QPainter &painter)
+{
+    painter.setPen(Qt::black); // Use black color for text
 
-        // Współrzędne tekstu pozostają takie same
+    QFont font = painter.font();
+    font.setPointSize(150); // Increase font size 15 times
+    painter.setFont(font);
+
+    for (const auto &line : lines) {
+        // Calculate the position for the text label (line ID)
         QPointF textPosition((line.startX + line.endX) / 2 + 15,
                              (-line.startZ + -line.endZ) / 2 - 15);
+        // Draw the line ID at the calculated position
         painter.drawText(textPosition, QString::number(line.id));
     }
 }
+
 void Gui::paintAssignedCrossSections(QPainter &painter)
 {
     painter.setPen(Qt::darkGreen);
 
     QFont font = painter.font();
-    font.setPointSize(150); // Powiększ rozmiar czcionki 15 razy
+    font.setPointSize(150); // font size x15
     painter.setFont(font);
 
-    qreal offset = 350; // Ustaw wartość offsetu wzdłuż linii
+    qreal offset = 350; // offset from the line
 
     for (const auto &line : lines) {
         if (line.crossSectionId != -1) {
@@ -1441,14 +1547,12 @@ void Gui::drawNodalLoads(QPainter &painter)
 
 void Gui::drawLineLoads(QPainter &painter)
 {
-    // Ustawienie grubości linii
     painter.setPen(QPen(Qt::red, 8));
 
     for (const auto &lineLoad : lineLoads) {
         int lineId = lineLoad.lineId;
 
-        if (dataBaseLinesManager->getLinesMap().find(lineId)
-            == dataBaseLinesManager->getLinesMap().end()) {
+        if (dataBaseLinesManager->getLinesMap().find(lineId) == dataBaseLinesManager->getLinesMap().end()) {
             qDebug() << "Line ID not found in linesMap: " << lineId;
             continue;
         }
@@ -1459,8 +1563,7 @@ void Gui::drawLineLoads(QPainter &painter)
         int pointId1 = std::get<0>(line);
         int pointId2 = std::get<1>(line);
 
-        if (pointsMap.find(pointId1) == pointsMap.end()
-            || pointsMap.find(pointId2) == pointsMap.end()) {
+        if (pointsMap.find(pointId1) == pointsMap.end() || pointsMap.find(pointId2) == pointsMap.end()) {
             qDebug() << "Point ID not found in pointsMap: " << pointId1 << " or " << pointId2;
             continue;
         }
@@ -1473,97 +1576,121 @@ void Gui::drawLineLoads(QPainter &painter)
         qreal x2 = point2.first;
         qreal z2 = -point2.second;
 
-        // Obliczenie wektora kierunku linii
         qreal dx = x2 - x1;
         qreal dz = z2 - z1;
         qreal length = std::sqrt(dx * dx + dz * dz);
         qreal unitDx = dx / length;
         qreal unitDz = dz / length;
 
-        // Liczba strzałek do narysowania na linii
         int numArrows = 10;
         qreal arrowSpacing = length / (numArrows + 1);
-        qreal fxScale = 30;                 // Skala dla długości strzałek Fx
-        qreal fxMinScale = 75;              // Minimalna długość strzałki Fx
-        qreal arrowLength = 150;            // Długość strzałki
-        qreal offset = arrowLength + 150;   // Odległość wartości od środka linii
+        qreal fxScale = 30;
+        qreal fxMinScale = 75;
+        qreal fzScale = 15;
+        qreal fzMinScale = 50;
 
-        qreal fzScale = 15;                 // Skala dla długości strzałek Fz (zmniejszona)
-        qreal fzMinScale = 50;              // Minimalna długość strzałki Fz (zmniejszona)
+        QVector<QPointF> fxArrowStarts;
+        QVector<QPointF> fzArrowStarts;
 
-        QVector<QPointF> fxArrowStarts; // Wektor do przechowywania punktów startowych strzałek dla Fx
-        QVector<QPointF> fzArrowStarts; // Wektor do przechowywania punktów startowych strzałek dla Fz
-
-        // Rysowanie strzałek wzdłuż linii dla Fx
         if (lineLoad.Fx != 0) {
-            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii na 8
-
             for (int i = 0; i <= numArrows + 1; ++i) {
                 qreal px = x1 + i * arrowSpacing * unitDx;
                 qreal pz = z1 + i * arrowSpacing * unitDz;
 
-                qreal startX = px; // Start point is directly on the line
-                qreal endX = startX + fxScale * (lineLoad.Fx / qAbs(lineLoad.Fx)); // Draw arrow in direction of Fx
+                qreal startX = px;
+                qreal endX = startX + fxScale * (lineLoad.Fx / qAbs(lineLoad.Fx));
 
                 painter.drawLine(QPointF(startX, pz), QPointF(endX, pz));
                 drawArrowHead(painter, QPointF(endX, pz), QPointF(startX, pz));
 
-                // Dodanie punktu startowego strzałki do wektora Fx
                 fxArrowStarts.append(QPointF(startX, pz));
             }
-
-            // Dodanie wartości Fx w środku linii, odsunięte o długość strzałek + offset
-            qreal midX = x1 + (1.0 / 2.0 * length * unitDx);
-            qreal midZ = z1 + (1.0 / 2.0 * length * unitDz);
-            QString fxText = QString::number(lineLoad.Fx, 'f', 2) + " kN/m";
-            painter.drawText(QPointF(midX + offset * unitDx, midZ + offset * unitDz + 150), fxText);
         }
 
-        // Rysowanie strzałek wzdłuż linii dla Fz
         if (lineLoad.Fz != 0) {
-            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii na 8
-
             for (int i = 0; i <= numArrows + 1; ++i) {
                 qreal px = x1 + i * arrowSpacing * unitDx;
                 qreal pz = z1 + i * arrowSpacing * unitDz;
 
                 qreal length = qMax(fzScale * qAbs(lineLoad.Fz), fzMinScale);
-                qreal startZ
-                    = pz
-                      + length
-                            * (lineLoad.Fz
-                               / qAbs(lineLoad.Fz)); // Original logic: offset based on load value
+                qreal startZ = pz + length * (lineLoad.Fz / qAbs(lineLoad.Fz));
                 painter.drawLine(QPointF(px, startZ), QPointF(px, pz));
                 drawArrowHead(painter, QPointF(px, pz), QPointF(px, startZ));
 
-                // Dodanie punktu startowego strzałki do wektora Fz
                 fzArrowStarts.append(QPointF(px, startZ));
             }
-
-            // Dodanie wartości Fz w środku linii, odsunięte o długość strzałek + offset
-            qreal midX = x1 + (1.0 / 2.0 * length * unitDx);
-            qreal midZ = z1 + (1.0 / 2.0 * length * unitDz);
-            QString fzText = QString::number(lineLoad.Fz, 'f', 2) + " kN/m";
-            painter.drawText(QPointF(midX - offset * unitDx, midZ - offset * unitDz - 150), fzText);
         }
 
-        // Rysowanie linii łączącej wszystkie początki strzałek Fx
         if (fxArrowStarts.size() > 1) {
-            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii
             for (int i = 1; i < fxArrowStarts.size(); ++i) {
                 painter.drawLine(fxArrowStarts[i - 1], fxArrowStarts[i]);
             }
         }
 
-        // Rysowanie linii łączącej wszystkie początki strzałek Fz
         if (fzArrowStarts.size() > 1) {
-            painter.setPen(QPen(Qt::red, 8)); // Ustawienie grubości linii
             for (int i = 1; i < fzArrowStarts.size(); ++i) {
                 painter.drawLine(fzArrowStarts[i - 1], fzArrowStarts[i]);
             }
         }
     }
 }
+
+void Gui::drawLineLoadsLabels(QPainter &painter)
+{
+    painter.setPen(QPen(Qt::red, 8));
+
+    for (const auto &lineLoad : lineLoads) {
+        int lineId = lineLoad.lineId;
+
+        if (dataBaseLinesManager->getLinesMap().find(lineId) == dataBaseLinesManager->getLinesMap().end()) {
+            qDebug() << "Line ID not found in linesMap: " << lineId;
+            continue;
+        }
+
+        auto line = dataBaseLinesManager->getLinesMap()[lineId];
+        auto pointsMap = dataBasePointsManager->getPointsMap();
+
+        int pointId1 = std::get<0>(line);
+        int pointId2 = std::get<1>(line);
+
+        if (pointsMap.find(pointId1) == pointsMap.end() || pointsMap.find(pointId2) == pointsMap.end()) {
+            qDebug() << "Point ID not found in pointsMap: " << pointId1 << " or " << pointId2;
+            continue;
+        }
+
+        auto point1 = pointsMap[pointId1];
+        auto point2 = pointsMap[pointId2];
+
+        qreal x1 = point1.first;
+        qreal z1 = -point1.second;
+        qreal x2 = point2.first;
+        qreal z2 = -point2.second;
+
+        qreal dx = x2 - x1;
+        qreal dz = z2 - z1;
+        qreal length = std::sqrt(dx * dx + dz * dz);
+        qreal unitDx = dx / length;
+        qreal unitDz = dz / length;
+
+        qreal arrowLength = 150;
+        qreal offset = arrowLength + 150;
+
+        if (lineLoad.Fx != 0) {
+            qreal midX = x1 + (1.0 / 2.0 * length * unitDx);
+            qreal midZ = z1 + (1.0 / 2.0 * length * unitDz);
+            QString fxText = QString::number(lineLoad.Fx, 'f', 2) + " kN/m";
+            painter.drawText(QPointF(midX + offset * unitDx, midZ + offset * unitDz + 150), fxText);
+        }
+
+        if (lineLoad.Fz != 0) {
+            qreal midX = x1 + (1.0 / 2.0 * length * unitDx);
+            qreal midZ = z1 + (1.0 / 2.0 * length * unitDz);
+            QString fzText = QString::number(lineLoad.Fz, 'f', 2) + " kN/m";
+            painter.drawText(QPointF(midX - offset * unitDx, midZ - offset * unitDz - 150), fzText);
+        }
+    }
+}
+
 
 void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end)
 {
@@ -1617,3 +1744,47 @@ void Gui::mouseMoveEvent(QMouseEvent *event)
         update();
     }
 }
+
+
+void Gui::setVisabilityState(bool points,
+                        bool pointsLabels,
+                        bool lines,
+                        bool linesLabels,
+                        bool supports,
+                        bool assignedCS,
+                        bool mesh,
+                        bool meshNodesCoords,
+                        bool nodalLoads,
+                        bool nodalLoadsLabels,
+                        bool lineLoads,
+                        bool lineLoadsLabels)
+{
+    showPoints = points;
+    showPointsLabels = pointsLabels;
+    showLines = lines;
+    showLinesLabels = linesLabels;
+    showSupports = supports;
+    showAssignedCS = assignedCS;
+    showMesh = mesh;
+    showMeshNodesCoords = meshNodesCoords;
+    showNodalLoads = nodalLoads;
+    showNodalLoadsLabels = nodalLoadsLabels;
+    showLineLoads = lineLoads;
+    showLineLoadsLabels = lineLoadsLabels;
+    update();
+}
+
+void Gui::on_calculateButton_clicked()
+{
+
+    dataBaseSolverPreparer->fetchAllData();  // Add logging inside this method to trace execution
+    std::cout << "fetchAllData completed successfully" << std::endl;
+
+#include "../Solver/solver.h"
+    SolverFEM::Solver solver(dataBaseSolverPreparer);
+    solver.solve();
+
+}
+
+
+

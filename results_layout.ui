@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>200</height>
+    <height>245</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,9 +15,37 @@
   </property>
   <layout class="QVBoxLayout" name="staticSchemeVBoxLayout">
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QCheckBox" name="showMyCheckBox">
      <property name="text">
-      <string>Results:</string>
+      <string>My</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="showVzCheckBox">
+     <property name="text">
+      <string>Vz</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="showNxCheckBox">
+     <property name="text">
+      <string>Nx</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="showDeformationsCheckBox">
+     <property name="text">
+      <string>Deformations</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="showResultsButton">
+     <property name="text">
+      <string>Show</string>
      </property>
     </widget>
    </item>
