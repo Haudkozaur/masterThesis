@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     dataBaseStarter->createNodalLoadsTable();
     dataBaseStarter->createLineLoadsTable();
     dataBaseStarter->createMeshTable();
+    dataBaseStarter->createResultsTable();
 
     //Creating DB managers and create basic objects
     DataBaseMaterialsManager *materialsManager = new DataBaseMaterialsManager(dataBaseName);
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
     DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dataBaseName);
     DataBaseMeshManager *meshManager = new DataBaseMeshManager(dataBaseName);
     DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dataBaseName);
+    DataBaseResultsManager *resultsManager = new DataBaseResultsManager(dataBaseName);
 
     //Creating and testing DataBaseSolverPreparer
 
@@ -63,11 +65,13 @@ int main(int argc, char *argv[])
                      lineLoadsManager,
                      meshManager,
                      crossSectionsAssistant,
-                     solverPreparer);
+                     solverPreparer,
+                     resultsManager);
     mainWindow.show();
 
     int result = app.exec();
 
+    delete dataBaseStarter;
     delete pointsManager;
     delete linesManager;
     delete supportsManager;
@@ -76,6 +80,9 @@ int main(int argc, char *argv[])
     delete meshManager;
     delete crossSectionsAssistant;
     delete solverPreparer;
+    delete nodalLoadsManager;
+    delete lineLoadsManager;
+    delete resultsManager;
 
     return result;
 }

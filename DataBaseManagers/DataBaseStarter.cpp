@@ -149,4 +149,23 @@ void DataBaseStarter::createMeshTable() {
     cout << "\n";
 }
 
+void DataBaseStarter::createResultsTable()
+{
+    sqlite3_open(dataBaseNameAsChar, &DB);
+    //query that creates results table with nodeID as primary key, cordX and cordZ as double values and Nx, Vz, My and deformation as double values
+    string queryToCreateResultsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::RESULTS) +
+                                       " (node_Id INTEGER PRIMARY KEY AUTOINCREMENT, x_cord REAL, z_cord REAL, Nx REAL, Vz REAL, My REAL, deformation REAL)";
+
+    int rc = sqlite3_exec(DB,
+                          queryToCreateResultsTable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Results Table created successfully" << endl;
+    }
+    cout << "\n";
+
+}
+
 }

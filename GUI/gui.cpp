@@ -41,6 +41,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
          DataBaseMeshManager *meshManager,
          CrossSectionsAssistant *crossSectionsAssistant,
          DataBaseSolverPreparer *solverPreparer,
+         DataBaseResultsManager *resultsManager,
          QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Gui)
@@ -55,6 +56,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     , dataBaseMeshManager(meshManager)
     , crossSectionsAssistant(crossSectionsAssistant)
     , dataBaseSolverPreparer(solverPreparer)
+    , dataBaseResultsManager(resultsManager)
     , xCoordinate(0)
     , zCoordinate(0)
     , scaleFactor(0.1)
@@ -71,6 +73,10 @@ Gui::Gui(DataBasePointsManager *pointsManager,
     ,showNodalLoadsLabels(false)
     ,showLineLoads(false)
     ,showLineLoadsLabels(false)
+    ,showMy(false)
+    ,showVz(false)
+    ,showNx(false)
+    ,showDeformations(false)
 
 {
     ui->setupUi(this);
@@ -538,42 +544,69 @@ void Gui::on_applyButton_clicked()
 void Gui::loadResultsLayout()
 {
     loadLayoutFromFile(":/ui/results_layout.ui");
-    setVisabilityState(false,false,true,false,false,false,false,false,false,false,false,false);
+    setVisabilityState(false, false, true, false, false, false, false, false, false, false, false, false);
+
+    showResultsButton = findChild<QPushButton *>("showResultsButton");
+    showMyCheckBox = findChild<QCheckBox *>("showMyCheckBox");
+    showVzCheckBox = findChild<QCheckBox *>("showVzCheckBox");
+    showNxCheckBox = findChild<QCheckBox *>("showNxCheckBox");
+    showDeformationsCheckBox = findChild<QCheckBox *>("showDeformationsCheckBox");
+
     if (showResultsButton) {
         connect(showResultsButton, &QPushButton::clicked, this, &Gui::on_showResultsButton_clicked);
     } else {
         qWarning() << "Button 'showResultsButton' not found!";
     }
+
+    if (!showMyCheckBox) {
+        qWarning() << "Checkbox 'showMyCheckBox' not found!";
+    }
+    if (!showVzCheckBox) {
+        qWarning() << "Checkbox 'showVzCheckBox' not found!";
+    }
+    if (!showNxCheckBox) {
+        qWarning() << "Checkbox 'showNxCheckBox' not found!";
+    }
+    if (!showDeformationsCheckBox) {
+        qWarning() << "Checkbox 'showDeformationsCheckBox' not found!";
+    }
 }
+
 void Gui::on_showResultsButton_clicked()
 {
-    cout << "Show results button clicked" << endl;
+    std::cout << "Show results button clicked" << std::endl;
+
     if (showMyCheckBox && showMyCheckBox->isChecked()) {
-        cout << "My checked";
-        bool My = true;
+        std::cout << "My checked" << std::endl;
+        showMy = true;
     } else {
-        bool My = false;
+        showMy = false;
     }
 
     if (showVzCheckBox && showVzCheckBox->isChecked()) {
-        bool Vz = true;
+        std::cout << "Vz checked" << std::endl;
+        showVz = true;
     } else {
-        bool Vz = false;
+        showVz = false;
     }
 
     if (showNxCheckBox && showNxCheckBox->isChecked()) {
-        bool Nx = true;
+        std::cout << "Nx checked" << std::endl;
+        showNx = true;
     } else {
-        bool Nx = false;
+        showNx = false;
     }
 
     if (showDeformationsCheckBox && showDeformationsCheckBox->isChecked()) {
-        bool deformations = true;
+        std::cout << "Deformations checked" << std::endl;
+        showDeformations = true;
     } else {
-        bool deformations = false;
+        showDeformations = false;
     }
-    //TODO: PaintResults;
+
+    // TODO: Implement PaintResults using the boolean variables My, Vz, Nx, and deformations
 }
+
 void Gui::loadStaticSchemeLayout()
 {
     loadLayoutFromFile(":/ui/static_scheme_layout.ui");
@@ -1117,25 +1150,25 @@ void Gui::paintEvent(QPaintEvent *event)
                              .translate(translationOffset.x(), translationOffset.y())
                              .scale(scaleFactor, scaleFactor));
     if (showLines){
-    paintLines(painter);
+        paintLines(painter);
     } if (showLinesLabels){
-    paintLinesLabels(painter);
+        paintLinesLabels(painter);
     } if (showPoints){
-    paintPoints(painter);
+        paintPoints(painter);
     } if (showPointsLabels){
-    paintPointsLabels(painter);
+        paintPointsLabels(painter);
     } if (showSupports){
-    paintSupports(painter);
+        paintSupports(painter);
     } if (showNodalLoads){
-    drawNodalLoads(painter);
+        drawNodalLoads(painter);
     } if (showLineLoads){
-    drawLineLoads(painter);
+        drawLineLoads(painter);
     } if (showLineLoadsLabels){
-    drawLineLoadsLabels(painter);
+        drawLineLoadsLabels(painter);
     } if (showMesh){
-    paintMeshNodes(painter);
+        paintMeshNodes(painter);
     } if (showAssignedCS){
-    //paintAssignedCrossSections(painter);
+        //paintAssignedCrossSections(painter);
     }
 }
 void Gui::paintPoints(QPainter &painter)
@@ -1709,6 +1742,9 @@ void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &
     painter.drawLine(start, arrowP2);
 }
 
+void Gui::paintResults(QPainter painter) {
+    //... magic
+}
 
 
 void Gui::wheelEvent(QWheelEvent *event)
@@ -1747,17 +1783,17 @@ void Gui::mouseMoveEvent(QMouseEvent *event)
 
 
 void Gui::setVisabilityState(bool points,
-                        bool pointsLabels,
-                        bool lines,
-                        bool linesLabels,
-                        bool supports,
-                        bool assignedCS,
-                        bool mesh,
-                        bool meshNodesCoords,
-                        bool nodalLoads,
-                        bool nodalLoadsLabels,
-                        bool lineLoads,
-                        bool lineLoadsLabels)
+                             bool pointsLabels,
+                             bool lines,
+                             bool linesLabels,
+                             bool supports,
+                             bool assignedCS,
+                             bool mesh,
+                             bool meshNodesCoords,
+                             bool nodalLoads,
+                             bool nodalLoadsLabels,
+                             bool lineLoads,
+                             bool lineLoadsLabels)
 {
     showPoints = points;
     showPointsLabels = pointsLabels;
@@ -1776,15 +1812,52 @@ void Gui::setVisabilityState(bool points,
 
 void Gui::on_calculateButton_clicked()
 {
-
-    dataBaseSolverPreparer->fetchAllData();  // Add logging inside this method to trace execution
+    dataBaseSolverPreparer->fetchAllData();  // Fetch all necessary data
     std::cout << "fetchAllData completed successfully" << std::endl;
 
 #include "../Solver/solver.h"
-    SolverFEM::Solver solver(dataBaseSolverPreparer);
-    solver.solve();
+    if (points.empty() || lines.empty() || boundaries.empty()) {
+        QMessageBox::warning(this, "Error", "Please add all required data before calculating.");
+        return;
+    } else {
+        SolverFEM::Solver solver(dataBaseSolverPreparer);
+        solver.solve();
+        solver.saveResultsToDataBase(dataBaseResultsManager);
+        dataBaseResultsManager->iterateOverTable();
 
+        // Prepare to store results in resultsVector
+        vector<NodeResult> resultsVector;
+
+        // Retrieve the results map from the database results manager
+        std::map<int, std::tuple<double, double, double, double, double, double>> resultsMap = dataBaseResultsManager->getResultsMap();
+
+        // Loop through the results map
+        // for (const auto& entry : resultsMap) {
+        //     int nodeId = entry.first;
+        //     double xCord, zCord, Nx, Vz, My, deformation;
+
+        //     // Unpack the tuple into individual variables
+        //     std::tie(xCord, zCord, Nx, Vz, My, deformation) = entry.second;
+
+        //     // Create a NodeResult object and populate it
+        //     NodeResult result;
+        //     result.nodeId = nodeId;
+        //     result.x = xCord;
+        //     result.z = zCord;
+        //     result.Nx = Nx;
+        //     result.Vz = Vz;
+        //     result.My = My;
+        //     result.deformation = deformation;
+
+        //     // Add the result to the vector
+        //     resultsVector.push_back(result);
+        // }
+
+        // Now resultsVector contains all the results which can be used further in the GUI
+    }
 }
+
+
 
 
 

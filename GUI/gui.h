@@ -31,8 +31,10 @@ public:
                  DataBaseMeshManager *meshManager,
                  CrossSectionsAssistant *crossSectionsAssistant,
                  DataBaseSolverPreparer *solverPreparer,
+                 DataBaseResultsManager *resultsManager,
                  QWidget *parent = nullptr);
     ~Gui();
+
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -105,6 +107,7 @@ private:
     CrossSectionsAssistant *crossSectionsAssistant;
     DataBaseMeshManager *dataBaseMeshManager;
     DataBaseSolverPreparer *dataBaseSolverPreparer;
+    DataBaseResultsManager *dataBaseResultsManager;
 
     //using in drawing coordinates system
     int xCoordinate;
@@ -189,13 +192,24 @@ private:
         double z;          // Z-coordinate of the node
     };
 
-    std::vector<Point> points;
-    std::vector<Line> lines;
-    std::vector<Boundary> boundaries;
-    std::vector<NodalLoad> nodalLoads;
-    std::vector<LineLoad> lineLoads;
+    struct NodeResult {
+        int nodeId;
+        double x;
+        double z;
+        double Nx;
+        double Vz;
+        double My;
+        double deformation;
+    };
+
+    vector<Point> points;
+    vector<Line> lines;
+    vector<Boundary> boundaries;
+    vector<NodalLoad> nodalLoads;
+    vector<LineLoad> lineLoads;
     vector<Mesh> meshVector;
     vector<MeshNode> meshNodesVector;
+    vector<NodeResult> resultsVector;
 
     qreal scaleFactor = 20;
 
@@ -244,6 +258,7 @@ private:
     void paintAssignedCrossSections(QPainter &painter);
     void paintMeshNodes(QPainter &painter);
     void drawAxes(QPainter &painter);
+    void paintResults(QPainter painter);
     void drawGrid(QPainter &painter,
                   qreal leftX,
                   qreal rightX,
@@ -253,6 +268,12 @@ private:
                   qreal centerX,
                   qreal centerZ);
 
+
+    //boolean var's to manage the visibility of the results
+    bool showMy;
+    bool showVz;
+    bool showNx;
+    bool showDeformations;
 };
 
 #endif // GUI_H

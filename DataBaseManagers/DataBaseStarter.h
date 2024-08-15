@@ -34,6 +34,8 @@ public:
 
     void createMeshTable();
 
+    void createResultsTable();
+
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;

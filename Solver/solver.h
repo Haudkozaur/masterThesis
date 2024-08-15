@@ -15,6 +15,7 @@
 // Forward declaration of DataBaseSolverPreparer
 namespace DataBaseManagers {
 class DataBaseSolverPreparer;
+class DataBaseResultsManager;
 }
 
 namespace SolverFEM {
@@ -25,6 +26,7 @@ public:
     Solver(DataBaseManagers::DataBaseSolverPreparer* dbSolverPreparer);
 
     void solve();
+    void saveResultsToDataBase(DataBaseManagers::DataBaseResultsManager *dbResultsManager);
 
 private:
     std::map<int, SolverFEM::Node> nodes;
