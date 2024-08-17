@@ -36,6 +36,7 @@ public:
     ~Gui();
 
 
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
@@ -258,7 +259,8 @@ private:
     void paintAssignedCrossSections(QPainter &painter);
     void paintMeshNodes(QPainter &painter);
     void drawAxes(QPainter &painter);
-    void paintResults(QPainter painter);
+    void paintResults(QPainter &painter);
+    void drawForceLine(QPainter &painter, double startX, double startZ, double perpDx, double perpDz, double forceValue, double scaleFactor, bool show, QColor color);
     void drawGrid(QPainter &painter,
                   qreal leftX,
                   qreal rightX,

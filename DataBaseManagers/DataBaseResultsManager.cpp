@@ -12,20 +12,7 @@ DataBaseResultsManager::DataBaseResultsManager(std::string dateBaseName)
 
 void DataBaseManagers::DataBaseResultsManager::addObjectToDataBase(int nodeId, double XCord, double ZCord, double Nx, double Vz, double My, double deformation)
 {
-    // if (checkIfDuplicate(TableType::POINTS, std::make_tuple(XCoordinate, ZCoordinate, 0))) {
-    //     std::cout << "Error: Point already exists in DB" << std::endl;
-    //     return;
-    // }
 
-    // std::string QueryInsertPoint = "INSERT INTO points (id, x_cord, z_cord) VALUES (NULL, "
-    //                                + std::to_string(XCoordinate) + ", " + std::to_string(ZCoordinate) + ")";
-
-    // executeAndCheckIfSQLOk(QueryInsertPoint, TableType::POINTS);
-
-    // if (checkIfDuplicate(TableType::RESULTS, std::make_tuple(nodeId, XCord, ZCord))) {
-    //     std::cout << "Error: Result already exists in DB" << std::endl;
-    //     return;
-    // }
 
     std::string queryAddNodeResult = "INSERT INTO " + tableTypesMap.at(TableType::RESULTS)
                          + " (node_id, x_cord, z_cord, Nx, Vz, My, deformation) VALUES (" + std::to_string(nodeId) + ", "
@@ -53,23 +40,21 @@ void DataBaseManagers::DataBaseResultsManager::iterateOverTable()
     for (const auto& row : results) {
         std::cout << "Row size: " << row.size() << std::endl;
 
-        if (row.size() == 7) {
+        if (row.size() == 7) { // Ensure row size matches expected columns
             try {
                 int id = std::stoi(row[0]);
-                double xCord = std::stod(row[2]);
-                double zCord = std::stod(row[3]);
-                double Nx = std::stod(row[4]);
-                double Vz = std::stod(row[5]);
-                double My = std::stod(row[6]);
-
-                // Instead of parsing deformation, assign a default value of 0.0
-                double deformation = 0.0;
+                double xCord = std::stod(row[1]);  // Adjust index to match x_cord
+                double zCord = std::stod(row[2]);  // Adjust index to match z_cord
+                double Nx = std::stod(row[3]);     // Adjust index to match Nx
+                double Vz = std::stod(row[4]);     // Adjust index to match Vz
+                double My = std::stod(row[5]);     // Adjust index to match My
+                double deformation = std::stod(row[6]);  // Parse deformation
 
                 std::cout << "Parsed ID: " << id << " xCord: " << xCord << " zCord: " << zCord
                           << " Nx: " << Nx << " Vz: " << Vz << " My: " << My
                           << " Deformation: " << deformation << std::endl;
 
-                // Store in resultsMap with all fields, using default deformation value
+                // Store in resultsMap with all fields, including deformation
                 resultsMap[id] = std::make_tuple(xCord, zCord, Nx, Vz, My, deformation);
 
             } catch (const std::exception& e) {

@@ -293,7 +293,7 @@ void Solver::solveSystemOfEquations() {
 }
 
 
-void Solver::calculateInternalForces() {
+void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* dbResultsManager) {
     for (const auto& memberPair : members) {
         int memberId = memberPair.first;
         const Member& member = memberPair.second;
@@ -344,15 +344,46 @@ void Solver::calculateInternalForces() {
         Eigen::MatrixXd kGlobal = T.transpose() * kLocal * T;
         Eigen::VectorXd fInternal = kGlobal * uLocal;
 
-        std::cout << "Member ID: " << memberId << ", Internal Forces: "
-                  << "Nx1=" << fInternal(0) << " "
-                  << "Vz1=" << fInternal(1) << " "
-                  << "My1=" << fInternal(2) << " "
-                  << "Nx2=" << fInternal(3) << " "
-                  << "Vz2=" << fInternal(4) << " "
-                  << "My2=" << fInternal(5) << std::endl;
+        // Store forces for the start node
+        double Nx_start = fInternal(0);
+        double Vz_start = fInternal(1);  // This should consider the sign convention
+        double My_start = fInternal(2);
+
+        // Correct the sign for Vz_start if needed
+        if (startNodeId < endNodeId) {
+            Vz_start = -Vz_start;  // Assuming positive direction is downward for the start node
+        }
+
+        double xCord_start = nodes.at(startNodeId).getX();
+        double zCord_start = nodes.at(startNodeId).getZ();
+        double deformation_start = std::sqrt(displacementVector(startDofIndex) * displacementVector(startDofIndex) +
+                                             displacementVector(startDofIndex + 1) * displacementVector(startDofIndex + 1));
+
+        // Debug output for the start node
+        cout << "Member ID:" << memberId << "Start Node:" << startNodeId
+                 << "Nx_start:" << Nx_start << "Vz_start:" << Vz_start << "My_start:" << My_start;
+
+        dbResultsManager->addObjectToDataBase(startNodeId, xCord_start, zCord_start, Nx_start, Vz_start, My_start, deformation_start);
+
+        // Store forces for the end node
+        double Nx_end = fInternal(3);
+        double Vz_end = fInternal(4);  // This should consider the sign convention
+        double My_end = fInternal(5);
+
+        double xCord_end = nodes.at(endNodeId).getX();
+        double zCord_end = nodes.at(endNodeId).getZ();
+        double deformation_end = std::sqrt(displacementVector(endDofIndex) * displacementVector(endDofIndex) +
+                                           displacementVector(endDofIndex + 1) * displacementVector(endDofIndex + 1));
+
+        // Debug output for the end node
+        cout << "Member ID:" << memberId << "End Node:" << endNodeId
+                 << "Nx_end:" << Nx_end << "Vz_end:" << Vz_end << "My_end:" << My_end;
+
+        dbResultsManager->addObjectToDataBase(endNodeId, xCord_end, zCord_end, Nx_end, Vz_end, My_end, deformation_end);
     }
 }
+
+
 
 void Solver::solve()
 {
@@ -364,101 +395,101 @@ void Solver::solve()
     applyBoundaryConditions();
     std::cout << "Boundaries applied" << std::endl;
     solveSystemOfEquations();
-    calculateInternalForces();
+
 }
 
 
 
-void Solver::saveResultsToDataBase(DataBaseManagers::DataBaseResultsManager *dbResultsManager)
-{
-    std::cout << "Saving results to the database..." << std::endl;
+// void Solver::saveResultsToDataBase(DataBaseManagers::DataBaseResultsManager *dbResultsManager)
+// {
+//     std::cout << "Saving results to the database..." << std::endl;
 
-    // Iterate over each node
-    for (const auto& nodePair : nodes) {
-        int nodeId = nodePair.first;
-        double xCord = nodePair.second.getX();
-        double zCord = nodePair.second.getZ();
+//     // Iterate over each node
+//     for (const auto& nodePair : nodes) {
+//         int nodeId = nodePair.first;
+//         double xCord = nodePair.second.getX();
+//         double zCord = nodePair.second.getZ();
 
-        // Retrieve node displacement (Tx, Tz, Ry)
-        int dofIndex = nodeIdToDofMap[nodeId];
-        double Tx = displacementVector(dofIndex);
-        double Tz = displacementVector(dofIndex + 1);
-        double Ry = displacementVector(dofIndex + 2);
+//         // Retrieve node displacement (Tx, Tz, Ry)
+//         int dofIndex = nodeIdToDofMap[nodeId];
+//         double Tx = displacementVector(dofIndex);
+//         double Tz = displacementVector(dofIndex + 1);
+//         double Ry = displacementVector(dofIndex + 2);
 
-        // Initialize internal force variables
-        double Nx = 0.0, Vz = 0.0, My = 0.0;
+//         // Initialize internal force variables
+//         double Nx = 0.0, Vz = 0.0, My = 0.0;
 
-        std::cout << "Node ID: " << nodeId << ", Initial forces -> Nx: " << Nx << ", Vz: " << Vz << ", My: " << My << std::endl;
+//         std::cout << "Node ID: " << nodeId << ", Initial forces -> Nx: " << Nx << ", Vz: " << Vz << ", My: " << My << std::endl;
 
-        // Iterate over each member and accumulate forces
-        for (const auto& memberPair : members) {
-            const Member& member = memberPair.second;
-            int startNodeId = member.getFirstNodeNumber();
-            int endNodeId = member.getSecondNodeNumber();
+//         // Iterate over each member and accumulate forces
+//         for (const auto& memberPair : members) {
+//             const Member& member = memberPair.second;
+//             int startNodeId = member.getFirstNodeNumber();
+//             int endNodeId = member.getSecondNodeNumber();
 
-            if (startNodeId == nodeId || endNodeId == nodeId) {
-                int startDofIndex = nodeIdToDofMap[startNodeId];
-                int endDofIndex = nodeIdToDofMap[endNodeId];
+//             if (startNodeId == nodeId || endNodeId == nodeId) {
+//                 int startDofIndex = nodeIdToDofMap[startNodeId];
+//                 int endDofIndex = nodeIdToDofMap[endNodeId];
 
-                Eigen::VectorXd uLocal(6);
-                uLocal.segment<3>(0) = displacementVector.segment<3>(startDofIndex);
-                uLocal.segment<3>(3) = displacementVector.segment<3>(endDofIndex);
+//                 Eigen::VectorXd uLocal(6);
+//                 uLocal.segment<3>(0) = displacementVector.segment<3>(startDofIndex);
+//                 uLocal.segment<3>(3) = displacementVector.segment<3>(endDofIndex);
 
-                double E = member.getE();
-                double A = member.getA();
-                double I = member.getI();
-                double L = member.getLength();
-                double lambdaX = member.getLambdaX();
-                double lambdaZ = member.getLambdaZ();
+//                 double E = member.getE();
+//                 double A = member.getA();
+//                 double I = member.getI();
+//                 double L = member.getLength();
+//                 double lambdaX = member.getLambdaX();
+//                 double lambdaZ = member.getLambdaZ();
 
-                double c = lambdaX;
-                double s = lambdaZ;
+//                 double c = lambdaX;
+//                 double s = lambdaZ;
 
-                // Transformation matrix for member local to global coordinates
-                Eigen::MatrixXd T(6, 6);
-                T << c, s, 0, 0, 0, 0,
-                    -s, c, 0, 0, 0, 0,
-                    0, 0, 1, 0, 0, 0,
-                    0, 0, 0, c, s, 0,
-                    0, 0, 0, -s, c, 0,
-                    0, 0, 0, 0, 0, 1;
+//                 // Transformation matrix for member local to global coordinates
+//                 Eigen::MatrixXd T(6, 6);
+//                 T << c, s, 0, 0, 0, 0,
+//                     -s, c, 0, 0, 0, 0,
+//                     0, 0, 1, 0, 0, 0,
+//                     0, 0, 0, c, s, 0,
+//                     0, 0, 0, -s, c, 0,
+//                     0, 0, 0, 0, 0, 1;
 
-                // Calculate internal forces in global coordinates
-                Eigen::VectorXd fInternal = T.transpose() * memberStiffnessMatrices.at(memberPair.first) * uLocal;
+//                 // Calculate internal forces in global coordinates
+//                 Eigen::VectorXd fInternal = T.transpose() * memberStiffnessMatrices.at(memberPair.first) * uLocal;
 
-                if (startNodeId == nodeId) {
-                    std::cout << "Start Node Force Contribution - Member ID: " << memberPair.first
-                              << ", fInternal(0): " << fInternal(0)
-                              << ", fInternal(1): " << fInternal(1)
-                              << ", fInternal(2): " << fInternal(2) << std::endl;
+//                 if (startNodeId == nodeId) {
+//                     std::cout << "Start Node Force Contribution - Member ID: " << memberPair.first
+//                               << ", fInternal(0): " << fInternal(0)
+//                               << ", fInternal(1): " << fInternal(1)
+//                               << ", fInternal(2): " << fInternal(2) << std::endl;
 
-                    Nx += fInternal(0);  // Axial force at the start node
-                    Vz += fInternal(1);  // Shear force at the start node
-                    My += fInternal(2);  // Bending moment at the start node
-                } else if (endNodeId == nodeId) {
-                    std::cout << "End Node Force Contribution - Member ID: " << memberPair.first
-                              << ", fInternal(3): " << fInternal(3)
-                              << ", fInternal(4): " << fInternal(4)
-                              << ", fInternal(5): " << fInternal(5) << std::endl;
+//                     Nx += fInternal(0);  // Axial force at the start node
+//                     Vz += fInternal(1);  // Shear force at the start node
+//                     My += fInternal(2);  // Bending moment at the start node
+//                 } else if (endNodeId == nodeId) {
+//                     std::cout << "End Node Force Contribution - Member ID: " << memberPair.first
+//                               << ", fInternal(3): " << fInternal(3)
+//                               << ", fInternal(4): " << fInternal(4)
+//                               << ", fInternal(5): " << fInternal(5) << std::endl;
 
-                    Nx += fInternal(3);  // Axial force at the end node
-                    Vz += fInternal(4);  // Shear force at the end node
-                    My += fInternal(5);  // Bending moment at the end node
-                }
+//                     Nx += fInternal(3);  // Axial force at the end node
+//                     Vz += fInternal(4);  // Shear force at the end node
+//                     My += fInternal(5);  // Bending moment at the end node
+//                 }
 
-                std::cout << "Updated Node ID: " << nodeId << ", Accumulated forces -> Nx: " << Nx << ", Vz: " << Vz << ", My: " << My << std::endl;
-            }
-        }
+//                 std::cout << "Updated Node ID: " << nodeId << ", Accumulated forces -> Nx: " << Nx << ", Vz: " << Vz << ", My: " << My << std::endl;
+//             }
+//         }
 
-        // Deformation can be computed as the resultant displacement (sqrt(Tx^2 + Tz^2))
-        double deformation = sqrt(Tx * Tx + Tz * Tz);
+//         // Deformation can be computed as the resultant displacement (sqrt(Tx^2 + Tz^2))
+//         double deformation = sqrt(Tx * Tx + Tz * Tz);
 
-        // Save the results to the database
-        dbResultsManager->addObjectToDataBase(nodeId, xCord, zCord, Nx, Vz, My, deformation);
-    }
+//         // Save the results to the database
+//         dbResultsManager->addObjectToDataBase(nodeId, xCord, zCord, Nx, Vz, My, deformation);
+//     }
 
-    std::cout << "Results saved to the database successfully." << std::endl;
-}
+//     std::cout << "Results saved to the database successfully." << std::endl;
+// }
 
 
 } // namespace SolverFEM

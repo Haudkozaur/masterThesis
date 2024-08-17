@@ -26,7 +26,8 @@ public:
     Solver(DataBaseManagers::DataBaseSolverPreparer* dbSolverPreparer);
 
     void solve();
-    void saveResultsToDataBase(DataBaseManagers::DataBaseResultsManager *dbResultsManager);
+    void calculateInternalForces(DataBaseManagers::DataBaseResultsManager* dbResultsManager);
+    //void saveResultsToDataBase(DataBaseManagers::DataBaseResultsManager *dbResultsManager);
 
 private:
     std::map<int, SolverFEM::Node> nodes;
@@ -51,7 +52,7 @@ private:
     void createForceVector();
     void applyBoundaryConditions();
     void solveSystemOfEquations();
-    void calculateInternalForces();
+
 };
 
 } // namespace SolverFEM
