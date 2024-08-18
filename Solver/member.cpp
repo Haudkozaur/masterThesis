@@ -14,7 +14,7 @@ Member::Member(int firstNode,
                double I,
                double A,
                double length,
-               int lineId)  // Add lineId here
+               int lineId)  // Initialize lineId
     : firstNode(firstNode)
     , secondNode(secondNode)
     , x1(x1)

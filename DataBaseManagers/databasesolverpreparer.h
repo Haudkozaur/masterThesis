@@ -17,13 +17,12 @@ public:
     void fetchAllData();
 
     const std::map<int, std::pair<int, int>> &getPoints() const;
-    const std::map<int, SolverFEM::Node> &getNodes() const;
-    const std::map<int, SolverFEM::Member> &getMembers() const;
+    const std::map<int, SolverFEM::Node> getNodes() const;
+    const std::map<int, SolverFEM::Member> getMembers() const;
     const std::map<int, SolverFEM::NodeLoad> &getNodeLoads() const;
     const std::map<int, SolverFEM::UniformLoad> &getUniformLoads() const;
     const std::map<int, SolverFEM::NodeSupport> &getNodeSupports() const;
     const std::map<int, SolverFEM::MemberSupportConditions> &getMemberSupportConditions() const;
-
 
 private:
     void fetchPoints();
@@ -35,18 +34,17 @@ private:
     void fetchLineLoads();
     void fetchMesh();
 
-    // void createNodes();
-    // void createMembers();
     void createFiniteElements();
     void createNodeLoads();
     void createUniformLoads();
     void createNodeSupports();
     void createMemberSupportConditions();
 
+    // Updated maps to include additional data
     std::map<int, std::pair<int, int>> pointsMap;
     std::map<int, std::tuple<int, int, int, double>> linesMap;
-    std::map<int, SolverFEM::Node> nodesMap;
-    std::map<int, SolverFEM::Member> membersMap;
+    std::map<int, std::tuple<int, SolverFEM::Node>> nodesMap; // Now storing lineId along with Node
+    std::map<int, std::tuple<int, SolverFEM::Member>> membersMap; // Now storing lineId along with Member
     std::map<int, SolverFEM::NodeLoad> nodeLoadsMap;
     std::map<int, SolverFEM::UniformLoad> uniformLoadsMap;
     std::map<int, std::tuple<std::string, double, double>> materialsMap;
@@ -56,7 +54,7 @@ private:
     std::map<int, std::tuple<int, double, double, double>> nodalLoadsMap;
     std::map<int, std::tuple<int, double, double>> lineLoadsMap;
     std::map<int, SolverFEM::NodeSupport> nodeSupportsMap;
-    std::map<int, SolverFEM::MemberSupportConditions> memberSupportConditionsMap; // New map for member support conditions
+    std::map<int, SolverFEM::MemberSupportConditions> memberSupportConditionsMap;
     std::map<int, std::pair<int, std::pair<double, double>>> meshMap;
 };
 

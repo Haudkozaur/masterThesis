@@ -34,6 +34,8 @@ public:
 
     void createMeshTable();
 
+    void createFETable();
+
     void createResultsTable();
 
     //Variables
@@ -41,6 +43,8 @@ public:
     const char *dataBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
+
+
 };
 } // namespace DataBaseManagers
 #endif // DATEBASESTARTER_H

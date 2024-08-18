@@ -148,13 +148,43 @@ void DataBaseStarter::createMeshTable() {
     }
     cout << "\n";
 }
+void DataBaseStarter::createFETable()
+{
+    sqlite3_open(dataBaseNameAsChar, &DB);
+
+    // Create the FE table with additional columns for member_Id, line_Id, and isStart
+    string queryToCreateFETable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::NODES) + // Assuming the TableType::NODES key is used for FE table name
+                                  "(node_Id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                  "x_cord REAL, z_cord REAL, "
+                                  "member_Id INTEGER, line_Id INTEGER, isStart BOOLEAN)";
+
+    int rc = sqlite3_exec(DB,
+                          queryToCreateFETable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "FE Table created successfully" << endl;
+    }
+    cout << "\n";
+
+    sqlite3_close(DB);
+}
+
 
 void DataBaseStarter::createResultsTable()
 {
     sqlite3_open(dataBaseNameAsChar, &DB);
-    //query that creates results table with nodeID as primary key, cordX and cordZ as double values and Nx, Vz, My and deformation as double values
+
+    // Create the results table with additional columns for lineId and isStart
     string queryToCreateResultsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::RESULTS) +
-                                       " (node_Id INTEGER PRIMARY KEY AUTOINCREMENT, x_cord REAL, z_cord REAL, Nx REAL, Vz REAL, My REAL, deformation REAL)";
+                                       "(result_Id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                       "line_Id INTEGER, "  // New column for lineId
+                                       "member_Id INTEGER, "
+                                       "node_Id INTEGER, "
+                                       "Nx REAL, Vz REAL, My REAL, deformation REAL, "
+                                       "isStart BOOLEAN, "  // New column for isStart
+                                       "FOREIGN KEY (node_Id) REFERENCES nodes(node_Id))";
 
     int rc = sqlite3_exec(DB,
                           queryToCreateResultsTable.c_str(),
@@ -166,6 +196,9 @@ void DataBaseStarter::createResultsTable()
     }
     cout << "\n";
 
+    sqlite3_close(DB);
 }
+
+
 
 }

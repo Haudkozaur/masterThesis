@@ -16,6 +16,11 @@
 #include <QHBoxLayout>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QApplication>
+#include <QSet>
+#include <QPainter>
+#include <QPointF>
+#include <QtCore/qhash.h>
 #include "addboundariesdialog.h"
 #include "addcrosssectiondialog.h"
 #include "addlinedialog.h"
@@ -97,6 +102,7 @@ Gui::Gui(DataBasePointsManager *pointsManager,
         leftButtonContainer->setStyleSheet(backgroundStyle);
         upperButtonContainer->setStyleSheet(backgroundStyle);
     }
+
 }
 Gui::~Gui()
 {
@@ -1132,6 +1138,11 @@ void Gui::on_clearButton_clicked()
         dataBaseStarter->createMeshTable();
 
         // Refresh the UI to reflect changes
+        resultsVector.clear();
+        showMy = false;
+        showVz = false;
+        showNx = false;
+        showDeformations = false;
         on_refreshButton_clicked();
 
         qDebug() << "Data has been cleared.";
@@ -1204,7 +1215,7 @@ void Gui::paintPointsLabels(QPainter &painter)
 void Gui::paintLines(QPainter &painter)
 {
     // Set the pen to draw thicker black lines
-    QPen pen(Qt::black, 15); // Increase line thickness and set color to black
+    QPen pen(Qt::black, 24); // Increase line thickness and set color to black
     painter.setPen(pen);
 
     for (const auto &line : lines) {
@@ -1748,132 +1759,182 @@ void Gui::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &
 void Gui::paintResults(QPainter &painter) {
     double scaleFactor = 35;
 
-    // Set and verify the font size
+    // Set the font size
     QFont font = painter.font();
-    font.setPointSize(48); // Explicitly set larger font size
+    font.setPointSize(48);
     painter.setFont(font);
 
-    double maxAbsVz = 0;
-    double maxAbsMy = 0;
-    double maxAbsNx = 0;
-
-    double maxVz = 0;
-    double maxMy = 0;
-    double maxNx = 0;
-
+    // Variables to keep track of maximum values
+    double maxAbsVz = 0, maxAbsMy = 0, maxAbsNx = 0;
+    double maxVz = 0, maxMy = 0, maxNx = 0;
     QPointF maxVzEndPos, maxMyEndPos, maxNxEndPos;
-    QVector<QPointF> myPoints, vzPoints, nxPoints;
 
-    for (const auto &line : lines) {
-        QVector<std::tuple<double, QPointF, double, double, double>> sortedPoints; // Store projected length, point, My, Vz, Nx
+    // Maps to store end points for each lineId
+    QMap<int, QVector<QPointF>> myEndPointsMap, vzEndPointsMap, nxEndPointsMap;
+
+    // Print the initial resultsVector
+    qDebug() << "Initial Results Vector contains" << resultsVector.size() << "elements.";
+    for (const auto &result : resultsVector) {
+        qDebug() << "Node ID:" << result.nodeId
+                 << ", x:" << result.x
+                 << ", z:" << result.z
+                 << ", Nx:" << result.Nx
+                 << ", Vz:" << result.Vz
+                 << ", My:" << result.My
+                 << ", Deformation:" << result.deformation
+                 << "LineId:" << result.lineId
+                 << "Is start:" << result.isStart;
+    }
+
+    // Filter resultsVector to remove unnecessary nodes
+    resultsVector.erase(std::remove_if(resultsVector.begin(), resultsVector.end(),
+                                       [&](const NodeResult &result) {
+                                           return !result.isStart && !isStartOrEndNode(result);
+                                       }), resultsVector.end());
+
+    // Print the filtered resultsVector
+    qDebug() << "Filtered Results Vector contains" << resultsVector.size() << "elements.";
+    for (const auto &result : resultsVector) {
+        qDebug() << "Node ID:" << result.nodeId
+                 << ", x:" << result.x
+                 << ", z:" << result.z
+                 << ", Nx:" << result.Nx
+                 << ", Vz:" << result.Vz
+                 << ", My:" << result.My
+                 << ", Deformation:" << result.deformation
+                 << "LineId:" << result.lineId
+                 << "Is start:" << result.isStart;
+    }
+
+    // Iterate over each result in resultsVector and draw the relevant lines
+    for (auto &result : resultsVector) {
+        // Find the corresponding line for this result
+        auto lineIt = std::find_if(lines.begin(), lines.end(), [&](const Line &line) {
+            return line.id == result.lineId;
+        });
+
+        if (lineIt == lines.end()) {
+            qDebug() << "Warning: Line ID" << result.lineId << "not found for Node ID" << result.nodeId;
+            continue;
+        }
+
+        const Line &line = *lineIt;
+        QPointF resultPoint(result.x * 1000, result.z * 1000);
 
         double dx = line.endX - line.startX;
         double dz = line.endZ - line.startZ;
-
         double length = std::sqrt(dx * dx + dz * dz);
-        if (length > 1e-5) {
-            for (const auto &result : resultsVector) {
-                double x_mm = result.x * 1000;
-                double z_mm = result.z * 1000;
 
-                double t = ((x_mm - line.startX) * dx + (z_mm - line.startZ) * dz) / (dx * dx + dz * dz);
+        // Calculate the perpendicular direction (normalized)
+        double perpX = -dz / length;
+        double perpZ = dx / length;
 
-                if (t >= 0 && t <= 1) {
-                    // Project the point onto the line and store it
-                    double projectedLength = t * length;
-                    sortedPoints.append({projectedLength, QPointF(x_mm, z_mm), result.My, result.Vz, result.Nx});
-                }
+        // Handle special cases for vertical and horizontal lines
+        if (std::abs(dx) < 1e-5) {  // Vertical line
+            perpX = 1;
+            perpZ = 0;
+        } else if (std::abs(dz) < 1e-5) {  // Horizontal line
+            perpX = 0;
+            perpZ = 1;
+        }
+
+        double endX, endZ;
+
+        // Invert values if the node is an end node and isStart is false
+        if (!result.isStart && isStartOrEndNode(result)) {
+            result.My = -result.My;
+            result.Vz = -result.Vz;
+            result.Nx = -result.Nx;
+        }
+
+        // Draw My line and store the end point
+        if (showMy && std::abs(result.My) > 1e-5) {
+            double forceMagnitude = result.My * scaleFactor;
+            endX = resultPoint.x() + forceMagnitude * perpX;
+            endZ = resultPoint.y() + forceMagnitude * perpZ;
+
+            QPointF endPoint = QPointF(endX, -endZ);
+            myEndPointsMap[result.lineId].append(endPoint);
+
+            painter.setPen(QPen(Qt::green, 16));
+            painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
+
+            if (std::abs(result.My) > maxAbsMy) {
+                maxAbsMy = std::abs(result.My);
+                maxMy = result.My;
+                maxMyEndPos = endPoint;
             }
+        }
 
-            // Sort points by their projection along the line
-            std::sort(sortedPoints.begin(), sortedPoints.end(), [](const std::tuple<double, QPointF, double, double, double> &a, const std::tuple<double, QPointF, double, double, double> &b) {
-                return std::get<0>(a) < std::get<0>(b);
-            });
+        // Draw Vz line and store the end point
+        if (showVz && std::abs(result.Vz) > 1e-5) {
+            double forceMagnitude = -result.Vz * scaleFactor;
+            endX = resultPoint.x() + forceMagnitude * perpX;
+            endZ = resultPoint.y() + forceMagnitude * perpZ;
 
-            // Now process the sorted points for each force
-            for (const auto &pointData : sortedPoints) {
-                QPointF point = std::get<1>(pointData);
-                double My = std::get<2>(pointData);
-                double Vz = std::get<3>(pointData);
-                double Nx = std::get<4>(pointData);
+            QPointF endPoint = QPointF(endX, -endZ);
+            vzEndPointsMap[result.lineId].append(endPoint);
 
-                // Draw My diagram (invert sign to place below the line) and collect points
-                if (showMy && std::abs(My) > 1e-5) {
-                    double forceMagnitude = My * scaleFactor; // Inverted sign
-                    double endX = point.x() + forceMagnitude * dz / length;
-                    double endZ = point.y() - forceMagnitude * dx / length;
-                    painter.setPen(QPen(Qt::green, 16)); // Double line thickness
-                    painter.drawLine(QPointF(point.x(), -point.y()), QPointF(endX, -endZ));
+            painter.setPen(QPen(Qt::red, 16));
+            painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                    myPoints.append(QPointF(endX, -endZ));
+            if (std::abs(result.Vz) > maxAbsVz) {
+                maxAbsVz = std::abs(result.Vz);
+                maxVz = result.Vz;
+                maxVzEndPos = endPoint;
+            }
+        }
 
-                    if (std::abs(My) > maxAbsMy) {
-                        maxAbsMy = std::abs(My);
-                        maxMy = My;
-                        maxMyEndPos = QPointF(endX, -endZ);
-                    }
-                }
+        // Draw Nx line and store the end point
+        if (showNx && std::abs(result.Nx) > 1e-5) {
+            double forceMagnitude = result.Nx * scaleFactor;
+            endX = resultPoint.x() + forceMagnitude * perpX;
+            endZ = resultPoint.y() + forceMagnitude * perpZ;
 
-                // Draw Vz diagram and collect points
-                if (showVz && std::abs(Vz) > 1e-5) {
-                    double forceMagnitude = -Vz * scaleFactor;
-                    double endX = point.x() + forceMagnitude * dz / length;
-                    double endZ = point.y() - forceMagnitude * dx / length;
-                    painter.setPen(QPen(Qt::red, 16)); // Double line thickness
-                    painter.drawLine(QPointF(point.x(), -point.y()), QPointF(endX, -endZ));
+            QPointF endPoint = QPointF(endX, -endZ);
+            nxEndPointsMap[result.lineId].append(endPoint);
 
-                    vzPoints.append(QPointF(endX, -endZ));
+            painter.setPen(QPen(Qt::blue, 16));
+            painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                    if (std::abs(Vz) > maxAbsVz) {
-                        maxAbsVz = std::abs(Vz);
-                        maxVz = Vz;
-                        maxVzEndPos = QPointF(endX, -endZ);
-                    }
-                }
-
-                // Draw Nx diagram and collect points
-                if (showNx && std::abs(Nx) > 1e-5) {
-                    double forceMagnitude = Nx * scaleFactor;
-                    double endX = point.x() + forceMagnitude * dx / length;
-                    double endZ = point.y() + forceMagnitude * dz / length;
-                    painter.setPen(QPen(Qt::blue, 16)); // Double line thickness
-                    painter.drawLine(QPointF(point.x(), -point.y()), QPointF(endX, -endZ));
-
-                    nxPoints.append(QPointF(endX, -endZ));
-
-                    if (std::abs(Nx) > maxAbsNx) {
-                        maxAbsNx = std::abs(Nx);
-                        maxNx = Nx;
-                        maxNxEndPos = QPointF(endX, -endZ);
-                    }
-                }
+            if (std::abs(result.Nx) > maxAbsNx) {
+                maxAbsNx = std::abs(result.Nx);
+                maxNx = result.Nx;
+                maxNxEndPos = endPoint;
             }
         }
     }
 
-    // Draw connecting lines for My, Vz, and Nx
-    if (showMy && !myPoints.isEmpty()) {
-        painter.setPen(QPen(Qt::green, 16, Qt::SolidLine)); // Double line thickness
-        painter.drawPolyline(myPoints.data(), myPoints.size());
-    }
-    if (showVz && !vzPoints.isEmpty()) {
-        painter.setPen(QPen(Qt::red, 16, Qt::SolidLine)); // Double line thickness
-        painter.drawPolyline(vzPoints.data(), vzPoints.size());
-    }
-    if (showNx && !nxPoints.isEmpty()) {
-        painter.setPen(QPen(Qt::blue, 16, Qt::SolidLine)); // Double line thickness
-        painter.drawPolyline(nxPoints.data(), nxPoints.size());
-    }
+    // Draw lines connecting the ends of result lines
+    auto drawConnectingLines = [&](QMap<int, QVector<QPointF>> &endPointsMap, const QColor &color) {
+        for (auto it = endPointsMap.begin(); it != endPointsMap.end(); ++it) {
+            QVector<QPointF> &points = it.value();
+            if (points.size() > 1) {
+                // Sort points along the line's length
+                std::sort(points.begin(), points.end(), [&](const QPointF &a, const QPointF &b) {
+                    return a.x() < b.x();  // Assuming sorting by x-coordinate along the line's length
+                });
 
-    // Set a specific font for text labels
+                painter.setPen(QPen(color, 16)); // Same thickness and color as result lines
+                for (int i = 0; i < points.size() - 1; ++i) {
+                    painter.drawLine(points[i], points[i + 1]);
+                }
+            }
+        }
+    };
+
+    // Draw connecting lines for My, Vz, Nx
+    drawConnectingLines(myEndPointsMap, Qt::green);
+    drawConnectingLines(vzEndPointsMap, Qt::red);
+    drawConnectingLines(nxEndPointsMap, Qt::blue);
+
+    // Drawing labels for maximum values
     QFont labelFont = font;
-    labelFont.setPointSize(200); // Increase font size
+    labelFont.setPointSize(200);
     painter.setFont(labelFont);
 
-    // Adjust Y offset to avoid overlap, scaled according to the axis scale
-    qreal labelYOffset = 0.1 * 3000; // Adjust this value if needed
+    qreal labelYOffset = 0.1 * 3000;
 
-    // Draw the maximum absolute value labels with the matching colors
     if (showVz) {
         painter.setPen(QPen(Qt::red, 24));
         painter.drawText(QPointF(maxVzEndPos.x() + 10, maxVzEndPos.y() - labelYOffset), QString("%1").arg(maxVz));
@@ -1892,18 +1953,17 @@ void Gui::paintResults(QPainter &painter) {
 
 
 
-// Helper function to draw a force line
-void Gui::drawForceLine(QPainter &painter, double startX, double startZ, double perpDx, double perpDz, double forceValue, double scaleFactor, bool show, QColor color) {
-    if (show && forceValue != 0) {
-        double forceMagnitude = forceValue * scaleFactor;
-        double endX = startX + forceMagnitude * perpDx;
-        double endZ = startZ + forceMagnitude * perpDz;
-        painter.setPen(QPen(color, 5));
-        painter.drawLine(QPointF(startX, -startZ), QPointF(endX, -endZ));
+// Helper function to check if the node is a start or end node of the line
+bool Gui::isStartOrEndNode(const NodeResult &result) {
+    for (const Line &line : lines) {
+        bool isStartPoint = std::abs(result.x*1000 - line.startX) < 1e-5 && std::abs(result.z*1000 - line.startZ) < 1e-5;
+        bool isEndPoint = std::abs(result.x*1000 - line.endX) < 1e-5 && std::abs(result.z*1000 - line.endZ) < 1e-5;
+        if (isStartPoint || isEndPoint) {
+            return true;
+        }
     }
+    return false;
 }
-
-
 
 
 void Gui::wheelEvent(QWheelEvent *event)
@@ -1973,45 +2033,65 @@ void Gui::on_calculateButton_clicked()
 {
     dataBaseSolverPreparer->fetchAllData();
     std::cout << "fetchAllData completed successfully" << std::endl;
+
+    // Drop and recreate the nodes and results tables
+    dataBaseResultsManager->dropTable(TableType::NODES);
     dataBaseResultsManager->dropTable(TableType::RESULTS);
+
+    dataBaseStarter->createFETable();  // Assuming `createFETable` replaces `createNodesTable`
     dataBaseStarter->createResultsTable();
 
+    // Check if the required data is available
     if (points.empty() || lines.empty() || boundaries.empty()) {
         QMessageBox::warning(this, "Error", "Please add all required data before calculating.");
         return;
     } else {
         resultsVector.clear();
-        update();
+        update();  // Presumably clears any previous drawings on the GUI
+
+        // Create and solve the FEM model
         SolverFEM::Solver solver(dataBaseSolverPreparer);
         solver.solve();
-
         solver.calculateInternalForces(dataBaseResultsManager);
+
+        // Iterate over the results table
         dataBaseResultsManager->iterateOverTable();
 
-
-
         // Retrieve the results map from the database results manager
-        std::map<int, std::tuple<double, double, double, double, double, double>> resultsMap = dataBaseResultsManager->getResultsMap();
+        std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool>>> resultsMap = dataBaseResultsManager->getResultsMap();
 
+        // Process the results and add them to the results vector
         for (const auto& entry : resultsMap) {
             int nodeId = entry.first;
-            double xCord, zCord, Nx, Vz, My, deformation;
+            const auto& resultsList = entry.second;
 
-            // Unpack the tuple into individual variables
-            std::tie(xCord, zCord, Nx, Vz, My, deformation) = entry.second;
+            for (const auto& resultEntry : resultsList) {
+                int memberId;
+                double xCord, zCord, Nx, Vz, My, deformation;
+                int lineId;
+                bool isStart;
 
-            // Create a NodeResult object and populate it
-            NodeResult result;
-            result.nodeId = nodeId;
-            result.x = xCord;
-            result.z = zCord;
-            result.Nx = Nx;
-            result.Vz = Vz;
-            result.My = My;
-            result.deformation = deformation;
+                // Unpack the tuple into individual variables
+                std::tie(memberId, xCord, zCord, Nx, Vz, My, deformation, lineId, isStart) = resultEntry;
 
-            // Add the result to the vector
-            resultsVector.push_back(result);
+                // Create a NodeResult object and populate it
+                NodeResult result;
+                result.nodeId = nodeId;
+                result.x = xCord;
+                result.z = zCord;
+                result.Nx = Nx;
+                result.Vz = Vz;
+                result.My = My;
+                result.deformation = deformation;
+                result.lineId = lineId;
+                result.isStart = isStart;
+
+                // Add the result to the vector
+                resultsVector.push_back(result);
+
+                // Additional processing based on lineId and isStart if needed
+                // Example: Handling start vs. end nodes differently, visualizing differently, etc.
+            }
         }
 
         // Debug: Print the results vector
@@ -2023,10 +2103,13 @@ void Gui::on_calculateButton_clicked()
                       << ", Nx: " << result.Nx
                       << ", Vz: " << result.Vz
                       << ", My: " << result.My
-                      << ", Deformation: " << result.deformation << std::endl;
+                      << ", Deformation: " << result.deformation
+            << "LineId: " << result.lineId
+            << "Is start: " << result.isStart << std::endl;
         }
     }
 }
+
 
 
 

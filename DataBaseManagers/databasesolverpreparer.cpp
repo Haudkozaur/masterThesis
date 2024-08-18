@@ -182,20 +182,18 @@ void DataBaseSolverPreparer::createFiniteElements() {
     nodesMap.clear();
     membersMap.clear();
 
-    // Check if pointsMap and linesMap are empty
     if (pointsMap.empty()) {
         std::cerr << "Error: pointsMap is empty. No points available to create finite elements." << std::endl;
-        return; // Exit the function early
+        return;
     }
 
     if (linesMap.empty()) {
         std::cerr << "Error: linesMap is empty. No lines available to create finite elements." << std::endl;
-        return; // Exit the function early
+        return;
     }
 
-    // Determine the next available ID for new mesh nodes
-    int maxPointId = pointsMap.rbegin()->first; // The maximum ID in pointsMap
-    int nextAvailableId = maxPointId + 1;       // Start new IDs after the highest point ID
+    int maxPointId = pointsMap.rbegin()->first;
+    int nextAvailableId = maxPointId + 1;
 
     for (const auto &line : linesMap) {
         int lineId = line.first;
@@ -203,103 +201,70 @@ void DataBaseSolverPreparer::createFiniteElements() {
         int endPointId = std::get<1>(line.second);
         int crossSectionId = std::get<2>(line.second);
 
-        std::vector<std::pair<int, SolverFEM::Node>> lineNodes;
+        std::vector<std::tuple<int, SolverFEM::Node>> lineNodes;
 
-        // Add the start point node
         if (nodesMap.find(startPointId) == nodesMap.end()) {
-            double xCord = pointsMap.at(startPointId).first / 1000.0; // Assuming coordinates in meters
+            double xCord = pointsMap.at(startPointId).first / 1000.0;
             double zCord = pointsMap.at(startPointId).second / 1000.0;
-            nodesMap.emplace(startPointId, SolverFEM::Node(startPointId, xCord, zCord));
+            nodesMap.emplace(startPointId, std::make_tuple(lineId, SolverFEM::Node(startPointId, xCord, zCord)));
         }
-        lineNodes.push_back({startPointId, nodesMap.at(startPointId)});
-        std::cout << "Start point node ID: " << startPointId << std::endl;
+        lineNodes.push_back(std::make_tuple(startPointId, std::get<1>(nodesMap.at(startPointId))));
 
-        // Add mesh nodes associated with this line, ensuring unique IDs
         for (const auto &mesh : meshMap) {
             if (mesh.second.first == lineId) {
-                double xCord = mesh.second.second.first / 1000.0; // Assuming coordinates in meters
+                double xCord = mesh.second.second.first / 1000.0;
                 double zCord = mesh.second.second.second / 1000.0;
 
-                // Assign a unique ID if the mesh node ID is already in use
                 int meshNodeId = nextAvailableId++;
-                nodesMap.emplace(meshNodeId, SolverFEM::Node(meshNodeId, xCord, zCord));
-                lineNodes.push_back({meshNodeId, nodesMap.at(meshNodeId)});
+                nodesMap.emplace(meshNodeId, std::make_tuple(lineId, SolverFEM::Node(meshNodeId, xCord, zCord)));
+                lineNodes.push_back(std::make_tuple(meshNodeId, std::get<1>(nodesMap.at(meshNodeId))));
             }
         }
 
-        // Add the end point node
         if (nodesMap.find(endPointId) == nodesMap.end()) {
-            double xCord = pointsMap.at(endPointId).first / 1000.0; // Assuming coordinates in meters
+            double xCord = pointsMap.at(endPointId).first / 1000.0;
             double zCord = pointsMap.at(endPointId).second / 1000.0;
-            nodesMap.emplace(endPointId, SolverFEM::Node(endPointId, xCord, zCord));
+            nodesMap.emplace(endPointId, std::make_tuple(lineId, SolverFEM::Node(endPointId, xCord, zCord)));
         }
-        lineNodes.push_back({endPointId, nodesMap.at(endPointId)});
-        std::cout << "End point node ID: " << endPointId << std::endl;
+        lineNodes.push_back(std::make_tuple(endPointId, std::get<1>(nodesMap.at(endPointId))));
 
-        // Sort nodes by their X-coordinate along the line
         std::sort(lineNodes.begin(), lineNodes.end(), [](const auto &a, const auto &b) {
-            return a.second.getX() < b.second.getX();
+            return std::get<1>(a).getX() < std::get<1>(b).getX();
         });
 
-        std::cout << "Line ID: " << lineId << " has nodes: " << std::endl;
-        for (const auto &node : lineNodes) {
-            std::cout << "  Node ID: " << node.first << ", X: " << node.second.getX()
-                      << ", Z: " << node.second.getZ() << std::endl;
-        }
-
-        // Create members between nodes
         for (size_t i = 0; i < lineNodes.size() - 1; ++i) {
-            int nodeId1 = lineNodes[i].first;
-            int nodeId2 = lineNodes[i + 1].first;
+            int nodeId1 = std::get<0>(lineNodes[i]);
+            int nodeId2 = std::get<0>(lineNodes[i + 1]);
 
-            double x1 = lineNodes[i].second.getX();
-            double z1 = lineNodes[i].second.getZ();
-            double x2 = lineNodes[i + 1].second.getX();
-            double z2 = lineNodes[i + 1].second.getZ();
+            double x1 = std::get<1>(lineNodes[i]).getX();
+            double z1 = std::get<1>(lineNodes[i]).getZ();
+            double x2 = std::get<1>(lineNodes[i + 1]).getX();
+            double z2 = std::get<1>(lineNodes[i + 1]).getZ();
 
             double length = std::sqrt(std::pow(x2 - x1, 2) + std::pow(z2 - z1, 2));
-            std::cout << "Calculated length between Node " << nodeId1 << " and Node " << nodeId2
-                      << " is: " << length << std::endl;
             if (length == 0) {
                 std::cerr << "Warning: Zero-length member between nodes " << nodeId1 << " and " << nodeId2 << std::endl;
                 continue;
             }
 
-            auto crossSection = crossSectionsMap[crossSectionId];
+            auto crossSection = crossSectionsMap.at(crossSectionId);
             std::string crossSectionName = std::get<0>(crossSection);
             int materialId = std::get<1>(crossSection);
             double A = std::get<2>(crossSection);
             double I = std::get<3>(crossSection);
 
-            auto material = materialsMap[materialId];
+            auto material = materialsMap.at(materialId);
             std::string materialName = std::get<0>(material);
             double E = std::get<1>(material);
             double v = std::get<2>(material);
 
             int memberId = membersMap.size() + 1;
-            membersMap.emplace(memberId, SolverFEM::Member(nodeId1, nodeId2, x1, z1, x2, z2, E, v, I, A, length, lineId));
-
-            std::cout << "Member ID " << memberId << " added: Start Node " << nodeId1 << " to End Node " << nodeId2 << std::endl;
+            membersMap.emplace(memberId, std::make_tuple(lineId, SolverFEM::Member(nodeId1, nodeId2, x1, z1, x2, z2, E, v, I, A, length, lineId)));
         }
     }
-
-    std::cout << "Total members created: " << membersMap.size() << std::endl;
-
-    for (const auto &member : membersMap) {
-        std::cout << "Member ID: " << member.first
-                  << ", Start Node: " << member.second.getFirstNodeNumber()
-                  << ", End Node: " << member.second.getSecondNodeNumber()
-                  << ", E: " << member.second.getE()
-                  << ", v: " << member.second.getV()
-                  << ", I: " << member.second.getI()
-                  << ", A: " << member.second.getA()
-                  << ", Length: " << member.second.getLength()
-                  << ", X1: " << member.second.getX1()
-                  << ", Z1: " << member.second.getZ1()
-                  << ", X2: " << member.second.getX2()
-                  << ", Z2: " << member.second.getZ2() << std::endl;
-    }
 }
+
+
 
 void DataBaseSolverPreparer::createNodeLoads()
 {
@@ -333,9 +298,9 @@ void DataBaseSolverPreparer::createUniformLoads()
         double Fz = std::get<2>(lineLoad.second);
 
         // Find all members associated with this lineId
-        for (const auto &member : membersMap) {
+        for (const auto& member : membersMap) { {
             int memberId = member.first;
-            const SolverFEM::Member &memberData = member.second;
+            const SolverFEM::Member& memberData = std::get<1>(member.second);
 
             if (memberData.getLineId() == lineId) {
                 int newLoadId = uniformLoadsMap.size() + 1; // Generate unique ID for each member's load
@@ -351,7 +316,7 @@ void DataBaseSolverPreparer::createUniformLoads()
 
     std::cout << "Total uniform loads created: " << uniformLoadsMap.size() << std::endl;
 }
-
+}
 
 void DataBaseSolverPreparer::createNodeSupports()
 {
@@ -389,10 +354,11 @@ void DataBaseSolverPreparer::createMemberSupportConditions()
 {
     memberSupportConditionsMap.clear();
 
-    for (const auto &member : membersMap) {
+    for (const auto& member : membersMap) {
         int memberId = member.first;
-        int startNodeId = member.second.getFirstNodeNumber();
-        int endNodeId = member.second.getSecondNodeNumber();
+        const SolverFEM::Member& memberData = std::get<1>(member.second);
+        int startNodeId = memberData.getFirstNodeNumber();
+        int endNodeId = memberData.getSecondNodeNumber();
 
         // Initialize support conditions for start and end nodes
         bool startTx = false, startTz = false, startRy = false;
@@ -455,15 +421,22 @@ const std::map<int, std::pair<int, int>> &DataBaseSolverPreparer::getPoints() co
     return pointsMap;
 }
 
-const std::map<int, SolverFEM::Node> &DataBaseSolverPreparer::getNodes() const
-{
-    return nodesMap;
+const std::map<int, SolverFEM::Node> DataBaseSolverPreparer::getNodes() const {
+    std::map<int, SolverFEM::Node> extractedNodes;
+    for (const auto &pair : nodesMap) {
+        extractedNodes.emplace(pair.first, std::get<1>(pair.second));
+    }
+    return extractedNodes;
 }
 
-const std::map<int, SolverFEM::Member> &DataBaseSolverPreparer::getMembers() const
-{
-    return membersMap;
+const std::map<int, SolverFEM::Member> DataBaseSolverPreparer::getMembers() const {
+    std::map<int, SolverFEM::Member> extractedMembers;
+    for (const auto &pair : membersMap) {
+        extractedMembers.emplace(pair.first, std::get<1>(pair.second));
+    }
+    return extractedMembers;
 }
+
 
 const std::map<int, SolverFEM::NodeLoad> &DataBaseSolverPreparer::getNodeLoads() const
 {

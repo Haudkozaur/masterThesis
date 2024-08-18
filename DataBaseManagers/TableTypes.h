@@ -17,6 +17,7 @@ enum class TableType {
     LINE_LOADS,
     MESH,
     RESULTS,
+    NODES,
     ALL
 };
 
@@ -31,6 +32,7 @@ static map<TableType, string> tableTypesMap = {
     {TableType::LINE_LOADS, "line_loads"},
     {TableType::MESH, "mesh"},
     {TableType::RESULTS, "results"},
+    {TableType::NODES, "nodes"},
     {TableType::ALL, "all tables"}
 };
 

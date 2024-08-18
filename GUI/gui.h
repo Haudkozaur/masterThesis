@@ -201,7 +201,10 @@ private:
         double Vz;
         double My;
         double deformation;
+        int lineId;  // Optional: Add lineId if needed for processing or visualization
+        bool isStart;  // Optional: Add isStart if needed for processing or visualization
     };
+
 
     vector<Point> points;
     vector<Line> lines;
@@ -211,6 +214,7 @@ private:
     vector<Mesh> meshVector;
     vector<MeshNode> meshNodesVector;
     vector<NodeResult> resultsVector;
+
 
     qreal scaleFactor = 20;
 
@@ -260,7 +264,8 @@ private:
     void paintMeshNodes(QPainter &painter);
     void drawAxes(QPainter &painter);
     void paintResults(QPainter &painter);
-    void drawForceLine(QPainter &painter, double startX, double startZ, double perpDx, double perpDz, double forceValue, double scaleFactor, bool show, QColor color);
+    bool isStartOrEndNode(const NodeResult &result);
+    //void drawForceLine(QPainter &painter, double startX, double startZ, double perpDx, double perpDz, double forceValue, double scaleFactor, bool show, QColor color);
     void drawGrid(QPainter &painter,
                   qreal leftX,
                   qreal rightX,

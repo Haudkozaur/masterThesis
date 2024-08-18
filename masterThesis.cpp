@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     dataBaseStarter->createNodalLoadsTable();
     dataBaseStarter->createLineLoadsTable();
     dataBaseStarter->createMeshTable();
+    dataBaseStarter->createFETable();
     dataBaseStarter->createResultsTable();
 
     //Creating DB managers and create basic objects
@@ -53,8 +54,105 @@ int main(int argc, char *argv[])
     //Creating and testing DataBaseSolverPreparer
 
     //Creating GUI
-    QApplication app(argc, argv);
+    QApplication app(argc, argv);  // Use the correct variable name here
+/*    QString darkStyleSheet = R"(
+        QWidget {
+            background-color: #2e2e2e;
+            color: #ffffff;
+        }
 
+        QMenuBar {
+            background-color: #3e3e3e;
+        }
+
+        QMenuBar::item {
+            background-color: #3e3e3e;
+            color: #ffffff;
+        }
+
+        QMenuBar::item:selected {
+            background-color: #4e4e4e;
+        }
+
+        QMenu {
+            background-color: #3e3e3e;
+            color: #ffffff;
+        }
+
+        QMenu::item:selected {
+            background-color: #4e4e4e;
+        }
+
+        QToolBar {
+            background-color: #3e3e3e;
+        }
+
+        QPushButton {
+            background-color: #4e4e4e;
+            color: #ffffff;
+            border: 1px solid #5e5e5e;
+        }
+
+        QPushButton:hover {
+            background-color: #5e5e5e;
+        }
+
+        QPushButton:pressed {
+            background-color: #6e6e6e;
+        }
+
+        QLineEdit {
+            background-color: #4e4e4e;
+            color: #ffffff;
+            border: 1px solid #5e5e5e;
+        }
+
+        QTextEdit {
+            background-color: #4e4e4e;
+            color: #ffffff;
+            border: 1px solid #5e5e5e;
+        }
+
+        QTableView {
+            background-color: #3e3e3e;
+            color: #ffffff;
+            gridline-color: #5e5e5e;
+        }
+
+        QHeaderView::section {
+            background-color: #4e4e4e;
+            color: #ffffff;
+        }
+
+        QScrollBar:vertical {
+            background-color: #3e3e3e;
+            width: 16px;
+        }
+
+        QScrollBar::handle:vertical {
+            background-color: #5e5e5e;
+        }
+
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            background-color: #4e4e4e;
+        }
+
+        QScrollBar:horizontal {
+            background-color: #3e3e3e;
+            height: 16px;
+        }
+
+        QScrollBar::handle:horizontal {
+            background-color: #5e5e5e;
+        }
+
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            background-color: #4e4e4e;
+        }
+    )";
+
+    // Apply the dark theme stylesheet
+    app.setStyleSheet(darkStyleSheet);*/  // Correct variable name used here
     ::Gui mainWindow(pointsManager,
                      linesManager,
                      supportsManager,
@@ -86,3 +184,4 @@ int main(int argc, char *argv[])
 
     return result;
 }
+

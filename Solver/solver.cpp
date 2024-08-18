@@ -296,7 +296,7 @@ void Solver::solveSystemOfEquations() {
 void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* dbResultsManager) {
     for (const auto& memberPair : members) {
         int memberId = memberPair.first;
-        const Member& member = memberPair.second;
+        const SolverFEM::Member& member = memberPair.second;
 
         int startNodeId = member.getFirstNodeNumber();
         int endNodeId = member.getSecondNodeNumber();
@@ -318,7 +318,7 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
         double c = lambdaX;
         double s = lambdaZ;
 
-        // Calculate stiffness matrix terms for internal forces:
+        // Calculate stiffness matrix terms for internal forces
         double w1 = E * A / L;
         double w2 = 12 * E * I / (L * L * L);
         double w3 = 6 * E * I / (L * L);
@@ -329,61 +329,56 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
         kLocal << w1, 0, 0, -w1, 0, 0,
             0, w2, w3, 0, -w2, w3,
             0, w3, w4, 0, -w3, w5,
-            -w1, 0, 0, w1, 0, 0,
-            0, -w2, -w3, 0, w2, -w3,
-            0, w3, w5, 0, -w3, w4;
+            -w1, 0, 0,  w1, 0, 0,
+            0, -w2, -w3, 0,  w2, -w3,
+            0,  w3, w5, 0, -w3,  w4;
 
         Eigen::MatrixXd T(6, 6);
-        T << c, s, 0, 0, 0, 0,
-            -s, c, 0, 0, 0, 0,
-            0, 0, 1, 0, 0, 0,
-            0, 0, 0, c, s, 0,
-            0, 0, 0, -s, c, 0,
-            0, 0, 0, 0, 0, 1;
+        T << c,  s, 0, 0, 0, 0,
+            -s,  c, 0, 0, 0, 0,
+            0,  0, 1, 0, 0, 0,
+            0,  0, 0, c, s, 0,
+            0,  0, 0, -s, c, 0,
+            0,  0, 0, 0, 0, 1;
 
         Eigen::MatrixXd kGlobal = T.transpose() * kLocal * T;
         Eigen::VectorXd fInternal = kGlobal * uLocal;
 
         // Store forces for the start node
         double Nx_start = fInternal(0);
-        double Vz_start = fInternal(1);  // This should consider the sign convention
+        double Vz_start = fInternal(1);  // Adjust for sign convention if needed
         double My_start = fInternal(2);
 
-        // Correct the sign for Vz_start if needed
-        if (startNodeId < endNodeId) {
-            Vz_start = -Vz_start;  // Assuming positive direction is downward for the start node
-        }
+        // Check if start node is the first node of the line (isStart)
+        bool isStartStartNode = (startNodeId == member.getFirstNodeNumber());
 
         double xCord_start = nodes.at(startNodeId).getX();
         double zCord_start = nodes.at(startNodeId).getZ();
         double deformation_start = std::sqrt(displacementVector(startDofIndex) * displacementVector(startDofIndex) +
                                              displacementVector(startDofIndex + 1) * displacementVector(startDofIndex + 1));
 
-        // Debug output for the start node
-        cout << "Member ID:" << memberId << "Start Node:" << startNodeId
-                 << "Nx_start:" << Nx_start << "Vz_start:" << Vz_start << "My_start:" << My_start;
-
-        dbResultsManager->addObjectToDataBase(startNodeId, xCord_start, zCord_start, Nx_start, Vz_start, My_start, deformation_start);
+        // Insert start node results into the results table
+        dbResultsManager->addResultToDataBase(member.getLineId(), memberId, startNodeId, Nx_start, Vz_start, My_start, deformation_start, isStartStartNode);
+        dbResultsManager->addOrUpdateNodeToDataBase(startNodeId, xCord_start, zCord_start);
 
         // Store forces for the end node
         double Nx_end = fInternal(3);
-        double Vz_end = fInternal(4);  // This should consider the sign convention
+        double Vz_end = fInternal(4);  // Adjust for sign convention if needed
         double My_end = fInternal(5);
+
+        bool isStartEndNode = (endNodeId == member.getFirstNodeNumber());
 
         double xCord_end = nodes.at(endNodeId).getX();
         double zCord_end = nodes.at(endNodeId).getZ();
         double deformation_end = std::sqrt(displacementVector(endDofIndex) * displacementVector(endDofIndex) +
                                            displacementVector(endDofIndex + 1) * displacementVector(endDofIndex + 1));
 
-        // Debug output for the end node
-        cout << "Member ID:" << memberId << "End Node:" << endNodeId
-                 << "Nx_end:" << Nx_end << "Vz_end:" << Vz_end << "My_end:" << My_end;
-
-        dbResultsManager->addObjectToDataBase(endNodeId, xCord_end, zCord_end, Nx_end, Vz_end, My_end, deformation_end);
+        // Insert end node results into the results table
+        dbResultsManager->addResultToDataBase(member.getLineId(), memberId, endNodeId,
+                                              Nx_end, Vz_end, My_end, deformation_end, isStartEndNode);
+        dbResultsManager->addOrUpdateNodeToDataBase(endNodeId, xCord_end, zCord_end);
     }
 }
-
-
 
 void Solver::solve()
 {
