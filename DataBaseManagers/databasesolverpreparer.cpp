@@ -13,23 +13,48 @@ DataBaseSolverPreparer::DataBaseSolverPreparer(const std::string &dateBaseName)
 void DataBaseSolverPreparer::fetchAllData()
 {
     fetchPoints();
+    std::cout << "fetchPoints() completed." << std::endl;
+
     fetchLines();
+    std::cout << "fetchLines() completed." << std::endl;
+
     fetchMaterials();
+    std::cout << "fetchMaterials() completed." << std::endl;
+
     fetchCrossSections();
+    std::cout << "fetchCrossSections() completed." << std::endl;
+
     fetchSupports();
+    std::cout << "fetchSupports() completed." << std::endl;
+
     fetchNodalLoads();
+    std::cout << "fetchNodalLoads() completed." << std::endl;
+
     fetchLineLoads();
+    std::cout << "fetchLineLoads() completed." << std::endl;
+
     fetchMesh();
+    std::cout << "fetchMesh() completed." << std::endl;
 
     createFiniteElements();
-    createNodeLoads();
-    createUniformLoads();
-    createNodeSupports();
-    createMemberSupportConditions();
-    //print size of membersMap:
-    std::cout << "MembersMap size: " << membersMap.size() << std::endl;
+    std::cout << "createFiniteElements() completed." << std::endl;
 
+    createNodeLoads();
+    std::cout << "createNodeLoads() completed." << std::endl;
+
+    createUniformLoads();
+    std::cout << "createUniformLoads() completed." << std::endl;
+
+    createNodeSupports();
+    std::cout << "createNodeSupports() completed." << std::endl;
+
+    createMemberSupportConditions();
+    std::cout << "createMemberSupportConditions() completed." << std::endl;
+
+    // Print the size of membersMap
+    std::cout << "MembersMap size: " << membersMap.size() << std::endl;
 }
+
 
 void DataBaseSolverPreparer::fetchPoints()
 {
@@ -49,20 +74,35 @@ void DataBaseSolverPreparer::fetchPoints()
 
 void DataBaseSolverPreparer::fetchLines()
 {
-    std::string query = "SELECT id, start_point, end_point, cross_section_id, length FROM lines";
+    std::string query = "SELECT id, start_point, end_point, cross_section_id, length, inclination_angle FROM lines";
     std::vector<std::vector<std::string>> results = executeQuery(query);
+    cout << "Results size w sensie lini srututuu: " << results.size() << endl;
 
     linesMap.clear();
     for (const auto &row : results) {
-        if (row.size() == 5) {
+        if (row.size() == 6) {
             int id = std::stoi(row[0]);
             int startPoint = std::stoi(row[1]);
             int endPoint = std::stoi(row[2]);
             int crossSectionId = std::stoi(row[3]);
             double length = std::stod(row[4]);
-            linesMap[id] = std::make_tuple(startPoint, endPoint, crossSectionId, length);
+            double inclinationAngle = std::stod(row[5]);
+            linesMap[id] = std::make_tuple(startPoint, endPoint, crossSectionId, length, inclinationAngle);
         }
     }
+    //printing lines Map
+    for (const auto &line : linesMap) {
+        std::cout << "Line ID: " << line.first
+                  << ", Start Point: " << std::get<0>(line.second)
+                  << ", End Point: " << std::get<1>(line.second)
+                  << ", Cross Section ID: " << std::get<2>(line.second)
+                  << ", Length: " << std::get<3>(line.second)
+                  << ", Inclination Angle: " << std::get<4>(line.second) << std::endl;
+    }
+
+
+
+
 }
 
 void DataBaseSolverPreparer::fetchMaterials()
@@ -297,8 +337,13 @@ void DataBaseSolverPreparer::createUniformLoads()
         double Fx = std::get<1>(lineLoad.second);
         double Fz = std::get<2>(lineLoad.second);
 
+        std::cout << "Processing Line Load ID: " << loadId
+                  << ", Line ID: " << lineId
+                  << ", Fx: " << Fx
+                  << ", Fz: " << Fz << std::endl;
+
         // Find all members associated with this lineId
-        for (const auto& member : membersMap) { {
+        for (const auto& member : membersMap) {
             int memberId = member.first;
             const SolverFEM::Member& memberData = std::get<1>(member.second);
 
@@ -306,8 +351,9 @@ void DataBaseSolverPreparer::createUniformLoads()
                 int newLoadId = uniformLoadsMap.size() + 1; // Generate unique ID for each member's load
                 uniformLoadsMap.emplace(newLoadId, SolverFEM::UniformLoad(newLoadId, memberId, Fx, Fz));
 
-                std::cout << "Uniform Load ID: " << newLoadId
+                std::cout << "Uniform Load created -> ID: " << newLoadId
                           << ", Member ID: " << memberId
+                          << ", Line ID: " << lineId
                           << ", Fx: " << Fx
                           << ", Fz: " << Fz << std::endl;
             }
@@ -316,7 +362,7 @@ void DataBaseSolverPreparer::createUniformLoads()
 
     std::cout << "Total uniform loads created: " << uniformLoadsMap.size() << std::endl;
 }
-}
+
 
 void DataBaseSolverPreparer::createNodeSupports()
 {
@@ -456,6 +502,11 @@ const std::map<int, SolverFEM::NodeSupport> &DataBaseSolverPreparer::getNodeSupp
 const std::map<int, SolverFEM::MemberSupportConditions> &DataBaseSolverPreparer::getMemberSupportConditions() const
 {
     return memberSupportConditionsMap;
+}
+
+const std::map<int, std::tuple<int, int, int, double, double>> &DataBaseSolverPreparer::getLines() const
+{
+    return linesMap;
 }
 
 } // namespace DataBaseManagers

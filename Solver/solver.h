@@ -36,6 +36,7 @@ private:
     std::map<int, SolverFEM::Member> members;
     std::map<int, SolverFEM::UniformLoad> uniformLoads;
     std::map<int, SolverFEM::MemberSupportConditions> memberSupportConditions;
+    std::map<int, std::tuple<int, int, int, double, double>> lines;
 
     Eigen::MatrixXd K; // Global stiffness matrix
     Eigen::VectorXd loadVector; // Global load vector

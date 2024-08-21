@@ -24,6 +24,7 @@ public:
     const std::map<int, SolverFEM::NodeSupport> &getNodeSupports() const;
     const std::map<int, SolverFEM::MemberSupportConditions> &getMemberSupportConditions() const;
 
+    const std::map<int, std::tuple<int, int, int, double, double> > &getLines() const;
 private:
     void fetchPoints();
     void fetchLines();
@@ -42,7 +43,7 @@ private:
 
     // Updated maps to include additional data
     std::map<int, std::pair<int, int>> pointsMap;
-    std::map<int, std::tuple<int, int, int, double>> linesMap;
+    std::map<int, std::tuple<int, int, int, double, double>> linesMap;
     std::map<int, std::tuple<int, SolverFEM::Node>> nodesMap; // Now storing lineId along with Node
     std::map<int, std::tuple<int, SolverFEM::Member>> membersMap; // Now storing lineId along with Member
     std::map<int, SolverFEM::NodeLoad> nodeLoadsMap;

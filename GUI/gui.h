@@ -264,6 +264,7 @@ private:
     void paintMeshNodes(QPainter &painter);
     void drawAxes(QPainter &painter);
     void paintResults(QPainter &painter);
+    void prepareResults(); //method to handle problem with opposite sign of end node results
     bool isStartOrEndNode(const NodeResult &result);
     //void drawForceLine(QPainter &painter, double startX, double startZ, double perpDx, double perpDz, double forceValue, double scaleFactor, bool show, QColor color);
     void drawGrid(QPainter &painter,
@@ -275,12 +276,13 @@ private:
                   qreal centerX,
                   qreal centerZ);
 
-
+    bool signInversionApplied; //var to manage the sign inversion of the results
     //boolean var's to manage the visibility of the results
     bool showMy;
     bool showVz;
     bool showNx;
     bool showDeformations;
+
 };
 
 #endif // GUI_H
