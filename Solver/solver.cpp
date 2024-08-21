@@ -376,8 +376,61 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
                                               Nx_end, Vz_end, My_end, deformation_end, isStartEndNode);
         dbResultsManager->addOrUpdateNodeToDataBase(endNodeId, xCord_end, zCord_end);
     }
-}
 
+
+    // Iteracja przez tabelę i uzyskanie resultsMap
+    dbResultsManager->iterateOverTable();
+    std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool>>> resultsMap = dbResultsManager->getResultsMap();
+
+    // Ustawienie iteratorów do pobierania wartości ze środka mapy
+    auto it = std::next(resultsMap.begin(), resultsMap.size() / 2 - 1);
+    auto skip_it = std::next(it, 2);  // Przeskok o dwie pozycje
+
+    double deltaVz = 0.0;
+    if (skip_it != resultsMap.end()) {
+        // Rozpakowanie krotek
+        double Vz1, Vz2;
+
+        std::tie(std::ignore, std::ignore, std::ignore, std::ignore, Vz1, std::ignore, std::ignore, std::ignore, std::ignore) = it->second.front();
+        std::tie(std::ignore, std::ignore, std::ignore, std::ignore, Vz2, std::ignore, std::ignore, std::ignore, std::ignore) = skip_it->second.front();
+
+        deltaVz = abs(Vz2 - Vz1)/4;   // Różnica sił tnących
+
+        // Wypisanie obliczonej różnicy
+        std::cout << "deltaVz (różnica między Vz2 a Vz1): " << deltaVz << std::endl;
+    } else {
+        std::cout << "Warning: Nie udało się obliczyć deltaVz, brak kolejnego węzła." << std::endl;
+    }
+
+    // Korekta wartości sił tnących w wynikach
+    for (auto& entry : resultsMap) {
+        std::cout << "Processing nodeId: " << entry.first << std::endl;
+
+        for (auto& result : entry.second) {
+            double& Vz = std::get<4>(result);
+
+            // Wypisanie przed korektą
+            std::cout << "  Przed korektą - Vz: " << Vz << std::endl;
+
+            Vz += deltaVz;  // Aktualizacja Vz
+
+            // Wypisanie po korekcie
+            std::cout << "  Po korekcie - Vz: " << Vz << std::endl;
+
+            // Zastosowanie korekty w przeciwnym kierunku dla ostatniego węzła
+            // if (entry.first == resultsMap.rbegin()->first) {
+            //     std::cout << "  Przed koretką dla ostatniego węzła - Vz: " << Vz << std::endl;
+            //     Vz -= deltaVz;
+            //     std::cout << "  Korekta dla ostatniego węzła - Vz: " << Vz << std::endl;
+            // }
+        }
+    }
+
+    // Aktualizacja wyników w bazie danych
+    std::cout << "Aktualizacja wyników w bazie danych..." << std::endl;
+    dbResultsManager->updateResultsInDataBase(resultsMap);
+    std::cout << "Aktualizacja zakończona." << std::endl;
+}
 
 void Solver::solve()
 {

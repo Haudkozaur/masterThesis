@@ -1772,19 +1772,20 @@ void Gui::prepareResults() {
 
 void Gui::paintResults(QPainter &painter) {
     double resultsScaleFactor = 35;
-    const double minLineLength = 0.01;  // Very small length for lines with near-zero force values
-    const double minSignificantDifference = 0.5;  // Threshold to avoid drawing redundant lines
-    const double smallValueThreshold = 1e-5;  // Threshold below which the value is considered zero
+    const double minLineLength = 0.01;
+    const double minSignificantDifference = 0.5;
+    const double smallValueThreshold = 1e-5;
 
-    // Set the font size
     QFont font = painter.font();
     font.setPointSize(48);
     painter.setFont(font);
 
-    // Maps to store end points for each lineId and maximum forces
+    // Maps to store end points for each lineId and maximum/minimum forces
     QMap<int, QVector<QPointF>> myEndPointsMap, vzEndPointsMap, nxEndPointsMap;
-    QMap<int, double> maxAbsMyMap, maxAbsVzMap, maxAbsNxMap; // For storing maximum absolute values
-    QMap<int, QPointF> maxMyPosMap, maxVzPosMap, maxNxPosMap; // For storing positions of maximum values
+    QMap<int, double> maxMyMap, maxVzMap, maxNxMap;
+    QMap<int, double> minMyMap, minVzMap, minNxMap;
+    QMap<int, QPointF> maxMyPosMap, maxVzPosMap, maxNxPosMap;
+    QMap<int, QPointF> minMyPosMap, minVzPosMap, minNxPosMap;
 
     // Filter resultsVector to remove unnecessary nodes
     resultsVector.erase(std::remove_if(resultsVector.begin(), resultsVector.end(),
@@ -1792,9 +1793,7 @@ void Gui::paintResults(QPainter &painter) {
                                            return !result.isStart && !isStartOrEndNode(result);
                                        }), resultsVector.end());
 
-    // Iterate over each result in resultsVector and draw the relevant lines
     for (auto &result : resultsVector) {
-        // Find the corresponding line for this result
         auto lineIt = std::find_if(lines.begin(), lines.end(), [&](const Line &line) {
             return line.id == result.lineId;
         });
@@ -1811,22 +1810,20 @@ void Gui::paintResults(QPainter &painter) {
         double dz = line.endZ - line.startZ;
         double length = std::sqrt(dx * dx + dz * dz);
 
-        // Calculate the perpendicular direction (normalized)
         double perpX = -dz / length;
         double perpZ = dx / length;
 
-        // Handle special cases for vertical and horizontal lines
-        if (std::abs(dx) < 1e-5) {  // Vertical line
+        if (std::abs(dx) < 1e-5) {
             perpX = 1;
             perpZ = 0;
-        } else if (std::abs(dz) < 1e-5) {  // Horizontal line
+        } else if (std::abs(dz) < 1e-5) {
             perpX = 0;
             perpZ = 1;
         }
 
         double endX, endZ;
 
-        // Draw My line and store the end point and max value
+        // Process My
         if (showMy) {
             double forceMagnitude = std::abs(result.My) > 1e-5 ? result.My * resultsScaleFactor :
                                         (result.isStart || isStartOrEndNode(result)) ? minLineLength : 0;
@@ -1841,14 +1838,19 @@ void Gui::paintResults(QPainter &painter) {
                 painter.setPen(QPen(Qt::green, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                if (std::abs(result.My) > maxAbsMyMap[result.lineId]) {
-                    maxAbsMyMap[result.lineId] = std::abs(result.My);
+                if (result.My > maxMyMap[result.lineId]) {
+                    maxMyMap[result.lineId] = result.My;
                     maxMyPosMap[result.lineId] = endPoint;
+                }
+
+                if (result.My < minMyMap[result.lineId] || minMyMap[result.lineId] == 0) {
+                    minMyMap[result.lineId] = result.My;
+                    minMyPosMap[result.lineId] = endPoint;
                 }
             }
         }
 
-        // Draw Vz line and store the end point and max value
+        // Process Vz
         if (showVz) {
             double forceMagnitude = std::abs(result.Vz) > 1e-5 ? -result.Vz * resultsScaleFactor :
                                         (result.isStart || isStartOrEndNode(result)) ? -minLineLength : 0;
@@ -1863,14 +1865,19 @@ void Gui::paintResults(QPainter &painter) {
                 painter.setPen(QPen(Qt::red, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                if (std::abs(result.Vz) > maxAbsVzMap[result.lineId]) {
-                    maxAbsVzMap[result.lineId] = std::abs(result.Vz);
+                if (result.Vz > maxVzMap[result.lineId]) {
+                    maxVzMap[result.lineId] = result.Vz;
                     maxVzPosMap[result.lineId] = endPoint;
+                }
+
+                if (result.Vz < minVzMap[result.lineId] || minVzMap[result.lineId] == 0) {
+                    minVzMap[result.lineId] = result.Vz;
+                    minVzPosMap[result.lineId] = endPoint;
                 }
             }
         }
 
-        // Draw Nx line and store the end point and max value
+        // Process Nx
         if (showNx) {
             double forceMagnitude = std::abs(result.Nx) > 1e-5 ? result.Nx * resultsScaleFactor :
                                         (result.isStart || isStartOrEndNode(result)) ? minLineLength : 0;
@@ -1885,20 +1892,24 @@ void Gui::paintResults(QPainter &painter) {
                 painter.setPen(QPen(Qt::blue, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                if (std::abs(result.Nx) > maxAbsNxMap[result.lineId]) {
-                    maxAbsNxMap[result.lineId] = std::abs(result.Nx);
+                if (result.Nx > maxNxMap[result.lineId]) {
+                    maxNxMap[result.lineId] = result.Nx;
                     maxNxPosMap[result.lineId] = endPoint;
+                }
+
+                if (result.Nx < minNxMap[result.lineId] || minNxMap[result.lineId] == 0) {
+                    minNxMap[result.lineId] = result.Nx;
+                    minNxPosMap[result.lineId] = endPoint;
                 }
             }
         }
     }
 
-    // Draw lines connecting the ends of result lines with their respective colors
+    // Function to draw connecting lines
     auto drawConnectingLines = [&](QMap<int, QVector<QPointF>> &endPointsMap, const QColor &color) {
         for (auto it = endPointsMap.begin(); it != endPointsMap.end(); ++it) {
             QVector<QPointF> &points = it.value();
             if (points.size() > 1) {
-                // Sort points properly for both horizontal and vertical cases
                 std::sort(points.begin(), points.end(), [&](const QPointF &a, const QPointF &b) {
                     if (std::abs(a.x() - b.x()) > 1e-5) {
                         return a.x() < b.x();
@@ -1907,16 +1918,13 @@ void Gui::paintResults(QPainter &painter) {
                     }
                 });
 
-                // Filter out points with very small length if not at the start or end
                 points.erase(std::remove_if(points.begin(), points.end(), [&](const QPointF &point) {
                                  bool isStartOrEnd = (point == points.first() || point == points.last());
                                  return std::abs(point.x()) < minLineLength && !isStartOrEnd;
                              }), points.end());
 
-                // Draw connecting lines only between distinct points
-                painter.setPen(QPen(color, 16)); // Use the respective color
+                painter.setPen(QPen(color, 16));
                 for (int i = 0; i < points.size() - 1; ++i) {
-                    // Ensure that we are not connecting points that are too close vertically or horizontally
                     if (std::abs(points[i].x() - points[i + 1].x()) > minSignificantDifference ||
                         std::abs(points[i].y() - points[i + 1].y()) > minSignificantDifference) {
                         painter.drawLine(points[i], points[i + 1]);
@@ -1927,38 +1935,65 @@ void Gui::paintResults(QPainter &painter) {
     };
 
     // Draw connecting lines for My, Vz, Nx with their respective colors
-    drawConnectingLines(myEndPointsMap, Qt::green);  // Green for My
-    drawConnectingLines(vzEndPointsMap, Qt::red);    // Red for Vz
-    drawConnectingLines(nxEndPointsMap, Qt::blue);   // Blue for Nx
+    drawConnectingLines(myEndPointsMap, Qt::green);
+    drawConnectingLines(vzEndPointsMap, Qt::red);
+    drawConnectingLines(nxEndPointsMap, Qt::blue);
 
-    // Drawing labels for maximum absolute values for each line
+    // Drawing labels for maximum and minimum values for each line
     QFont labelFont = font;
     labelFont.setPointSize(200);
     painter.setFont(labelFont);
-
-    auto drawLabelIfSignificant = [&](const QPointF &position, double value, const QColor &color) {
+    bool switchSign = false;
+    auto drawLabelIfSignificant = [&](const QPointF &position, double value, const QColor &color, bool switchSignParam) {
+        switchSign = switchSignParam;
         if (std::abs(value) < smallValueThreshold) {
             value = 0.0;  // Replace small values with 0
         }
+
+        if (switchSign) {
+            value = -value;  // Switch the sign for the label
+        }
+
+        // Adjust the label position based on the value's sign
+        qreal offset = 50; // Adjust this offset as needed
+        QPointF labelPosition = (value >= 0)
+                                    ? QPointF(position.x() + 10, position.y() - offset)  // For positive values
+                                    : QPointF(position.x() + 10, position.y() + offset); // For negative values
+
         painter.setPen(QPen(color, 24));
-        painter.drawText(QPointF(position.x() + 10, position.y()), QString::number(value));
+        // Format value with 2 decimal places
+        painter.drawText(labelPosition, QString::number(value, 'f', 2));
+        switchSign = false;
     };
 
+    // Draw labels, including labels for minimum values even if they are 0
     for (auto it = maxMyPosMap.begin(); it != maxMyPosMap.end(); ++it) {
-        drawLabelIfSignificant(it.value(), maxAbsMyMap[it.key()], Qt::green);
+        drawLabelIfSignificant(it.value(), maxMyMap[it.key()], Qt::green, true);
+    }
+    for (auto it = minMyPosMap.begin(); it != minMyPosMap.end(); ++it) {
+        if (minMyMap[it.key()] != 0) { // Ignore 0 values for minimum labels
+            drawLabelIfSignificant(it.value(), minMyMap[it.key()], Qt::green, true);
+        }
     }
 
     for (auto it = maxVzPosMap.begin(); it != maxVzPosMap.end(); ++it) {
-        drawLabelIfSignificant(it.value(), maxAbsVzMap[it.key()], Qt::red);
+        drawLabelIfSignificant(it.value(), maxVzMap[it.key()], Qt::red, true);
+    }
+    for (auto it = minVzPosMap.begin(); it != minVzPosMap.end(); ++it) {
+        if (minVzMap[it.key()] != 0) { // Ignore 0 values for minimum labels
+            drawLabelIfSignificant(it.value(), minVzMap[it.key()], Qt::red, true);
+        }
     }
 
     for (auto it = maxNxPosMap.begin(); it != maxNxPosMap.end(); ++it) {
-        drawLabelIfSignificant(it.value(), maxAbsNxMap[it.key()], Qt::blue);
+        drawLabelIfSignificant(it.value(), maxNxMap[it.key()], Qt::blue, false);
+    }
+    for (auto it = minNxPosMap.begin(); it != minNxPosMap.end(); ++it) {
+        if (minNxMap[it.key()] != 0) { // Ignore 0 values for minimum labels
+            drawLabelIfSignificant(it.value(), minNxMap[it.key()], Qt::blue, false);
+        }
     }
 }
-
-
-
 
 // Helper function to check if the node is a start or end node of the line
 bool Gui::isStartOrEndNode(const NodeResult &result) {

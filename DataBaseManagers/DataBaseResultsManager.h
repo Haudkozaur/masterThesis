@@ -16,6 +16,7 @@ public:
     void addResultToDataBase(int lineId, int memberId, int nodeId, double Nx, double Vz, double My, double deformation, bool isStart);  // Updated signature
     std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool> > > getResultsMap() const;  // Updated signature
 
+    void updateResultsInDataBase(const std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool> > > &resultsMap);
 private:
     std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool> > > resultsMap;  // Updated signature
 };

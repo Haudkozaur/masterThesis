@@ -113,5 +113,29 @@ std::map<int, std::vector<std::tuple<int, double, double, double, double, double
 {
     return resultsMap;
 }
+// Przykładowa implementacja metody updateResultsInDataBase w DataBaseResultsManager
+void DataBaseManagers::DataBaseResultsManager::updateResultsInDataBase(const std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool>>>& resultsMap) {
+    for (const auto& entry : resultsMap) {
+        for (const auto& result : entry.second) {
+            int memberId = std::get<0>(result);
+            double Nx = std::get<3>(result);
+            double Vz = std::get<4>(result);
+            double My = std::get<5>(result);
+            double deformation = std::get<6>(result);
+            int lineId = std::get<7>(result);
+            bool isStart = std::get<8>(result);
 
+            // Zaktualizuj wyniki w bazie danych
+            std::string queryUpdate = "UPDATE results SET Nx = " + std::to_string(Nx) +
+                                      ", Vz = " + std::to_string(Vz) +
+                                      ", My = " + std::to_string(My) +
+                                      ", deformation = " + std::to_string(deformation) +
+                                      " WHERE line_Id = " + std::to_string(lineId) +
+                                      " AND member_id = " + std::to_string(memberId) +
+                                      " AND isStart = " + std::to_string(isStart);
+
+            executeAndCheckIfSQLOk(queryUpdate, TableType::RESULTS);
+        }
+    }
+}
 } // namespace DataBaseManagers
