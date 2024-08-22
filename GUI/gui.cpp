@@ -455,7 +455,7 @@ void Gui::loadMeshLayout()
         qDebug() << "Label created and added for Line ID:" << line.id;
 
         QSlider *slider = new QSlider(Qt::Horizontal, this);
-        slider->setRange(1, 100);
+        slider->setRange(1, 12); // Set the range of the slider (1-20)
         slider->setValue(10);  // Set the default slider value to 10
         slider->setStyleSheet(sliderStyle);  // Apply the same style to horizontal sliders
         hLayout->addWidget(slider);
@@ -1838,14 +1838,17 @@ void Gui::paintResults(QPainter &painter) {
                 painter.setPen(QPen(Qt::green, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                if (result.My > maxMyMap[result.lineId]) {
-                    maxMyMap[result.lineId] = result.My;
-                    maxMyPosMap[result.lineId] = endPoint;
+                // Always consider small values as 0 when determining the minimum
+                double adjustedMy = (std::abs(result.My) < smallValueThreshold) ? 0.0 : result.My;
+
+                if (adjustedMy <= minMyMap.value(result.lineId, std::numeric_limits<double>::infinity())) {
+                    minMyMap[result.lineId] = adjustedMy;
+                    minMyPosMap[result.lineId] = endPoint;
                 }
 
-                if (result.My < minMyMap[result.lineId] || minMyMap[result.lineId] == 0) {
-                    minMyMap[result.lineId] = result.My;
-                    minMyPosMap[result.lineId] = endPoint;
+                if (result.My > maxMyMap.value(result.lineId, -std::numeric_limits<double>::infinity())) {
+                    maxMyMap[result.lineId] = result.My;
+                    maxMyPosMap[result.lineId] = endPoint;
                 }
             }
         }
@@ -1865,14 +1868,17 @@ void Gui::paintResults(QPainter &painter) {
                 painter.setPen(QPen(Qt::red, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                if (result.Vz > maxVzMap[result.lineId]) {
-                    maxVzMap[result.lineId] = result.Vz;
-                    maxVzPosMap[result.lineId] = endPoint;
+                // Always consider small values as 0 when determining the minimum
+                double adjustedVz = (std::abs(result.Vz) < smallValueThreshold) ? 0.0 : result.Vz;
+
+                if (adjustedVz <= minVzMap.value(result.lineId, std::numeric_limits<double>::infinity())) {
+                    minVzMap[result.lineId] = adjustedVz;
+                    minVzPosMap[result.lineId] = endPoint;
                 }
 
-                if (result.Vz < minVzMap[result.lineId] || minVzMap[result.lineId] == 0) {
-                    minVzMap[result.lineId] = result.Vz;
-                    minVzPosMap[result.lineId] = endPoint;
+                if (result.Vz > maxVzMap.value(result.lineId, -std::numeric_limits<double>::infinity())) {
+                    maxVzMap[result.lineId] = result.Vz;
+                    maxVzPosMap[result.lineId] = endPoint;
                 }
             }
         }
@@ -1892,14 +1898,17 @@ void Gui::paintResults(QPainter &painter) {
                 painter.setPen(QPen(Qt::blue, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
-                if (result.Nx > maxNxMap[result.lineId]) {
-                    maxNxMap[result.lineId] = result.Nx;
-                    maxNxPosMap[result.lineId] = endPoint;
+                // Always consider small values as 0 when determining the minimum
+                double adjustedNx = (std::abs(result.Nx) < smallValueThreshold) ? 0.0 : result.Nx;
+
+                if (adjustedNx <= minNxMap.value(result.lineId, std::numeric_limits<double>::infinity())) {
+                    minNxMap[result.lineId] = adjustedNx;
+                    minNxPosMap[result.lineId] = endPoint;
                 }
 
-                if (result.Nx < minNxMap[result.lineId] || minNxMap[result.lineId] == 0) {
-                    minNxMap[result.lineId] = result.Nx;
-                    minNxPosMap[result.lineId] = endPoint;
+                if (result.Nx > maxNxMap.value(result.lineId, -std::numeric_limits<double>::infinity())) {
+                    maxNxMap[result.lineId] = result.Nx;
+                    maxNxPosMap[result.lineId] = endPoint;
                 }
             }
         }
@@ -1943,9 +1952,8 @@ void Gui::paintResults(QPainter &painter) {
     QFont labelFont = font;
     labelFont.setPointSize(200);
     painter.setFont(labelFont);
-    bool switchSign = false;
-    auto drawLabelIfSignificant = [&](const QPointF &position, double value, const QColor &color, bool switchSignParam) {
-        switchSign = switchSignParam;
+
+    auto drawLabelIfSignificant = [&](const QPointF &position, double value, const QColor &color, bool switchSign) {
         if (std::abs(value) < smallValueThreshold) {
             value = 0.0;  // Replace small values with 0
         }
@@ -1963,37 +1971,31 @@ void Gui::paintResults(QPainter &painter) {
         painter.setPen(QPen(color, 24));
         // Format value with 2 decimal places
         painter.drawText(labelPosition, QString::number(value, 'f', 2));
-        switchSign = false;
     };
 
-    // Draw labels, including labels for minimum values even if they are 0
     for (auto it = maxMyPosMap.begin(); it != maxMyPosMap.end(); ++it) {
         drawLabelIfSignificant(it.value(), maxMyMap[it.key()], Qt::green, true);
     }
     for (auto it = minMyPosMap.begin(); it != minMyPosMap.end(); ++it) {
-        if (minMyMap[it.key()] != 0) { // Ignore 0 values for minimum labels
-            drawLabelIfSignificant(it.value(), minMyMap[it.key()], Qt::green, true);
-        }
+        drawLabelIfSignificant(it.value(), minMyMap[it.key()], Qt::green, true);
     }
 
     for (auto it = maxVzPosMap.begin(); it != maxVzPosMap.end(); ++it) {
         drawLabelIfSignificant(it.value(), maxVzMap[it.key()], Qt::red, true);
     }
     for (auto it = minVzPosMap.begin(); it != minVzPosMap.end(); ++it) {
-        if (minVzMap[it.key()] != 0) { // Ignore 0 values for minimum labels
-            drawLabelIfSignificant(it.value(), minVzMap[it.key()], Qt::red, true);
-        }
+        drawLabelIfSignificant(it.value(), minVzMap[it.key()], Qt::red, true);
     }
 
     for (auto it = maxNxPosMap.begin(); it != maxNxPosMap.end(); ++it) {
         drawLabelIfSignificant(it.value(), maxNxMap[it.key()], Qt::blue, false);
     }
     for (auto it = minNxPosMap.begin(); it != minNxPosMap.end(); ++it) {
-        if (minNxMap[it.key()] != 0) { // Ignore 0 values for minimum labels
-            drawLabelIfSignificant(it.value(), minNxMap[it.key()], Qt::blue, false);
-        }
+        drawLabelIfSignificant(it.value(), minNxMap[it.key()], Qt::blue, false);
     }
 }
+
+
 
 // Helper function to check if the node is a start or end node of the line
 bool Gui::isStartOrEndNode(const NodeResult &result) {

@@ -353,6 +353,11 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
         double Vz_start = fInternal(0) * std::sin(inclinationRadians) + fInternal(1) * std::cos(inclinationRadians);
         double My_start = fInternal(2);
 
+        // Check if the inclination angle is within [90, 270) degrees
+        if (inclinationAngle >= 90.0 && inclinationAngle < 270.0) {
+            My_start = -My_start;  // Reverse the sign of My
+        }
+
         bool isStartStartNode = (startNodeId == member.getFirstNodeNumber());
         double xCord_start = nodes.at(startNodeId).getX();
         double zCord_start = nodes.at(startNodeId).getZ();
@@ -366,6 +371,11 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
         double Vz_end = fInternal(3) * std::sin(inclinationRadians) + fInternal(4) * std::cos(inclinationRadians);
         double My_end = fInternal(5);
 
+        // Check if the inclination angle is within [90, 270) degrees
+        if (inclinationAngle >= 90.0 && inclinationAngle < 270.0) {
+            My_end = -My_end;  // Reverse the sign of My
+        }
+
         bool isStartEndNode = (endNodeId == member.getFirstNodeNumber());
         double xCord_end = nodes.at(endNodeId).getX();
         double zCord_end = nodes.at(endNodeId).getZ();
@@ -376,7 +386,6 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
                                               Nx_end, Vz_end, My_end, deformation_end, isStartEndNode);
         dbResultsManager->addOrUpdateNodeToDataBase(endNodeId, xCord_end, zCord_end);
     }
-
 
     // Iteracja przez tabelę i uzyskanie resultsMap
     dbResultsManager->iterateOverTable();

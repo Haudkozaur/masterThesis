@@ -117,13 +117,16 @@ double DataBaseLinesManager::getLineInclinationAngleFromPoints(int startPointID,
     double x2 = stod(selectObjectPropertyByID(TableType::POINTS, endPointID, "x_cord"));
     double z2 = stod(selectObjectPropertyByID(TableType::POINTS, endPointID, "z_cord"));
 
-    double angle = atan((z2 - z1) / (x2 - x1)) * 180 / M_PI;
+    double angle = atan2(z2 - z1, x2 - x1) * 180 / M_PI;
 
+    // atan2 returns the angle in the range [-180, 180], so we adjust it to [0, 360]
     if (angle < 0) {
-        angle = angle + 180;
+        angle += 360;
     }
+
     return angle;
 }
+
 void DataBaseLinesManager::iterateOverTable()
 {
     string querySelectAllLines = "SELECT id, start_point, end_point, cross_section_id FROM lines";

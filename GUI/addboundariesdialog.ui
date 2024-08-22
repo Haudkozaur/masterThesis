@@ -42,21 +42,21 @@
     <item>
      <widget class="QCheckBox" name="TzCheckBox">
       <property name="text">
-       <string>Tz</string>
+       <string>UZ</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QCheckBox" name="TxCheckBox">
       <property name="text">
-       <string>Tx</string>
+       <string>UX</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QCheckBox" name="RyCheckBox">
       <property name="text">
-       <string>Ry</string>
+       <string>UR</string>
       </property>
      </widget>
     </item>
@@ -93,19 +93,6 @@
    </property>
    <property name="text">
     <string>Point ID</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>2</x>
-     <y>80</y>
-     <width>181</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>(if all unchecked creates a hinge)</string>
    </property>
   </widget>
  </widget>
