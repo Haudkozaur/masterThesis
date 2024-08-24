@@ -99,6 +99,8 @@ add_executable(masterThesis
     DataBaseManagers/DataBaseMeshManager.h DataBaseManagers/DataBaseMeshManager.cpp
     GUI/ViewDialog.h GUI/ViewDialog.cpp GUI/ViewDialog.ui
     DataBaseManagers/DataBaseResultsManager.h DataBaseManagers/DataBaseResultsManager.cpp
+    GUI/StartWindow.h GUI/StartWindow.cpp GUI/StartWindow.ui
+    SlabGUI/SlabGUI.h SlabGUI/SlabGUI.cpp SlabGUI/SlabGUI.ui
 
 
 

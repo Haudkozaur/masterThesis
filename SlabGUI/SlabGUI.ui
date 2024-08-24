@@ -1,59 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Gui</class>
- <widget class="QMainWindow" name="Gui">
+ <class>SlabGUI</class>
+ <widget class="QMainWindow" name="SlabGUI">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1002</width>
-    <height>684</height>
+    <width>877</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Mesosoic-Project version 0.1</string>
+   <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="verticalLayoutWidget">
+   <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>241</width>
-      <height>203</height>
+      <x>240</x>
+      <y>69</y>
+      <width>20</width>
+      <height>6000</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="leftverticalLayout">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetNoConstraint</enum>
-     </property>
-     <item>
-      <widget class="QPushButton" name="addPointButton">
-       <property name="text">
-        <string>Add Point</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="addLineButton">
-       <property name="text">
-        <string>Add Line</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="addSupportButton">
-       <property name="text">
-        <string>Add support</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="Line" name="line_2">
+    <property name="geometry">
+     <rect>
+      <x>-10</x>
+      <y>60</y>
+      <width>6000</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
    </widget>
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>0</y>
       <width>801</width>
       <height>69</height>
@@ -137,31 +127,41 @@
      </item>
     </layout>
    </widget>
-   <widget class="Line" name="line">
-    <property name="geometry">
-     <rect>
-      <x>250</x>
-      <y>69</y>
-      <width>20</width>
-      <height>6000</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
-   <widget class="Line" name="line_2">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>60</y>
-      <width>6000</width>
-      <height>20</height>
+      <y>70</y>
+      <width>241</width>
+      <height>203</height>
      </rect>
     </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
+    <layout class="QVBoxLayout" name="leftverticalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetNoConstraint</enum>
+     </property>
+     <item>
+      <widget class="QPushButton" name="addPointButton">
+       <property name="text">
+        <string>Add Point</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="addLineButton">
+       <property name="text">
+        <string>Add Line</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="addSupportButton">
+       <property name="text">
+        <string>Add support</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -169,41 +169,12 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1002</width>
+     <width>877</width>
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuMESOSOIC_Project_0_01">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionsave"/>
-    <addaction name="actionopen"/>
-    <addaction name="actionsave_2"/>
-   </widget>
-   <widget class="QMenu" name="menuSettings">
-    <property name="title">
-     <string>Settings</string>
-    </property>
-   </widget>
-   <addaction name="menuMESOSOIC_Project_0_01"/>
-   <addaction name="menuSettings"/>
   </widget>
-  <action name="actionsave">
-   <property name="text">
-    <string>New</string>
-   </property>
-  </action>
-  <action name="actionopen">
-   <property name="text">
-    <string>Open</string>
-   </property>
-  </action>
-  <action name="actionsave_2">
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </action>
+  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

@@ -19,5 +19,6 @@
         <file>DeleteNodalLoadsLayout.ui</file>
         <file>EditLineLoadsLayout.ui</file>
         <file>EditNodalLoadsLayout.ui</file>
+        <file>GUI/logo.png</file>
     </qresource>
 </RCC>

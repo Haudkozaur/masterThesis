@@ -1,10 +1,12 @@
 #include <QApplication>
 #include "DataBaseManagers/DataBaseManagers.h"
 #include "GUI/gui.h"
+#include "GUI/StartWindow.h"
 #include "sqlite/sqlite3.h"
 #include "Solver/solver.h"
 #include <Eigen/Dense>
 #include <cmath>
+#include <memory>
 
 using namespace Eigen;
 using namespace Ui;
@@ -13,175 +15,97 @@ using namespace DataBaseManagers;
 
 int main(int argc, char *argv[])
 {
-    //Setting DB name
-    string dataBaseName = "mesosoic_test";
-    dataBaseName = dataBaseName + ".db";
+    QApplication app(argc, argv);
 
-    //Creating DB starter and initialize tables
-    DataBaseStarter *dataBaseStarter = new DataBaseStarter(dataBaseName);
-    dataBaseStarter->startDateBase();
-    dataBaseStarter->createPointsTable();
-    dataBaseStarter->createLinesTable();
-    dataBaseStarter->createSurfacesTable();
-    dataBaseStarter->createMaterialsTable();
-    dataBaseStarter->createCrossSectionsTable();
-    dataBaseStarter->createSupportsTable();
-    dataBaseStarter->createNodalLoadsTable();
-    dataBaseStarter->createLineLoadsTable();
-    dataBaseStarter->createMeshTable();
-    dataBaseStarter->createFETable();
-    dataBaseStarter->createResultsTable();
+    ::StartWindow startWindow;
+    if (startWindow.exec() != QDialog::Accepted) {
+        return 0;
+    }
 
-    //Creating DB managers and create basic objects
-    DataBaseMaterialsManager *materialsManager = new DataBaseMaterialsManager(dataBaseName);
-    materialsManager->addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
-    materialsManager->addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
+    string dataBaseName;
+    unique_ptr<DataBaseStarter> dataBaseStarter;
 
-    DataBaseCrossSectionsManager *crossSectionsManager = new DataBaseCrossSectionsManager(dataBaseName);
-    crossSectionsManager->addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0), 171.000000000000 * pow(10.0, -8));
-    crossSectionsManager->addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
+    switch (startWindow.selectedModule()) {
+    case ::StartWindow::Frame2D: {
+        //Setting DB name
 
-    CrossSectionsAssistant *crossSectionsAssistant = new CrossSectionsAssistant();
-    DataBasePointsManager *pointsManager = new DataBasePointsManager(dataBaseName);
-    DataBaseLinesManager *linesManager = new DataBaseLinesManager(dataBaseName);
-    DataBaseSupportsManager *supportsManager = new DataBaseSupportsManager(dataBaseName);
-    DataBaseNodalLoadsManager *nodalLoadsManager = new DataBaseNodalLoadsManager(dataBaseName);
-    DataBaseLineLoadsManager *lineLoadsManager = new DataBaseLineLoadsManager(dataBaseName);
-    DataBaseMeshManager *meshManager = new DataBaseMeshManager(dataBaseName);
-    DataBaseSolverPreparer *solverPreparer = new DataBaseSolverPreparer(dataBaseName);
-    DataBaseResultsManager *resultsManager = new DataBaseResultsManager(dataBaseName);
 
-    //Creating and testing DataBaseSolverPreparer
+        unique_ptr<DataBaseMaterialsManager> materialsManager;
+        unique_ptr<DataBaseCrossSectionsManager> crossSectionsManager;
+        unique_ptr<CrossSectionsAssistant> crossSectionsAssistant;
+        unique_ptr<DataBasePointsManager> pointsManager;
+        unique_ptr<DataBaseLinesManager> linesManager;
+        unique_ptr<DataBaseSupportsManager> supportsManager;
+        unique_ptr<DataBaseNodalLoadsManager> nodalLoadsManager;
+        unique_ptr<DataBaseLineLoadsManager> lineLoadsManager;
+        unique_ptr<DataBaseMeshManager> meshManager;
+        unique_ptr<DataBaseSolverPreparer> solverPreparer;
+        unique_ptr<DataBaseResultsManager> resultsManager;
+        dataBaseName = "mesosoic_test";
+        dataBaseName += ".db";
 
-    //Creating GUI
-    QApplication app(argc, argv);  // Use the correct variable name here
-/*    QString darkStyleSheet = R"(
-        QWidget {
-            background-color: #2e2e2e;
-            color: #ffffff;
-        }
+        //Creating DB starter and initialize tables
+        dataBaseStarter = make_unique<DataBaseStarter>(dataBaseName);
+        dataBaseStarter->startDateBase();
+        dataBaseStarter->createPointsTable();
+        dataBaseStarter->createLinesTable();
+        //dataBaseStarter->createSurfacesTable();
+        dataBaseStarter->createMaterialsTable();
+        dataBaseStarter->createCrossSectionsTable();
+        dataBaseStarter->createSupportsTable();
+        dataBaseStarter->createNodalLoadsTable();
+        dataBaseStarter->createLineLoadsTable();
+        dataBaseStarter->createMeshTable();
+        dataBaseStarter->createFETable();
+        dataBaseStarter->createResultsTable();
 
-        QMenuBar {
-            background-color: #3e3e3e;
-        }
+        //Creating DB managers and create basic objects
+        materialsManager = make_unique<DataBaseMaterialsManager>(dataBaseName);
+        materialsManager->addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
+        materialsManager->addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
 
-        QMenuBar::item {
-            background-color: #3e3e3e;
-            color: #ffffff;
-        }
+        crossSectionsManager = make_unique<DataBaseCrossSectionsManager>(dataBaseName);
+        crossSectionsManager->addObjectToDataBase("IPE 100", 1, 10.3 * pow(10.0, -4.0), 171.000000000000 * pow(10.0, -8));
+        crossSectionsManager->addObjectToDataBase("Concrete beam 500x300", 2, 0.15, 0.003125);
 
-        QMenuBar::item:selected {
-            background-color: #4e4e4e;
-        }
+        crossSectionsAssistant = make_unique<CrossSectionsAssistant>();
+        pointsManager = make_unique<DataBasePointsManager>(dataBaseName);
+        linesManager = make_unique<DataBaseLinesManager>(dataBaseName);
+        supportsManager = make_unique<DataBaseSupportsManager>(dataBaseName);
+        nodalLoadsManager = make_unique<DataBaseNodalLoadsManager>(dataBaseName);
+        lineLoadsManager = make_unique<DataBaseLineLoadsManager>(dataBaseName);
+        meshManager = make_unique<DataBaseMeshManager>(dataBaseName);
+        solverPreparer = make_unique<DataBaseSolverPreparer>(dataBaseName);
+        resultsManager = make_unique<DataBaseResultsManager>(dataBaseName);
 
-        QMenu {
-            background-color: #3e3e3e;
-            color: #ffffff;
-        }
+        //Creating GUI
+        ::Gui mainWindow(pointsManager.get(),
+                       linesManager.get(),
+                       supportsManager.get(),
+                       materialsManager.get(),
+                       crossSectionsManager.get(),
+                       dataBaseStarter.get(),
+                       nodalLoadsManager.get(),
+                       lineLoadsManager.get(),
+                       meshManager.get(),
+                       crossSectionsAssistant.get(),
+                       solverPreparer.get(),
+                       resultsManager.get());
+        mainWindow.show();
 
-        QMenu::item:selected {
-            background-color: #4e4e4e;
-        }
+        int result = app.exec();
 
-        QToolBar {
-            background-color: #3e3e3e;
-        }
+        return result;
+    }
 
-        QPushButton {
-            background-color: #4e4e4e;
-            color: #ffffff;
-            border: 1px solid #5e5e5e;
-        }
+    case ::StartWindow::Plate: {
+        cout << "Slab module is not implemented yet" << endl;
+        break;
+    }
 
-        QPushButton:hover {
-            background-color: #5e5e5e;
-        }
+    default:
+        return 0;
+    }
 
-        QPushButton:pressed {
-            background-color: #6e6e6e;
-        }
-
-        QLineEdit {
-            background-color: #4e4e4e;
-            color: #ffffff;
-            border: 1px solid #5e5e5e;
-        }
-
-        QTextEdit {
-            background-color: #4e4e4e;
-            color: #ffffff;
-            border: 1px solid #5e5e5e;
-        }
-
-        QTableView {
-            background-color: #3e3e3e;
-            color: #ffffff;
-            gridline-color: #5e5e5e;
-        }
-
-        QHeaderView::section {
-            background-color: #4e4e4e;
-            color: #ffffff;
-        }
-
-        QScrollBar:vertical {
-            background-color: #3e3e3e;
-            width: 16px;
-        }
-
-        QScrollBar::handle:vertical {
-            background-color: #5e5e5e;
-        }
-
-        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-            background-color: #4e4e4e;
-        }
-
-        QScrollBar:horizontal {
-            background-color: #3e3e3e;
-            height: 16px;
-        }
-
-        QScrollBar::handle:horizontal {
-            background-color: #5e5e5e;
-        }
-
-        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-            background-color: #4e4e4e;
-        }
-    )";
-
-    // Apply the dark theme stylesheet
-    app.setStyleSheet(darkStyleSheet);*/  // Correct variable name used here
-    ::Gui mainWindow(pointsManager,
-                     linesManager,
-                     supportsManager,
-                     materialsManager,
-                     crossSectionsManager,
-                     dataBaseStarter,
-                     nodalLoadsManager,
-                     lineLoadsManager,
-                     meshManager,
-                     crossSectionsAssistant,
-                     solverPreparer,
-                     resultsManager);
-    mainWindow.show();
-
-    int result = app.exec();
-
-    delete dataBaseStarter;
-    delete pointsManager;
-    delete linesManager;
-    delete supportsManager;
-    delete materialsManager;
-    delete crossSectionsManager;
-    delete meshManager;
-    delete crossSectionsAssistant;
-    delete solverPreparer;
-    delete nodalLoadsManager;
-    delete lineLoadsManager;
-    delete resultsManager;
-
-    return result;
+    return 0;
 }
-
