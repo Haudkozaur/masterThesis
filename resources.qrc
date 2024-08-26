@@ -20,5 +20,8 @@
         <file>EditLineLoadsLayout.ui</file>
         <file>EditNodalLoadsLayout.ui</file>
         <file>GUI/logo.png</file>
+        <file>rectangularSurface.ui</file>
+        <file>circularSurface.ui</file>
+        <file>triangularSurface.ui</file>
     </qresource>
 </RCC>

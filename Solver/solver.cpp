@@ -291,7 +291,6 @@ void Solver::solveSystemOfEquations() {
 
     std::cout << "System solved and displacements mapped." << std::endl;
 }
-
 void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* dbResultsManager) {
     for (const auto& memberPair : members) {
         int memberId = memberPair.first;
@@ -391,47 +390,75 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
     dbResultsManager->iterateOverTable();
     std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool>>> resultsMap = dbResultsManager->getResultsMap();
 
-    // Ustawienie iteratorów do pobierania wartości ze środka mapy
-    auto it = std::next(resultsMap.begin(), resultsMap.size() / 2 - 1);
-    auto skip_it = std::next(it, 2);  // Przeskok o dwie pozycje
+    // Mapa przechowująca `deltaVz` dla każdej linii
+    std::map<int, double> deltaVzMap;
 
-    double deltaVz = 0.0;
-    if (skip_it != resultsMap.end()) {
-        // Rozpakowanie krotek
-        double Vz1, Vz2;
+    // Grupowanie wyników według `lineId`
+    std::map<int, std::vector<std::tuple<int, double, double, double, double, double, double, int, bool>>> lineGroups;
+    for (const auto& [nodeId, results] : resultsMap) {
+        for (const auto& result : results) {
+            int lineId = std::get<7>(result);
+            lineGroups[lineId].push_back(result);
+        }
+    }
 
-        std::tie(std::ignore, std::ignore, std::ignore, std::ignore, Vz1, std::ignore, std::ignore, std::ignore, std::ignore) = it->second.front();
-        std::tie(std::ignore, std::ignore, std::ignore, std::ignore, Vz2, std::ignore, std::ignore, std::ignore, std::ignore) = skip_it->second.front();
+    // Obliczenie `deltaVz` dla każdej linii na podstawie środkowych wyników oddzielonych o jeden
+    for (const auto& [lineId, group] : lineGroups) {
+        if (group.size() >= 4) {  // Upewnij się, że mamy co najmniej cztery węzły, aby wybrać dwa z środka oddzielone o jeden
+            auto middleIt1 = std::next(group.begin(), group.size() / 2 - 2);
+            auto middleIt2 = std::next(middleIt1, 2);  // Oddzielone o jeden
 
-        deltaVz = abs(Vz2 - Vz1)/4;   // Różnica sił tnących
+            double Vz1 = std::get<4>(*middleIt1);
+            double Vz2 = std::get<4>(*middleIt2);
 
-        // Wypisanie obliczonej różnicy
-        std::cout << "deltaVz (różnica między Vz2 a Vz1): " << deltaVz << std::endl;
-    } else {
-        std::cout << "Warning: Nie udało się obliczyć deltaVz, brak kolejnego węzła." << std::endl;
+            // Oblicz `deltaVz` na podstawie różnicy Vz
+            double deltaVz = std::abs(Vz2 - Vz1) / 2.0;
+            std::cout << "Line ID: " << lineId << ", deltaVz: " << deltaVz << std::endl;
+
+            // Przechowaj `deltaVz` dla tej linii
+            deltaVzMap[lineId] = deltaVz;
+        } else if (group.size() == 3) {  // Jeśli tylko trzy węzły, wybierz środkowy i jeden z sąsiadów
+            auto middleIt1 = std::next(group.begin(), 1);  // Środkowy
+            auto middleIt2 = std::next(middleIt1, 1);  // Sąsiad
+
+            double Vz1 = std::get<4>(*middleIt1);
+            double Vz2 = std::get<4>(*middleIt2);
+
+            double deltaVz = std::abs(Vz2 - Vz1) / 2.0;
+            std::cout << "Line ID: " << lineId << ", deltaVz: " << deltaVz << std::endl;
+
+            deltaVzMap[lineId] = deltaVz;
+        } else if (group.size() == 2) {  // Jeśli tylko dwa węzły, wybierz je oba
+            auto& result1 = group.front();
+            auto& result2 = group.back();
+
+            double Vz1 = std::get<4>(result1);
+            double Vz2 = std::get<4>(result2);
+
+            double deltaVz = std::abs(Vz2 - Vz1) / 2.0;
+            std::cout << "Line ID: " << lineId << ", deltaVz: " << deltaVz << std::endl;
+
+            deltaVzMap[lineId] = deltaVz;
+        }
     }
 
     // Korekta wartości sił tnących w wynikach
-    for (auto& entry : resultsMap) {
-        std::cout << "Processing nodeId: " << entry.first << std::endl;
-
-        for (auto& result : entry.second) {
+    for (auto& [nodeId, results] : resultsMap) {
+        for (auto& result : results) {
+            int lineId = std::get<7>(result);
             double& Vz = std::get<4>(result);
 
-            // Wypisanie przed korektą
-            std::cout << "  Przed korektą - Vz: " << Vz << std::endl;
+            // Wypisanie wartości Vz przed korektą
+            std::cout << "Node ID: " << nodeId << ", Line ID: " << lineId << ", Vz before correction: " << Vz << std::endl;
 
-            Vz += deltaVz;  // Aktualizacja Vz
+            // Jeśli obliczono `deltaVz` dla tej linii, zastosuj korektę
+            if (deltaVzMap.find(lineId) != deltaVzMap.end()) {
+                double deltaVz = deltaVzMap[lineId];
+                Vz += deltaVz;
+            }
 
-            // Wypisanie po korekcie
-            std::cout << "  Po korekcie - Vz: " << Vz << std::endl;
-
-            // Zastosowanie korekty w przeciwnym kierunku dla ostatniego węzła
-            // if (entry.first == resultsMap.rbegin()->first) {
-            //     std::cout << "  Przed koretką dla ostatniego węzła - Vz: " << Vz << std::endl;
-            //     Vz -= deltaVz;
-            //     std::cout << "  Korekta dla ostatniego węzła - Vz: " << Vz << std::endl;
-            // }
+            // Wypisanie wartości Vz po korekcie
+            std::cout << "Node ID: " << nodeId << ", Line ID: " << lineId << ", Vz after correction: " << Vz << std::endl;
         }
     }
 
@@ -440,6 +467,7 @@ void Solver::calculateInternalForces(DataBaseManagers::DataBaseResultsManager* d
     dbResultsManager->updateResultsInDataBase(resultsMap);
     std::cout << "Aktualizacja zakończona." << std::endl;
 }
+
 
 void Solver::solve()
 {

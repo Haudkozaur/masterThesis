@@ -2,6 +2,7 @@
 #include "DataBaseManagers/DataBaseManagers.h"
 #include "GUI/gui.h"
 #include "GUI/StartWindow.h"
+#include "SlabGUI/SlabGUI.h"
 #include "sqlite/sqlite3.h"
 #include "Solver/solver.h"
 #include <Eigen/Dense>
@@ -99,8 +100,12 @@ int main(int argc, char *argv[])
     }
 
     case ::StartWindow::Plate: {
-        cout << "Slab module is not implemented yet" << endl;
-        break;
+        ::SlabGUI mainWindow;
+        mainWindow.show();
+        int result = app.exec();
+        return result;
+        // cout << "Slab module is not implemented yet" << endl;
+        // break;
     }
 
     default:

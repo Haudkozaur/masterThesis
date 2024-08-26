@@ -141,9 +141,9 @@
       <enum>QLayout::SetNoConstraint</enum>
      </property>
      <item>
-      <widget class="QPushButton" name="addPointButton">
+      <widget class="QPushButton" name="addSurfaceButton">
        <property name="text">
-        <string>Add Point</string>
+        <string>Add Surface Geometry</string>
        </property>
       </widget>
      </item>

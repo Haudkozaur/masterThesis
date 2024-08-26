@@ -101,6 +101,7 @@ add_executable(masterThesis
     DataBaseManagers/DataBaseResultsManager.h DataBaseManagers/DataBaseResultsManager.cpp
     GUI/StartWindow.h GUI/StartWindow.cpp GUI/StartWindow.ui
     SlabGUI/SlabGUI.h SlabGUI/SlabGUI.cpp SlabGUI/SlabGUI.ui
+    SlabGUI/AddSurfaceDialog.h SlabGUI/AddSurfaceDialog.cpp SlabGUI/AddSurfaceDialog.ui
 
 
 

@@ -754,11 +754,6 @@ void Gui::clearLayout(QLayout *layout)
     }
 }
 
-void Gui::showEvent(QShowEvent *event)
-{
-    QMainWindow::showEvent(event);
-    // Implement any specific show event logic here
-}
 
 void Gui::on_addPointButton_clicked()
 {

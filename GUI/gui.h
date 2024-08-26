@@ -43,7 +43,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-    void showEvent(QShowEvent *event) override; // Add this line
+
 
 private slots:
     //slots for buttons from basic gui layout
@@ -60,7 +60,6 @@ private slots:
 
     //cover changing layouts options
     void onComboBoxIndexChanged(int index);
-
 
 
 
