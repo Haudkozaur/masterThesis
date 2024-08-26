@@ -100,12 +100,33 @@ int main(int argc, char *argv[])
     }
 
     case ::StartWindow::Plate: {
-        ::SlabGUI mainWindow;
+
+        unique_ptr<DataBasePointsManager> pointsManager;
+        unique_ptr<DataBaseLinesManager> linesManager;
+        unique_ptr<DataBaseMaterialsManager> materialsManager;
+        unique_ptr<DataBaseSurfacesManager> surfacesManager;
+        dataBaseName = "mesosoic_slab_test";
+        dataBaseName += ".db";
+
+        dataBaseStarter = make_unique<DataBaseStarter>(dataBaseName);
+        dataBaseStarter->startDateBase();
+        dataBaseStarter->createPointsTable();
+        dataBaseStarter->createLinesTable();
+        dataBaseStarter->createCircularLinesTable();
+        dataBaseStarter->createSurfacesTable();
+        dataBaseStarter->createMaterialsTable();
+
+
+        pointsManager = make_unique<DataBasePointsManager>(dataBaseName);
+        linesManager = make_unique<DataBaseLinesManager>(dataBaseName);
+        materialsManager = make_unique<DataBaseMaterialsManager>(dataBaseName);
+        surfacesManager = make_unique<DataBaseSurfacesManager>(dataBaseName);
+
+        ::SlabGUI mainWindow(pointsManager.get(), linesManager.get(), materialsManager.get(), surfacesManager.get(), dataBaseStarter.get());
         mainWindow.show();
         int result = app.exec();
         return result;
-        // cout << "Slab module is not implemented yet" << endl;
-        // break;
+
     }
 
     default:

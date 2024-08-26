@@ -45,18 +45,57 @@ void DataBaseStarter::createLinesTable() {
 
 void DataBaseStarter::createSurfacesTable() {
     sqlite3_open(dataBaseNameAsChar, &DB);
-    string queryToCreateSurfacesTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::SURFACES) +
-                                        " (id INTEGER PRIMARY KEY AUTOINCREMENT, lines_set ARRAY INTEGER)";
-    int rc = sqlite3_exec(DB,
-                          queryToCreateSurfacesTable.c_str(),
-                          nullptr, nullptr, &zErrMsg);
+
+    string queryToCreateSurfacesTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::SURFACES) + " ("
+                                                                                                                "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                                                                                                "surface_type TEXT, "
+                                                                                                                "line1_id INTEGER, "
+                                                                                                                "line2_id INTEGER, "
+                                                                                                                "line3_id INTEGER, "
+                                                                                                                "line4_id INTEGER, "
+                                                                                                                "circular_line_id INTEGER, "
+                                                                                                                "material_id INTEGER, "
+                                                                                                                "thickness INTEGER, "
+                                                                                                                "is_opening BOOLEAN, "
+                                                                                                                "FOREIGN KEY(line1_id) REFERENCES lines(id), "
+                                                                                                                "FOREIGN KEY(line2_id) REFERENCES lines(id), "
+                                                                                                                "FOREIGN KEY(line3_id) REFERENCES lines(id), "
+                                                                                                                "FOREIGN KEY(line4_id) REFERENCES lines(id), "
+                                                                                                                "FOREIGN KEY(circular_line_id) REFERENCES circular_lines(id), "
+                                                                                                                "FOREIGN KEY(material_id) REFERENCES materials(id))";
+
+    int rc = sqlite3_exec(DB, queryToCreateSurfacesTable.c_str(), nullptr, nullptr, &zErrMsg);
+
     if (rc != SQLITE_OK) {
         cout << "Error: " << zErrMsg << endl;
     } else {
         cout << "Surfaces Table created successfully" << endl;
     }
 
+    sqlite3_close(DB);
 }
+
+
+void DataBaseStarter::createCircularLinesTable() {
+    sqlite3_open(dataBaseNameAsChar, &DB);
+
+    string queryToCreateCircularLinesTable = "CREATE TABLE IF NOT EXISTS circular_lines ("
+                                             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                             "centre_x INTEGER, "
+                                             "centre_z INTEGER, "
+                                             "diameter INTEGER)";
+
+    int rc = sqlite3_exec(DB, queryToCreateCircularLinesTable.c_str(), nullptr, nullptr, &zErrMsg);
+
+    if (rc != SQLITE_OK) {
+        cout << "Error: " << zErrMsg << endl;
+    } else {
+        cout << "Circular Lines Table created successfully" << endl;
+    }
+
+    sqlite3_close(DB);
+}
+
 
 void DataBaseStarter::createMaterialsTable() {
     sqlite3_open(dataBaseNameAsChar, &DB);

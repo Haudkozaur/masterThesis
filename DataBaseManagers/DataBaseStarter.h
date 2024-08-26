@@ -20,6 +20,8 @@ public:
 
     void createLinesTable();
 
+    void createCircularLinesTable();
+
     void createSurfacesTable();
 
     void createMaterialsTable();
@@ -43,6 +45,7 @@ public:
     const char *dataBaseNameAsChar;
     sqlite3 *DB;
     char *zErrMsg = 0;
+
 
 
 };

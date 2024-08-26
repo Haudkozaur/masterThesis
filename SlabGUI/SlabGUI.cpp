@@ -23,9 +23,19 @@
 #include <QPointF>
 #include "AddSurfaceDialog.h"
 
-SlabGUI::SlabGUI(QWidget *parent)
+SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
+                 DataBaseLinesManager *linesManager,
+                 DataBaseMaterialsManager *materialsManager,
+                 DataBaseSurfacesManager *surfacesManager,
+                 DataBaseStarter *starter,
+                 QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::SlabGUI)
+    , dataBasePointsManager(pointsManager)
+    , dataBaseLinesManager(linesManager)
+    , dataBaseMaterialsManager(materialsManager)
+    , dataBaseSurfacesManager(surfacesManager)
+    , dataBaseStarter(starter)
     , xCoordinate(0)
     , zCoordinate(0)
     , scaleFactor(0.1)
@@ -300,8 +310,26 @@ void SlabGUI::on_addSurfaceButton_clicked()
             int z1 = dialog->getZ1();
             int x2 = dialog->getX2();
             int z2 = dialog->getZ2();
+
+            // Calculate the other two corners
+            int x3 = x1; // Same x as the first corner, but z from the second corner
+            int z3 = z2;
+
+            int x4 = x2; // Same z as the first corner, but x from the second corner
+            int z4 = z1;
             // print coordinates
             cout << "x1: " << x1 << " z1: " << z1 << " x2: " << x2 << " z2: " << z2 << endl;
+            dataBasePointsManager->addObjectToDataBase(x1, z1);
+            dataBasePointsManager->addObjectToDataBase(x2, z2);
+            dataBasePointsManager->addObjectToDataBase(x3, z3);
+            dataBasePointsManager->addObjectToDataBase(x4, z4);
+
+            dataBaseLinesManager->addObjectToDataBase(1,3);
+            dataBaseLinesManager->addObjectToDataBase(3,2);
+            dataBaseLinesManager->addObjectToDataBase(2,4);
+            dataBaseLinesManager->addObjectToDataBase(4,1);
+
+            dataBaseSurfacesManager->addObjectToDataBase(1,2,3,4);
 
         } else if (selectedType == "Circle"){
             int diameter = dialog->getDiameter();

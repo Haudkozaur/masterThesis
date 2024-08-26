@@ -24,6 +24,16 @@ class SlabGUI : public QMainWindow
 {
     Q_OBJECT
 
+public:
+    explicit SlabGUI(DataBasePointsManager *pointsManager,
+                     DataBaseLinesManager *linesManager,
+                     DataBaseMaterialsManager *materialsManager,
+                     DataBaseSurfacesManager *surfacesManager,
+                     DataBaseStarter *starter,
+                     QWidget *parent = nullptr);
+    ~SlabGUI();
+
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
@@ -31,9 +41,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 
-public:
-    explicit SlabGUI(QWidget *parent = nullptr);
-    ~SlabGUI();
 
 
 private slots:
@@ -60,7 +67,13 @@ private:
     QString surfaceLayoutType;
     void drawAxes(QPainter &painter);
     void drawGrid(QPainter &painter, qreal leftX, qreal rightX, qreal topZ, qreal bottomZ, qreal step, qreal centerX, qreal centerZ);
-    // Add other drawing functions like drawLines, drawPoints, etc.
+
+    DataBasePointsManager *dataBasePointsManager;
+    DataBaseLinesManager *dataBaseLinesManager;
+    DataBaseMaterialsManager *dataBaseMaterialsManager;
+    DataBaseSurfacesManager *dataBaseSurfacesManager;
+    DataBaseStarter *dataBaseStarter;
+
 };
 
 #endif // SLABGUI_H

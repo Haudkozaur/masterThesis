@@ -13,5 +13,7 @@
 #include "databasesolverpreparer.h"
 #include "DataBaseMeshManager.h"
 #include "DataBaseResultsManager.h"
+#include "DataBaseSurfacesManager.h"
+#include "DataBaseCircularLinesManager.h"
 
 #endif // DATABASEMANAGERS_H
