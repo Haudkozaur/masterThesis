@@ -29,6 +29,7 @@ public:
                      DataBaseLinesManager *linesManager,
                      DataBaseMaterialsManager *materialsManager,
                      DataBaseSurfacesManager *surfacesManager,
+                     DataBaseCircularLinesManager *circularLinesManager,
                      DataBaseStarter *starter,
                      QWidget *parent = nullptr);
     ~SlabGUI();
@@ -50,6 +51,8 @@ private slots:
 
     void on_addSurfaceButton_clicked();
 
+    void on_refreshButton_clicked();
+
 private:
     Ui::SlabGUI *ui;
 
@@ -64,16 +67,80 @@ private:
     int xCoordinate;
     int zCoordinate;
 
+    struct Point
+    {
+        int x;
+        int z;
+        int id;
+    };
+    struct Line
+    {
+        int startX;
+        int startZ;
+        int endX;
+        int endZ;
+        int id;
+        int crossSectionId;
+        double length;
+    };
+    struct CircularLine
+    {
+        int id;
+        int centreX;
+        int centreZ;
+        int diameter;
+    };
+    struct Surface
+    {
+        int id;
+        std::string surfaceType;
+        int line1Id;
+        int line2Id;
+        int line3Id;
+        int line4Id;
+        int circularLineId;
+        int materialId;
+        int thickness;
+        bool isOpening;
+
+    };
+
+    vector<Point> points;
+    vector<Line> lines;
+    vector<CircularLine> circularLines;
+    vector<Surface> surfaces;
+
     QString surfaceLayoutType;
     void drawAxes(QPainter &painter);
     void drawGrid(QPainter &painter, qreal leftX, qreal rightX, qreal topZ, qreal bottomZ, qreal step, qreal centerX, qreal centerZ);
+    void paintSurfaces(QPainter &painter);
+    void paintCircularLines(QPainter &painter);
+    void paintPoints(QPainter &painter);
+    void paintLines(QPainter &painter);
+    void paintPointsLabels(QPainter &painter);
+    void paintLinesLabels(QPainter &painter);
+    void paintCircularLinesLabels(QPainter &painter);
+
 
     DataBasePointsManager *dataBasePointsManager;
     DataBaseLinesManager *dataBaseLinesManager;
     DataBaseMaterialsManager *dataBaseMaterialsManager;
     DataBaseSurfacesManager *dataBaseSurfacesManager;
+    DataBaseCircularLinesManager *dataBaseCircularLinesManager;
     DataBaseStarter *dataBaseStarter;
 
+
+    // Methods to check if opening is inside main surface
+    bool isRectangleWithin(const Surface &mainSurface, int x1, int z1, int x2, int z2);
+    bool isTriangleWithin(const Surface &mainSurface, int triX1, int triZ1, int triX2, int triZ2, int triX3, int triZ3);
+    bool isCircleWithin(const Surface &mainSurface, int centreX1, int centreZ1, int diameter);
+
+
+    // Utility methods
+    QPointF getCoordinatesFromLine(int lineId);
+    int getCircularLineRadius(int circularLineId);
+    bool isPointInTriangle(const QPointF &pt, const QPointF &v1, const QPointF &v2, const QPointF &v3);
+    float sign(const QPointF &p1, const QPointF &p2, const QPointF &p3);
 };
 
 #endif // SLABGUI_H

@@ -21,10 +21,12 @@ AddSurfaceDialog::AddSurfaceDialog(QWidget *parent)
     , triZ2LineEdit(nullptr)
     , triX3LineEdit(nullptr)
     , triZ3LineEdit(nullptr)
+    , isOpening(false)
 
 {
     ui->setupUi(this);
     connect(ui->comboBoxObjectType, &QComboBox::currentTextChanged, this, &AddSurfaceDialog::onObjectTypeChanged);
+
 
     // Connect dialog buttons
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -247,3 +249,14 @@ void AddSurfaceDialog::moveToBottomLeft() {
         move(x + 5, y);
     }
 }
+
+void AddSurfaceDialog::on_openingCheckBox_toggled(bool checked)
+{
+    isOpening = true;
+}
+
+bool AddSurfaceDialog::getIsOpening()
+{
+    return isOpening;
+}
+

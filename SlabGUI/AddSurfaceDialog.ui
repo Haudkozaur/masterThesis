@@ -43,6 +43,13 @@
      </widget>
     </item>
     <item>
+     <widget class="QCheckBox" name="openingCheckBox">
+      <property name="text">
+       <string>Opening</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <layout class="QVBoxLayout" name="mainLayout">
       <item>
        <widget class="QDialogButtonBox" name="buttonBox">

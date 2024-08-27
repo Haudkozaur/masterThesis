@@ -148,9 +148,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="addLineButton">
+      <widget class="QPushButton" name="addSupportConditionsButton">
        <property name="text">
-        <string>Add Line</string>
+        <string>Add Support Conditions</string>
        </property>
       </widget>
      </item>

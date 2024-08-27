@@ -24,9 +24,10 @@ public:
     void updateObjectInDataBase(TableType tableName, int id, const std::string& propertyName, const std::string& newValue);
     std::string selectObjectPropertyByID(TableType tableName, int id, const std::string& propertyName) const;
     int getNumberOfObjectsInTable(TableType tableName);
-    std::vector<std::vector<std::string>> executeQuery(const std::string& query);
+    std::vector<std::vector<std::string>> executeQuery(const std::string& query) const;
     bool checkIfDuplicate(TableType tableName, const std::tuple<int, int, int>& properties);
     bool checkIfNotNull(const std::string& value);
+    int getLastInsertedRowID();
 
 private:
     std::string dateBaseName;

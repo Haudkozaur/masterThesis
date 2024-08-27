@@ -33,10 +33,15 @@ public:
     int getTriX3() const;
     int getTriZ3() const;
 
+    bool getIsOpening();
+
     void moveToBottomLeft();
     void initializeWithType(const QString &selectedType);
     QString getSelectedObjectType() const;
 
+
+private slots:
+    void on_openingCheckBox_toggled(bool checked);
 
 private:
     Ui::AddSurfaceDialog *ui;
@@ -60,6 +65,8 @@ private:
     QLineEdit *triZ2LineEdit;
     QLineEdit *triX3LineEdit;
     QLineEdit *triZ3LineEdit;
+
+    bool isOpening;
 
     void onObjectTypeChanged(const QString &type);
     void loadLayoutFromFile(const QString &fileName);

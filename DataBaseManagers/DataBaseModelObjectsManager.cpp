@@ -48,6 +48,22 @@ bool DataBaseModelObjectsManager::validate(int objectID, const TableType& tableN
     sqlite3_finalize(stmt);
     return isObjectExist;
 }
+int DataBaseModelObjectsManager::getLastInsertedRowID() {
+    std::string idQuery = "SELECT last_insert_rowid()";
+    sqlite3_stmt* stmt;
+    int lastID = 0;
+
+    if (sqlite3_prepare_v2(DB, idQuery.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            lastID = sqlite3_column_int(stmt, 0);
+        }
+    } else {
+        std::printf("ERROR: while compiling sql: %s\n", sqlite3_errmsg(DB));
+    }
+
+    sqlite3_finalize(stmt);
+    return lastID;
+}
 
 bool DataBaseModelObjectsManager::checkIfDuplicate(TableType tableName, const std::tuple<int, int, int>& properties) {
     bool isDuplicate = false;
@@ -162,7 +178,7 @@ int DataBaseModelObjectsManager::getNumberOfObjectsInTable(TableType tableName) 
     return 0;
 }
 
-std::vector<std::vector<std::string>> DataBaseModelObjectsManager::executeQuery(const std::string& query) {
+std::vector<std::vector<std::string>> DataBaseModelObjectsManager::executeQuery(const std::string& query) const {
     sqlite3_stmt* stmt;
     std::vector<std::vector<std::string>> results;
 
@@ -183,5 +199,6 @@ std::vector<std::vector<std::string>> DataBaseModelObjectsManager::executeQuery(
     sqlite3_finalize(stmt);
     return results;
 }
+
 
 } // namespace DataBaseManagers
