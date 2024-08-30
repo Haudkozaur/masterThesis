@@ -24,6 +24,7 @@ void DataBaseLineLoadsManager::addObjectToDataBase(int lineID, double Fx, double
     cout << "\n";
 }
 
+
 void DataBaseLineLoadsManager::deleteObjectFromDataBase(int lineId)
 {
     string queryDeleteLineLoad = "DELETE FROM " + tableTypesMap.at(TableType::LINE_LOADS)

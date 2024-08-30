@@ -238,6 +238,37 @@ void DataBaseStarter::createResultsTable()
     sqlite3_close(DB);
 }
 
+void DataBaseStarter::createLineSupportsTable()
+{
+    sqlite3_open(dataBaseNameAsChar, &DB);
 
+    // Create the line supports table with columns for line_id and circular_line_id
+    std::string queryToCreateLineSupportsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::LINE_SUPPORTS) +
+                                                 "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                                 "line_id INTEGER, "
+                                                 "circular_line_id INTEGER, "
+                                                 "FOREIGN KEY (line_id) REFERENCES lines(id), "
+                                                 "FOREIGN KEY (circular_line_id) REFERENCES circular_lines(id))";
+
+    char* zErrMsg = nullptr;
+    int rc = sqlite3_exec(DB,
+                          queryToCreateLineSupportsTable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        if (zErrMsg) {
+            cout << "Error: " << zErrMsg << endl;
+            sqlite3_free(zErrMsg); // Free the error message memory
+        }
+    } else {
+        cout << "Line Supports Table created successfully" << endl;
+    }
+    cout << "\n";
+
+    sqlite3_close(DB);
+}
 
 }
+
+
+
+

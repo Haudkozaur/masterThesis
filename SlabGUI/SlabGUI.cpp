@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QTransform>
 #include <QUiLoader>
 #include <QWheelEvent>
@@ -22,12 +23,14 @@
 #include <QPainter>
 #include <QPointF>
 #include "AddSurfaceDialog.h"
+#include "AddSlabSupportsDialog.h"
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
                  DataBaseMaterialsManager *materialsManager,
                  DataBaseSurfacesManager *surfacesManager,
                  DataBaseCircularLinesManager *circularLinesManager,
+                 DataBaseLineSupportsManager *lineSupportsManager,
                  DataBaseStarter *starter,
                  QWidget *parent)
     : QMainWindow(parent)
@@ -37,6 +40,7 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
     , dataBaseMaterialsManager(materialsManager)
     , dataBaseSurfacesManager(surfacesManager)
     , dataBaseCircularLinesManager(circularLinesManager)
+    , dataBaseLineSupportsManager(lineSupportsManager)
     , dataBaseStarter(starter)
     , xCoordinate(0)
     , zCoordinate(0)
@@ -112,6 +116,7 @@ void SlabGUI::paintEvent(QPaintEvent *event)
     paintCircularLines(painter);
     paintCircularLinesLabels(painter);
     paintSurfaces(painter);
+    paintLineSupports(painter);
     // Uncomment and implement the drawing functions as needed
     // if (showLines){
     //     paintLines(painter);
@@ -222,65 +227,115 @@ void SlabGUI::drawGrid(QPainter &painter,
 
 void SlabGUI::paintSurfaces(QPainter &painter)
 {
+    // Create a path to represent the main surface
+    QPainterPath mainSurfacePath;
+
     for (const auto &surface : surfaces) {
-        const std::string &surfaceType = surface.surfaceType;
+        if (!surface.isOpening) {
+            const std::string &surfaceType = surface.surfaceType;
 
-        // Set the fill color based on the isOpening property
-        QColor fillColor;
-        if (surface.isOpening) {
-            fillColor = QColor(128, 128, 128, 50); // Very transparent grey for openings
-        } else {
-            fillColor = QColor(128, 128, 128, 128); // Semi-transparent grey for other surfaces
-        }
-        painter.setBrush(QBrush(fillColor));
+            if (surfaceType == "rectangle" || surfaceType == "triangle") {
+                QPolygonF polygon;
+                auto addPointToPolygon = [&](int lineId) {
+                    if (lineId == -1) return;
 
-        if (surfaceType == "rectangle" || surfaceType == "triangle") {
-            // Collect points for the polygon
-            QPolygonF polygon;
+                    const auto &lineEntry = std::find_if(lines.begin(), lines.end(),
+                                                         [&](const Line &line) { return line.id == lineId; });
 
-            // For each line in the surface, get the corresponding points
-            auto addPointToPolygon = [&](int lineId) {
-                if (lineId == -1) return; // Skip if line ID is invalid
+                    if (lineEntry != lines.end()) {
+                        polygon.append(QPointF(lineEntry->startX, -lineEntry->startZ));
+                        polygon.append(QPointF(lineEntry->endX, -lineEntry->endZ));
+                    }
+                };
 
-                const auto &lineEntry = std::find_if(lines.begin(), lines.end(),
-                                                     [&](const Line &line) { return line.id == lineId; });
-
-                if (lineEntry != lines.end()) {
-                    polygon.append(QPointF(lineEntry->startX, -lineEntry->startZ));
-                    polygon.append(QPointF(lineEntry->endX, -lineEntry->endZ));
+                addPointToPolygon(surface.line1Id);
+                addPointToPolygon(surface.line2Id);
+                addPointToPolygon(surface.line3Id);
+                if (surfaceType == "rectangle") {
+                    addPointToPolygon(surface.line4Id);
                 }
-            };
 
-            // Add points based on the surface lines
-            addPointToPolygon(surface.line1Id);
-            addPointToPolygon(surface.line2Id);
-            addPointToPolygon(surface.line3Id);
-            if (surfaceType == "rectangle") {
-                addPointToPolygon(surface.line4Id); // Rectangles have 4 lines
-            }
+                if (polygon.size() >= 3) {
+                    mainSurfacePath.addPolygon(polygon);
+                }
+            } else if (surfaceType == "circle") {
+                if (surface.circularLineId != -1) {
+                    const auto &circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
+                                                                 [&](const CircularLine &circularLine) { return circularLine.id == surface.circularLineId; });
 
-            // Draw the polygon if it's valid
-            if (polygon.size() >= 3) {
-                painter.drawPolygon(polygon);
-            }
-        } else if (surfaceType == "circle") {
-            // Draw an ellipse for circular surfaces
-            if (surface.circularLineId != -1) {
-                const auto &circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
-                                                             [&](const CircularLine &circularLine) { return circularLine.id == surface.circularLineId; });
-
-                if (circularLineEntry != circularLines.end()) {
-                    QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
-                    QRectF boundingRect(center.x() - circularLineEntry->diameter / 2,
-                                        center.y() - circularLineEntry->diameter / 2,
-                                        circularLineEntry->diameter,
-                                        circularLineEntry->diameter);
-                    painter.drawEllipse(boundingRect);
+                    if (circularLineEntry != circularLines.end()) {
+                        QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
+                        QRectF boundingRect(center.x() - circularLineEntry->diameter / 2,
+                                            center.y() - circularLineEntry->diameter / 2,
+                                            circularLineEntry->diameter,
+                                            circularLineEntry->diameter);
+                        mainSurfacePath.addEllipse(boundingRect);
+                    }
                 }
             }
         }
     }
+
+    // Create a path to represent the openings
+    QPainterPath openingsPath;
+
+    for (const auto &surface : surfaces) {
+        if (surface.isOpening) {
+            const std::string &surfaceType = surface.surfaceType;
+
+            if (surfaceType == "rectangle" || surfaceType == "triangle") {
+                QPolygonF polygon;
+                auto addPointToPolygon = [&](int lineId) {
+                    if (lineId == -1) return;
+
+                    const auto &lineEntry = std::find_if(lines.begin(), lines.end(),
+                                                         [&](const Line &line) { return line.id == lineId; });
+
+                    if (lineEntry != lines.end()) {
+                        polygon.append(QPointF(lineEntry->startX, -lineEntry->startZ));
+                        polygon.append(QPointF(lineEntry->endX, -lineEntry->endZ));
+                    }
+                };
+
+                addPointToPolygon(surface.line1Id);
+                addPointToPolygon(surface.line2Id);
+                addPointToPolygon(surface.line3Id);
+                if (surfaceType == "rectangle") {
+                    addPointToPolygon(surface.line4Id);
+                }
+
+                if (polygon.size() >= 3) {
+                    openingsPath.addPolygon(polygon);
+                }
+            } else if (surfaceType == "circle") {
+                if (surface.circularLineId != -1) {
+                    const auto &circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
+                                                                 [&](const CircularLine &circularLine) { return circularLine.id == surface.circularLineId; });
+
+                    if (circularLineEntry != circularLines.end()) {
+                        QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
+                        QRectF boundingRect(center.x() - circularLineEntry->diameter / 2,
+                                            center.y() - circularLineEntry->diameter / 2,
+                                            circularLineEntry->diameter,
+                                            circularLineEntry->diameter);
+                        openingsPath.addEllipse(boundingRect);
+                    }
+                }
+            }
+        }
+    }
+
+    // Set the painter's clip path to exclude the openings from being filled
+    QPainterPath combinedPath = mainSurfacePath.subtracted(openingsPath);
+    painter.setClipPath(combinedPath);
+
+    // Fill the main surface without the openings
+    QColor fillColor(128, 128, 128, 128); // Semi-transparent grey for main surfaces
+    painter.fillPath(mainSurfacePath, fillColor);
 }
+
+
+
 
 
 void SlabGUI::loadLayoutFromFile(const QString &fileName)
@@ -371,7 +426,7 @@ void SlabGUI::on_modelPhaseComboBox_currentIndexChanged(int index)
 
 void SlabGUI::on_addSurfaceButton_clicked()
 {
-    cout << "Surface button clicked" << endl;
+    std::cout << "Surface button clicked" << std::endl;
     AddSurfaceDialog *dialog = new AddSurfaceDialog(this);
     dialog->moveToBottomLeft();
     dialog->initializeWithType(surfaceLayoutType);
@@ -380,27 +435,20 @@ void SlabGUI::on_addSurfaceButton_clicked()
     connect(dialog, &AddSurfaceDialog::accepted, this, [this, dialog]() {
         QString selectedType = dialog->getSelectedObjectType();
         bool isOpening = dialog->getIsOpening();
-        cout << "Selected type: " << selectedType.toStdString() << ", isOpening: " << isOpening << endl;
+        std::cout << "Selected type: " << selectedType.toStdString() << ", isOpening: " << isOpening << std::endl;
 
-        // Check if a non-opening surface already exists
         if (!isOpening && dataBaseSurfacesManager->hasNonOpeningSurface()) {
-            QMessageBox::warning(this,
-                                 "Invalid Operation",
-                                 "A main surface already exists. You cannot add another one.");
-            cout << "A main surface already exists. Aborting." << endl;
+            QMessageBox::warning(this, "Invalid Operation", "A main surface already exists. You cannot add another one.");
+            std::cout << "A main surface already exists. Aborting." << std::endl;
             return;
         }
 
-        // Check if trying to add an opening surface without a non-opening surface
         if (isOpening && !dataBaseSurfacesManager->hasNonOpeningSurface()) {
-            QMessageBox::warning(this,
-                                 "Invalid Operation",
-                                 "You cannot add an opening without a main surface defined.");
-            cout << "No main surface exists. Aborting." << endl;
+            QMessageBox::warning(this, "Invalid Operation", "You cannot add an opening without a main surface defined.");
+            std::cout << "No main surface exists. Aborting." << std::endl;
             return;
         }
 
-        // Fetch variables from dialog early
         int x1 = dialog->getX1();
         int z1 = dialog->getZ1();
         int x2 = dialog->getX2();
@@ -419,10 +467,8 @@ void SlabGUI::on_addSurfaceButton_clicked()
         int centreZ1 = dialog->getCentreZ1();
 
         if (isOpening) {
-            // Get the main surface as a tuple
             auto mainSurfaceTuple = dataBaseSurfacesManager->getMainSurface();
 
-            // Convert tuple to Surface struct
             Surface mainSurface;
             mainSurface.surfaceType = std::get<0>(mainSurfaceTuple);
             mainSurface.line1Id = std::get<1>(mainSurfaceTuple);
@@ -434,39 +480,35 @@ void SlabGUI::on_addSurfaceButton_clicked()
             mainSurface.thickness = std::get<7>(mainSurfaceTuple);
             mainSurface.isOpening = std::get<8>(mainSurfaceTuple);
 
-            cout << "Main surface type: " << mainSurface.surfaceType << endl;
+            std::cout << "Main surface type: " << mainSurface.surfaceType << std::endl;
 
-            // Check if the new surface is within the main surface
             bool isWithinMainSurface = false;
 
-            if (mainSurface.surfaceType == "rectangle") {
+            if (selectedType == "Rectangle") {
                 x3 = x1;
                 z3 = z2;
                 x4 = x2;
                 z4 = z1;
-
-                cout << "New rectangle coordinates: (" << x1 << ", " << z1 << "), (" << x2 << ", " << z2 << ")" << endl;
+                std::cout << "New rectangle coordinates: (" << x1 << ", " << z1 << "), (" << x2 << ", " << z2 << ")" << std::endl;
                 isWithinMainSurface = isRectangleWithin(mainSurface, x1, z1, x2, z2);
-            } else if (mainSurface.surfaceType == "triangle") {
-                cout << "New triangle coordinates: (" << triX1 << ", " << triZ1 << "), (" << triX2 << ", " << triZ2 << "), (" << triX3 << ", " << triZ3 << ")" << endl;
+            } else if (selectedType == "Triangle") {
+                std::cout << "New triangle coordinates: (" << triX1 << ", " << triZ1 << "), (" << triX2 << ", " << triZ2 << "), (" << triX3 << ", " << triZ3 << ")" << std::endl;
                 isWithinMainSurface = isTriangleWithin(mainSurface, triX1, triZ1, triX2, triZ2, triX3, triZ3);
-            } else if (mainSurface.surfaceType == "circle") {
-                cout << "New circle: center (" << centreX1 << ", " << centreZ1 << "), diameter: " << diameter << endl;
+            } else if (selectedType == "Circle") {
+                std::cout << "New circle: center (" << centreX1 << ", " << centreZ1 << "), diameter: " << diameter << std::endl;
                 isWithinMainSurface = isCircleWithin(mainSurface, centreX1, centreZ1, diameter);
             }
 
-            cout << "Is within main surface: " << (isWithinMainSurface ? "Yes" : "No") << endl;
+            std::cout << "Is within main surface: " << (isWithinMainSurface ? "Yes" : "No") << std::endl;
 
             if (!isWithinMainSurface) {
-                QMessageBox::warning(this,
-                                     "Invalid Operation",
-                                     "The opening must be within the area of the main surface.");
+                QMessageBox::warning(this, "Invalid Operation", "The opening must be within the area of the main surface.");
                 return;
             }
         }
 
         if (selectedType == "Rectangle") {
-            cout << "Adding a rectangle." << endl;
+            std::cout << "Adding a rectangle." << std::endl;
             x3 = x1;
             z3 = z2;
             x4 = x2;
@@ -474,87 +516,89 @@ void SlabGUI::on_addSurfaceButton_clicked()
 
             dataBasePointsManager->addObjectToDataBase(x1, z1);
             int id1 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 1 ID: " << id1 << endl;
+            std::cout << "Point 1 ID: " << id1 << std::endl;
 
             dataBasePointsManager->addObjectToDataBase(x2, z2);
             int id2 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 2 ID: " << id2 << endl;
+            std::cout << "Point 2 ID: " << id2 << std::endl;
 
             dataBasePointsManager->addObjectToDataBase(x3, z3);
             int id3 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 3 ID: " << id3 << endl;
+            std::cout << "Point 3 ID: " << id3 << std::endl;
 
             dataBasePointsManager->addObjectToDataBase(x4, z4);
             int id4 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 4 ID: " << id4 << endl;
+            std::cout << "Point 4 ID: " << id4 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id1, id3);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id1, id3);
             int line1 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 1 ID: " << line1 << endl;
+            std::cout << "Line 1 ID: " << line1 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id3, id2);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id3, id2);
             int line2 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 2 ID: " << line2 << endl;
+            std::cout << "Line 2 ID: " << line2 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id2, id4);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id2, id4);
             int line3 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 3 ID: " << line3 << endl;
+            std::cout << "Line 3 ID: " << line3 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id4, id1);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id4, id1);
             int line4 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 4 ID: " << line4 << endl;
+            std::cout << "Line 4 ID: " << line4 << std::endl;
 
             dataBaseSurfacesManager->addObjectToDataBase(line1, line2, line3, line4, 1, 100, isOpening);
-            cout << "Rectangle surface added." << endl;
+            std::cout << "Rectangle surface added." << std::endl;
 
         } else if (selectedType == "Circle") {
-            cout << "Adding a circle." << endl;
+            std::cout << "Adding a circle." << std::endl;
 
             dataBaseCircularLinesManager->addObjectToDataBase(centreX1, centreZ1, diameter);
             int circularLineId = dataBaseCircularLinesManager->getLastInsertedRowID();
-            cout << "Circular line ID: " << circularLineId << endl;
+            std::cout << "Circular line ID: " << circularLineId << std::endl;
 
             dataBaseSurfacesManager->addObjectToDataBase(circularLineId, -1, 100, isOpening);
-            cout << "Circular surface added." << endl;
+            std::cout << "Circular surface added." << std::endl;
 
         } else if (selectedType == "Triangle") {
-            cout << "Adding a triangle." << endl;
+            std::cout << "Adding a triangle." << std::endl;
 
             dataBasePointsManager->addObjectToDataBase(triX1, triZ1);
             int id1 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 1 ID: " << id1 << endl;
+            std::cout << "Point 1 ID: " << id1 << std::endl;
 
             dataBasePointsManager->addObjectToDataBase(triX2, triZ2);
             int id2 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 2 ID: " << id2 << endl;
+            std::cout << "Point 2 ID: " << id2 << std::endl;
 
             dataBasePointsManager->addObjectToDataBase(triX3, triZ3);
             int id3 = dataBasePointsManager->getLastInsertedRowID();
-            cout << "Point 3 ID: " << id3 << endl;
+            std::cout << "Point 3 ID: " << id3 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id1, id2);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id1, id2);
             int line1 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 1 ID: " << line1 << endl;
+            std::cout << "Line 1 ID: " << line1 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id2, id3);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id2, id3);
             int line2 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 2 ID: " << line2 << endl;
+            std::cout << "Line 2 ID: " << line2 << std::endl;
 
-            dataBaseLinesManager->addObjectToDataBase(id3, id1);
+            dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id3, id1);
             int line3 = dataBaseLinesManager->getLastInsertedRowID();
-            cout << "Line 3 ID: " << line3 << endl;
+            std::cout << "Line 3 ID: " << line3 << std::endl;
 
             dataBaseSurfacesManager->addObjectToDataBase(line1, line2, line3, -1, 100, isOpening);
-            cout << "Triangle surface added." << endl;
+            std::cout << "Triangle surface added." << std::endl;
         }
 
-        cout << "Refreshing surfaces..." << endl;
+        std::cout << "Refreshing surfaces..." << std::endl;
         SlabGUI::on_addSurfaceButton_clicked();  // Consider revising this recursive call
+        SlabGUI::on_refreshButton_clicked();
     });
 
     connect(dialog, &AddSurfaceDialog::rejected, dialog, &dialog->deleteLater);
     dialog->show();
 }
+
 
 
 
@@ -590,14 +634,25 @@ bool SlabGUI::isRectangleWithin(const Surface &mainSurface, int x1, int z1, int 
 
 QPointF SlabGUI::getCoordinatesFromLine(int lineId) {
     // Fetch the start point ID of the line
-    int startPointId = std::stoi(dataBaseLinesManager->selectObjectPropertyByID(TableType::LINES, lineId, "start_point"));
+    std::string startPointIdStr = dataBaseLinesManager->selectObjectPropertyByID(TableType::LINES, lineId, "start_point");
 
-    // Fetch the x and z coordinates from the points table
-    float xCoord = std::stof(dataBasePointsManager->selectObjectPropertyByID(TableType::POINTS, startPointId, "x_cord"));
-    float zCoord = std::stof(dataBasePointsManager->selectObjectPropertyByID(TableType::POINTS, startPointId, "z_cord"));
+    try {
+        int startPointId = std::stoi(startPointIdStr);
+        // Fetch the x and z coordinates from the points table
+        std::string xCoordStr = dataBasePointsManager->selectObjectPropertyByID(TableType::POINTS, startPointId, "x_cord");
+        std::string zCoordStr = dataBasePointsManager->selectObjectPropertyByID(TableType::POINTS, startPointId, "z_cord");
 
-    return QPointF(xCoord, -zCoord);  // Convert to QPointF with correct sign for z
+        float xCoord = std::stof(xCoordStr);
+        float zCoord = std::stof(zCoordStr);
+
+        return QPointF(xCoord, -zCoord);  // Convert to QPointF with correct sign for z
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: Exception in getCoordinatesFromLine: " << e.what() << std::endl;
+        return QPointF(-1, -1); // Return a default value or handle the error as needed
+    }
 }
+
 bool SlabGUI::isTriangleWithin(const Surface &mainSurface, int triX1, int triZ1, int triX2, int triZ2, int triX3, int triZ3)
 {
     // Pobieranie punktów głównego trójkąta z bazy danych
@@ -623,27 +678,43 @@ bool SlabGUI::isTriangleWithin(const Surface &mainSurface, int triX1, int triZ1,
 
 bool SlabGUI::isCircleWithin(const Surface &mainSurface, int centreX1, int centreZ1, int diameter)
 {
-    // Pobranie współrzędnych środka i promienia głównego okręgu z bazy danych
+    // If the main surface is not circular, handle it differently
+    if (mainSurface.surfaceType != "circle") {
+        // Treat the main surface as a rectangle and check if the circle is within it
+        QPointF mainTopLeft = getCoordinatesFromLine(mainSurface.line1Id);
+        QPointF mainBottomRight = getCoordinatesFromLine(mainSurface.line3Id);
+
+        // Ensure correct orientation
+        mainTopLeft.setY(-mainTopLeft.y());
+        mainBottomRight.setY(-mainBottomRight.y());
+
+        // Coordinates and radius of the new circle
+        QPointF newCenter(centreX1, centreZ1);
+        int newRadius = diameter / 2;
+
+        // Check if the circle is within the rectangle bounds
+        bool withinX = (newCenter.x() - newRadius >= mainTopLeft.x()) &&
+                       (newCenter.x() + newRadius <= mainBottomRight.x());
+        bool withinY = (newCenter.y() - newRadius >= mainTopLeft.y()) &&
+                       (newCenter.y() + newRadius <= mainBottomRight.y());
+
+        return withinX && withinY;
+    }
+
+    // If the main surface is circular, handle the circle-within-circle check
     QPointF mainCenter = getCoordinatesFromLine(mainSurface.circularLineId);
     int mainRadius = getCircularLineRadius(mainSurface.circularLineId);
 
-    // Dostosowanie współrzędnych osi Y (z) do poprawnego układu współrzędnych
     mainCenter.setY(-mainCenter.y());
 
-    // Współrzędne środka i promień nowego okręgu
     QPointF newCenter(centreX1, centreZ1);
     int newRadius = diameter / 2;
 
-    // Debugowanie wartości
-    cout << "Main Circle Center: (" << mainCenter.x() << ", " << mainCenter.y() << "), Radius: " << mainRadius << endl;
-    cout << "New Circle Center: (" << newCenter.x() << ", " << newCenter.y() << "), Radius: " << newRadius << endl;
-
-    // Sprawdzenie, czy nowy okrąg mieści się wewnątrz głównego okręgu
     float distance = std::sqrt(std::pow(newCenter.x() - mainCenter.x(), 2) + std::pow(newCenter.y() - mainCenter.y(), 2));
-    cout << "Distance between centers: " << distance << endl;
 
     return (distance + newRadius) <= mainRadius;
 }
+
 
 
 bool SlabGUI::isPointInTriangle(const QPointF &pt, const QPointF &v1, const QPointF &v2, const QPointF &v3)
@@ -670,9 +741,20 @@ float SlabGUI::sign(const QPointF &p1, const QPointF &p2, const QPointF &p3)
 
 int SlabGUI::getCircularLineRadius(int circularLineId) {
     // Fetch the diameter from the circular_lines table
-    int diameter = std::stoi(dataBaseCircularLinesManager->selectObjectPropertyByID(TableType::CIRCULAR_LINES, circularLineId, "diameter"));
-    return diameter / 2;
+    std::string diameterStr = dataBaseCircularLinesManager->selectObjectPropertyByID(TableType::CIRCULAR_LINES, circularLineId, "diameter");
+
+    try {
+        int diameter = std::stoi(diameterStr);
+        return diameter / 2;
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Error: Invalid argument in getCircularLineRadius, diameterStr: " << diameterStr << std::endl;
+        return -1; // Return a default value or handle the error as needed
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Error: Out of range in getCircularLineRadius, diameterStr: " << diameterStr << std::endl;
+        return -1; // Return a default value or handle the error as needed
+    }
 }
+
 
 void SlabGUI::paintPoints(QPainter &painter)
 {
@@ -785,6 +867,84 @@ void SlabGUI::paintCircularLinesLabels(QPainter &painter)
     }
 }
 
+void SlabGUI::paintLineSupports(QPainter &painter)
+{
+    QPen supportPen(Qt::magenta, 8); // Set the pen to magenta color and 8 units thick
+    painter.setPen(supportPen);
+
+    qDebug() << "Starting to paint line supports. Number of supports:" << lineSupports.size();
+
+    for (const auto &support : lineSupports) {
+        if (support.lineId != -1) { // This is a straight line support
+            qDebug() << "Processing line support with lineId:" << support.lineId;
+
+            auto lineEntry = std::find_if(lines.begin(), lines.end(),
+                                          [&](const Line &line) { return line.id == support.lineId; });
+            if (lineEntry != lines.end()) {
+                qDebug() << "Found line with ID:" << lineEntry->id;
+
+                QPointF startPoint(lineEntry->startX, -lineEntry->startZ);
+                QPointF endPoint(lineEntry->endX, -lineEntry->endZ);
+
+                QLineF line(startPoint, endPoint);
+                double lineLength = line.length();
+                QPointF direction = (endPoint - startPoint) / lineLength;
+
+                // Normalize the perpendicular direction vector manually
+                QPointF perpDirection(-direction.y() + direction.x(), direction.x() + direction.y());
+                double perpLength = std::sqrt(perpDirection.x() * perpDirection.x() + perpDirection.y() * perpDirection.y());
+                perpDirection /= perpLength;
+                perpDirection *= 160.0;  // Set the support line length to 160 units
+
+                qDebug() << "Line start:" << startPoint << " end:" << endPoint << " length:" << lineLength;
+
+                for (double i = 0; i < lineLength; i += 50.0) {
+                    QPointF position = startPoint + i * direction;
+                    QLineF supportLine(position - perpDirection, position + perpDirection);
+                    painter.drawLine(supportLine);
+                    qDebug() << "Drew support line at position:" << position;
+                }
+            } else {
+                qDebug() << "Line with ID" << support.lineId << "not found in lines vector.";
+            }
+        } else if (support.circularLineId != -1) { // This is a circular line support
+            qDebug() << "Processing circular line support with circularLineId:" << support.circularLineId;
+
+            auto circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
+                                                  [&](const CircularLine &circularLine) { return circularLine.id == support.circularLineId; });
+            if (circularLineEntry != circularLines.end()) {
+                qDebug() << "Found circular line with ID:" << circularLineEntry->id;
+
+                QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
+                double radius = circularLineEntry->diameter / 2.0;
+                double circumference = 2.0 * M_PI * radius;
+
+                int numberOfSupports = static_cast<int>(circumference / 50.0);
+                qDebug() << "Circular line center:" << center << " radius:" << radius << " circumference:" << circumference;
+
+                for (int i = 0; i < numberOfSupports; ++i) {
+                    double angle = 2.0 * M_PI * i / numberOfSupports;
+                    QPointF supportPosition = center + QPointF(std::cos(angle) * radius, std::sin(angle) * radius);
+
+                    QPointF tangentDirection(-std::sin(angle) + std::cos(angle), std::cos(angle) + std::sin(angle));
+                    double tangentLength = std::sqrt(tangentDirection.x() * tangentDirection.x() + tangentDirection.y() * tangentDirection.y());
+                    tangentDirection /= tangentLength;
+                    tangentDirection *= 160.0;  // Set the support line length to 160 units
+
+                    QLineF supportLine(supportPosition - tangentDirection, supportPosition + tangentDirection);
+                    painter.drawLine(supportLine);
+                    qDebug() << "Drew support line at angle:" << angle << " position:" << supportPosition;
+                }
+            } else {
+                qDebug() << "Circular line with ID" << support.circularLineId << "not found in circularLines vector.";
+            }
+        } else {
+            qDebug() << "Support has neither a valid lineId nor a circularLineId.";
+        }
+    }
+
+    qDebug() << "Finished painting line supports.";
+}
 
 void SlabGUI::on_refreshButton_clicked()
 {
@@ -793,12 +953,14 @@ void SlabGUI::on_refreshButton_clicked()
     dataBaseLinesManager->iterateOverTable();
     dataBaseCircularLinesManager->iterateOverTable();
     dataBaseSurfacesManager->iterateOverTable();
+    dataBaseLineSupportsManager->iterateOverTable(); // New line supports fetch
 
     // Clear existing vectors
     points.clear();
     lines.clear();
     circularLines.clear();
     surfaces.clear();
+    lineSupports.clear(); // Clear the lineSupports vector
 
     qDebug() << "Cleared vectors, starting to populate them";
 
@@ -863,7 +1025,77 @@ void SlabGUI::on_refreshButton_clicked()
         surfaces.push_back({id, surfaceType, line1Id, line2Id, line3Id, line4Id, circularLineId, materialId, thickness, isOpening});
     }
     qDebug() << "Surfaces populated, size:" << surfaces.size();
+
+    // Populate lineSupports vector
+    for (const auto &supportEntry : dataBaseLineSupportsManager->getLineSupportsMap()) {
+        int supportId = supportEntry.first;
+        int lineId = std::get<0>(supportEntry.second);
+        int circularLineId = std::get<1>(supportEntry.second);
+
+        lineSupports.push_back({supportId, lineId, circularLineId});
+    }
+    qDebug() << "Line Supports populated, size:" << lineSupports.size();
+
     update();
 }
 
+
+
+void SlabGUI::on_clearButton_clicked()
+{
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this,
+                                      "Clear Data",
+                                      "This operation will lead to losing all data about the "
+                                      "structure. Are you sure you want to proceed?",
+                                      QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            // Clear all data from the database managers
+            dataBasePointsManager->dropTable(TableType::POINTS);
+            dataBaseLinesManager->dropTable(TableType::LINES);
+            dataBaseSurfacesManager->dropTable(TableType::SURFACES);
+            dataBaseCircularLinesManager->dropTable(TableType::CIRCULAR_LINES);
+            // dataBaseMaterialsManager->dropTable(TableType::MATERIALS);
+
+
+
+            dataBaseStarter->createPointsTable();
+            dataBaseStarter->createLinesTable();
+            dataBaseStarter->createSurfacesTable();
+            dataBaseStarter->createCircularLinesTable();
+
+
+            // Refresh the UI to reflect changes
+
+            on_refreshButton_clicked();
+
+            qDebug() << "Data has been cleared.";
+        } else {
+            qDebug() << "Clear operation canceled.";
+        }
+    }
+}
+
+
+void SlabGUI::on_addSupportConditionsButton_clicked()
+{
+    {
+        cout << "Add support conditions button clicked" << endl;
+        AddSlabSupportsDialog *dialog = new AddSlabSupportsDialog(this);
+        dialog->moveToBottomLeft();
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(dialog, &AddSlabSupportsDialog::accepted, this, [this, dialog]() {
+            int lineID = dialog->getLineID();
+            dataBaseLineSupportsManager->addObjectToDataBase(lineID);
+
+            SlabGUI::on_refreshButton_clicked();
+            SlabGUI::on_addSupportConditionsButton_clicked();
+
+        });
+
+        connect(dialog, &AddSlabSupportsDialog::rejected, dialog, &AddSlabSupportsDialog::deleteLater);
+        dialog->show();
+    }
+}
 

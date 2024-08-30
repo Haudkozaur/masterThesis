@@ -82,6 +82,9 @@ bool DataBaseModelObjectsManager::checkIfDuplicate(TableType tableName, const st
     } else if (tableName == TableType::SUPPORTS) {
         queryCheckIfDuplicate = "SELECT * FROM " + tableTypesMap.at(tableName)
                                 + " WHERE point_id = " + std::to_string(std::get<0>(properties));
+    } else if (tableName == TableType::LINE_SUPPORTS) {
+        queryCheckIfDuplicate = "SELECT * FROM " + tableTypesMap.at(tableName)
+                                + " WHERE line_id = " + std::to_string(std::get<0>(properties));
     }
     // sqlite3_open(dateBaseNameAsChar, &DB);
     // cout << "db opened" << endl;

@@ -44,6 +44,58 @@ void DataBaseLinesManager::addObjectToDataBase(int startPointID, int endPointID)
     cout << "\n";
 }
 
+void DataBaseLinesManager::addObjectToDataBaseConsideringCircularLines(int startPointID, int endPointID)
+{
+    // Check if there is no duplicate line in the database
+    if (checkIfDuplicate(TableType::LINES, std::make_tuple(startPointID, endPointID, 0)) ||
+        checkIfDuplicate(TableType::LINES, std::make_tuple(endPointID, startPointID, 0))) {
+        std::cout << "Error: Line already exists in DB" << std::endl;
+        return;
+    }
+
+    // Get the last ID from the circular lines table
+    std::string querySelectLastCircularLineId = "SELECT MAX(id) FROM " + tableTypesMap.at(TableType::CIRCULAR_LINES) + ";";
+    std::vector<std::vector<std::string>> results = executeQuery(querySelectLastCircularLineId);
+
+    int lastCircularLineId = 0;
+    if (!results.empty() && !results[0].empty()) {
+        lastCircularLineId = results[0][0].empty() ? 0 : std::stoi(results[0][0]);
+    }
+
+    // Get the last ID from the lines table
+    std::string querySelectLastLineId = "SELECT MAX(id) FROM " + tableTypesMap.at(TableType::LINES) + ";";
+    results = executeQuery(querySelectLastLineId);
+
+    int lastLineId = 0;
+    if (!results.empty() && !results[0].empty()) {
+        lastLineId = results[0][0].empty() ? 0 : std::stoi(results[0][0]);
+    }
+
+    // Determine the next ID to be used
+    int nextId = std::max(lastCircularLineId, lastLineId) + 1;
+
+    // Construct the query to insert the new line with the determined ID
+    std::string queryInsertLine = "INSERT INTO lines (id, start_point, end_point, cross_section_id, "
+                                  "length, inclination_angle) VALUES (" +
+                                  std::to_string(nextId) + ", " +
+                                  std::to_string(startPointID) + ", " + std::to_string(endPointID) + ", " +
+                                  std::to_string(defaultCrossSectionID) + ", " +
+                                  toStringWithPrecision(getLineLengthFromPoints(startPointID, endPointID)) + ", " +
+                                  toStringWithPrecision(getLineInclinationAngleFromPoints(startPointID, endPointID)) + ")";
+
+    if (validate(startPointID, TableType::POINTS) && validate(endPointID, TableType::POINTS)) {
+        std::cout << "Start and End points exist" << std::endl;
+
+        executeAndCheckIfSQLOk(queryInsertLine, TableType::LINES);
+
+    } else {
+        std::cout << "Error: One of the points doesn't exist in DB" << std::endl;
+    }
+
+    std::cout << "\n";
+}
+
+
 void DataBaseLinesManager::deleteObjectFromDataBase(int id)
 {
     string queryDeleteLine = "DELETE FROM lines WHERE id = " + to_string(id);

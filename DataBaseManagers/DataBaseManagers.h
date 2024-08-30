@@ -15,5 +15,6 @@
 #include "DataBaseResultsManager.h"
 #include "DataBaseSurfacesManager.h"
 #include "DataBaseCircularLinesManager.h"
+#include "DataBaseLineSupportsManager.h"
 
 #endif // DATABASEMANAGERS_H

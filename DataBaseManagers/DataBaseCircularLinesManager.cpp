@@ -7,7 +7,20 @@ DataBaseCircularLinesManager::DataBaseCircularLinesManager(const string &dateBas
 
 void DataBaseCircularLinesManager::addObjectToDataBase(int centreX, int centreZ, int diameter)
 {
-    std::string queryInsertCircularLine = "INSERT INTO " +tableTypesMap.at(TableType::CIRCULAR_LINES)+ " (centre_x, centre_z, diameter) VALUES ('" + std::to_string(centreX) + "', '" + std::to_string(centreZ) + "', '" + std::to_string(diameter) + "');";
+    //  get the last ID from the lines table
+    std::string querySelectLastLineId = "SELECT MAX(id) FROM " + tableTypesMap.at(TableType::LINES) + ";";
+    std::vector<std::vector<std::string>> results = executeQuery(querySelectLastLineId);
+
+    int lastLinesId = 0;
+    if (!results.empty() && !results[0].empty()) {
+        lastLinesId = results[0][0].empty() ? 0 : std::stoi(results[0][0]);
+    }
+
+    // Now, insert the circular line with the ID as lastLinesId + 1
+    int newCircularLineId = lastLinesId + 1;
+    std::string queryInsertCircularLine = "INSERT INTO " + tableTypesMap.at(TableType::CIRCULAR_LINES) +
+                                          " (id, centre_x, centre_z, diameter) VALUES ('" + std::to_string(newCircularLineId) + "', '" +
+                                          std::to_string(centreX) + "', '" + std::to_string(centreZ) + "', '" + std::to_string(diameter) + "');";
     executeAndCheckIfSQLOk(queryInsertCircularLine, TableType::CIRCULAR_LINES);
 }
 

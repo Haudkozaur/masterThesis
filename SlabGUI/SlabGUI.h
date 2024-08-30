@@ -30,6 +30,7 @@ public:
                      DataBaseMaterialsManager *materialsManager,
                      DataBaseSurfacesManager *surfacesManager,
                      DataBaseCircularLinesManager *circularLinesManager,
+                     DataBaseLineSupportsManager *lineSupportsManager,
                      DataBaseStarter *starter,
                      QWidget *parent = nullptr);
     ~SlabGUI();
@@ -52,6 +53,10 @@ private slots:
     void on_addSurfaceButton_clicked();
 
     void on_refreshButton_clicked();
+
+    void on_clearButton_clicked();
+
+    void on_addSupportConditionsButton_clicked();
 
 private:
     Ui::SlabGUI *ui;
@@ -104,11 +109,18 @@ private:
         bool isOpening;
 
     };
+    struct LineSupport
+    {
+        int id;
+        int lineId;
+        int circularLineId;
+    };
 
     vector<Point> points;
     vector<Line> lines;
     vector<CircularLine> circularLines;
     vector<Surface> surfaces;
+    vector<LineSupport> lineSupports;
 
     QString surfaceLayoutType;
     void drawAxes(QPainter &painter);
@@ -120,6 +132,7 @@ private:
     void paintPointsLabels(QPainter &painter);
     void paintLinesLabels(QPainter &painter);
     void paintCircularLinesLabels(QPainter &painter);
+    void paintLineSupports(QPainter &painter);
 
 
     DataBasePointsManager *dataBasePointsManager;
@@ -127,6 +140,7 @@ private:
     DataBaseMaterialsManager *dataBaseMaterialsManager;
     DataBaseSurfacesManager *dataBaseSurfacesManager;
     DataBaseCircularLinesManager *dataBaseCircularLinesManager;
+    DataBaseLineSupportsManager *dataBaseLineSupportsManager;
     DataBaseStarter *dataBaseStarter;
 
 

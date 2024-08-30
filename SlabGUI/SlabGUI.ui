@@ -54,7 +54,7 @@
       <widget class="QComboBox" name="modelPhaseComboBox">
        <item>
         <property name="text">
-         <string>Static scheme</string>
+         <string>Line Diagram</string>
         </property>
        </item>
        <item>
@@ -151,13 +151,6 @@
       <widget class="QPushButton" name="addSupportConditionsButton">
        <property name="text">
         <string>Add Support Conditions</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="addSupportButton">
-       <property name="text">
-        <string>Add support</string>
        </property>
       </widget>
      </item>

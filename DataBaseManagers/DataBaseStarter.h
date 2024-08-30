@@ -40,6 +40,8 @@ public:
 
     void createResultsTable();
 
+    void createLineSupportsTable();
+
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;

@@ -26,6 +26,7 @@ public:
     // Map of lines with parameters
     map<int, tuple<int, int, int>> getLinesMap() const;
 
+    void addObjectToDataBaseConsideringCircularLines(int startPointID, int endPointID);
 private:
     map<int, tuple<int, int, int>> linesMap;
     int defaultCrossSectionID;

@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
         unique_ptr<DataBaseMaterialsManager> materialsManager;
         unique_ptr<DataBaseSurfacesManager> surfacesManager;
         unique_ptr<DataBaseCircularLinesManager> circularLinesManager;
+        unique_ptr<DataBaseLineSupportsManager> lineSupportsManager;
         dataBaseName = "mesosoic_slab_test";
         dataBaseName += ".db";
 
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
         dataBaseStarter->createCircularLinesTable();
         dataBaseStarter->createSurfacesTable();
         dataBaseStarter->createMaterialsTable();
+        dataBaseStarter->createLineSupportsTable();
 
 
         pointsManager = make_unique<DataBasePointsManager>(dataBaseName);
@@ -123,8 +125,9 @@ int main(int argc, char *argv[])
         materialsManager = make_unique<DataBaseMaterialsManager>(dataBaseName);
         surfacesManager = make_unique<DataBaseSurfacesManager>(dataBaseName);
         circularLinesManager = make_unique<DataBaseCircularLinesManager>(dataBaseName);
+        lineSupportsManager = make_unique<DataBaseLineSupportsManager>(dataBaseName);
 
-        ::SlabGUI mainWindow(pointsManager.get(), linesManager.get(), materialsManager.get(), surfacesManager.get(), circularLinesManager.get(), dataBaseStarter.get());
+        ::SlabGUI mainWindow(pointsManager.get(), linesManager.get(), materialsManager.get(), surfacesManager.get(), circularLinesManager.get(), lineSupportsManager.get(), dataBaseStarter.get());
         mainWindow.show();
         int result = app.exec();
         return result;

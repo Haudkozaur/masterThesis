@@ -19,7 +19,10 @@ public:
 
     void iterateOverTable();
 
+
+
     std::map<int, tuple<int, double, double>> getLineLoadsMap();
+
 };
 }
 #endif //MASTERTHESIS_DATABASELINELOADSMANAGER_H
