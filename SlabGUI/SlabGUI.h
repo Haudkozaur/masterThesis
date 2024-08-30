@@ -61,6 +61,11 @@ private slots:
     void on_addMaterialButton_clicked();
 
     void on_setPropertiesButton_clicked();
+
+    void on_addPointAppliedForceButton_clicked();
+    void on_addLineLoadButton_clicked();
+    void on_openLoadsManagerButton_clicked();
+    void on_addSurfaceLoadButton_clicked();
 private:
     Ui::SlabGUI *ui;
 
@@ -83,6 +88,12 @@ private:
 
     QPushButton *addMaterialButton;
     QPushButton *setPropertiesButton;
+
+    QPushButton *addPointAppliedForceButton;
+    QPushButton *addLineLoadButton;
+    QPushButton *openLoadsManagerButton;
+    QPushButton *addSurfaceLoadButton;
+
 
     struct Point
     {

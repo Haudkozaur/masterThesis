@@ -481,7 +481,41 @@ void SlabGUI::on_addMaterialButton_clicked()
 
 void SlabGUI::loadLoadsLayout()
 {
+    loadLayoutFromFile(":/ui/slabLoads_layout.ui");
 
+    addPointAppliedForceButton = findChild<QPushButton *>("addPointAppliedForceButton");
+    if (addPointAppliedForceButton) {
+        connect(addPointAppliedForceButton,
+                &QPushButton::clicked,
+                this,
+                &SlabGUI::on_addPointAppliedForceButton_clicked);
+    } else {
+        qWarning() << "Button 'addPointAppliedForceButton' not found!";
+    }
+    addLineLoadButton = findChild<QPushButton *>("addLineLoadButton");
+    if (addLineLoadButton) {
+        connect(addLineLoadButton, &QPushButton::clicked, this, &SlabGUI::on_addLineLoadButton_clicked);
+    } else {
+        qWarning() << "Button 'addLineLoadButton' not found!";
+    }
+    openLoadsManagerButton = findChild<QPushButton *>("openLoadsManagerButton");
+    if (openLoadsManagerButton) {
+        connect(openLoadsManagerButton,
+                &QPushButton::clicked,
+                this,
+                &SlabGUI::on_openLoadsManagerButton_clicked);
+    } else {
+        qWarning() << "Button 'openLoadsManagerButton' not found!";
+    }
+    addSurfaceLoadButton = findChild<QPushButton *>("addSurfaceLoadButton");
+    if (addSurfaceLoadButton) {
+        connect(addSurfaceLoadButton,
+                &QPushButton::clicked,
+                this,
+                &SlabGUI::on_addSurfaceLoadButton_clicked);
+    } else {
+        qWarning() << "Button 'addSurfaceLoadButton' not found!";
+    }
 }
 
 void SlabGUI::loadMeshLayout()
@@ -498,6 +532,10 @@ void SlabGUI::on_editObjectButton_clicked()
 
 }
 
+void SlabGUI::on_addPointAppliedForceButton_clicked(){}
+void SlabGUI::on_addLineLoadButton_clicked(){}
+void SlabGUI::on_openLoadsManagerButton_clicked(){}
+void SlabGUI::on_addSurfaceLoadButton_clicked(){}
 
 void SlabGUI::onComboBoxIndexChanged(int index)
 {
