@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>staticSchemeLayoutWidget</class>
+ <widget class="QWidget" name="staticSchemeLayoutWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>257</width>
+    <height>243</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Static Scheme Layout</string>
+  </property>
+  <layout class="QVBoxLayout" name="staticSchemeVBoxLayout">
+   <item>
+    <widget class="QPushButton" name="layoutAddSurfaceButton">
+     <property name="text">
+      <string>Add Surface Geometry</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="layoutAddSupportConditionsButton">
+     <property name="text">
+      <string>Add Support Conditions</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

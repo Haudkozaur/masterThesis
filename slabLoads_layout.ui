@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>staticSchemeLayoutWidget</class>
+ <widget class="QWidget" name="staticSchemeLayoutWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Static Scheme Layout</string>
+  </property>
+  <layout class="QVBoxLayout" name="staticSchemeVBoxLayout">
+   <item>
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Add Load Case</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Combinations</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="addPointAppliedForceButton">
+     <property name="text">
+      <string>Add Point Applied Force</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="addLineLoadButton">
+     <property name="text">
+      <string>Add Line Load</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="addSufaceLoadButton">
+     <property name="text">
+      <string>Add Surface Load</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="loadsManagerButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Loads Manager</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

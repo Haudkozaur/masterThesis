@@ -24,6 +24,7 @@
 #include <QPointF>
 #include "AddSurfaceDialog.h"
 #include "AddSlabSupportsDialog.h"
+#include "../GUI/AddMaterialDialog.h"
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
@@ -48,6 +49,10 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
     , isDragging(false)
 {
     ui->setupUi(this);
+    connect(ui->modelPhaseComboBox,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(onComboBoxIndexChanged(int)));
     translationOffset = QPoint(width() / 2, height() / 2);
     QWidget *leftButtonContainer = ui->leftverticalLayout->parentWidget();
     QWidget *upperButtonContainer = ui->uphorizontalLayout->parentWidget();
@@ -412,15 +417,112 @@ void SlabGUI::clearLayout(QLayout *layout)
         delete item;
     }
 }
+
+void SlabGUI::loadStaticSchemeLayout()
+{
+    loadLayoutFromFile(":/ui/slabLinesDiagram.ui");
+}
+
+
+void SlabGUI::loadPropertiesLayout()
+{
+    {
+        loadLayoutFromFile(":/ui/slabProperties_layout.ui");
+
+        // Znajdź przycisk w załadowanym layoutcie
+        addMaterialButton = findChild<QPushButton *>("addMaterialButton");
+        if (addMaterialButton) {
+            connect(addMaterialButton, &QPushButton::clicked, this, &SlabGUI::on_addMaterialButton_clicked);
+        } else {
+            qWarning() << "Button 'addMaterialButton' not found!";
+        }
+
+        setPropertiesButton = findChild<QPushButton *>("setPropertiesButton");
+        if (setPropertiesButton) {
+            connect(setPropertiesButton,
+                    &QPushButton::clicked,
+                    this,
+                    &SlabGUI::on_setPropertiesButton_clicked);
+        } else {
+            qWarning() << "Button 'setPropertiesButton' not found!";
+        }
+    }
+}
+void SlabGUI::on_setPropertiesButton_clicked()
+{
+
+}
+
+void SlabGUI::on_addMaterialButton_clicked()
+{
+    cout << "Material button clicked" << endl;
+    AddMaterialDialog *dialog = new AddMaterialDialog(this);
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &AddMaterialDialog::accepted, this, [this, dialog]() {
+        string materialName = dialog->getMaterialName();
+        double youngModulus = dialog->getYoungModulus();
+        double poissonCoefficient = dialog->getPoissonCoefficient();
+        double density = dialog->getDensity();
+
+        dataBaseMaterialsManager->addObjectToDataBase(materialName,
+                                                      youngModulus * std::pow(10, 9),
+                                                      poissonCoefficient,
+                                                      density);
+
+        dataBaseMaterialsManager->iterateOverTable();
+
+        SlabGUI::on_addMaterialButton_clicked();
+    });
+
+    connect(dialog, &AddMaterialDialog::rejected, dialog, &AddMaterialDialog::deleteLater);
+    dialog->show();
+}
+
+void SlabGUI::loadLoadsLayout()
+{
+
+}
+
+void SlabGUI::loadMeshLayout()
+{
+
+}
+
+void SlabGUI::loadResultsLayout()
+{
+
+}
 void SlabGUI::on_editObjectButton_clicked()
 {
 
 }
 
 
-void SlabGUI::on_modelPhaseComboBox_currentIndexChanged(int index)
+void SlabGUI::onComboBoxIndexChanged(int index)
 {
+    {
+        switch (index) {
+        case 0:
+            loadStaticSchemeLayout();
+            break;
+        case 1:
+            loadPropertiesLayout();
+            break;
+        case 2:
+            loadLoadsLayout();
+            break;
+        case 3:
+            // on_refreshButton_clicked();
+            loadMeshLayout();
+            break;
+        case 4:
+            loadResultsLayout();
 
+        default:
+            break;
+        }
+    }
 }
 
 

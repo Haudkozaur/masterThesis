@@ -24,15 +24,9 @@
       <bool>true</bool>
      </property>
      <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>376</width>
-        <height>191</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="dynamicLayout"/>
+      <layout class="QVBoxLayout" name="dynamicLayout">
+       <!-- Dynamic content will be added here -->
+      </layout>
      </widget>
     </widget>
    </item>
@@ -40,13 +34,6 @@
     <widget class="QPushButton" name="applyButton">
      <property name="text">
       <string>Apply</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="showMeshButton">
-     <property name="text">
-      <string>Show Mesh</string>
      </property>
     </widget>
    </item>

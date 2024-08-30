@@ -23,5 +23,10 @@
         <file>rectangularSurface.ui</file>
         <file>circularSurface.ui</file>
         <file>triangularSurface.ui</file>
+        <file>slabLinesDiagram.ui</file>
+        <file>slabProperties_layout.ui</file>
+        <file>slabMesh_layout.ui</file>
+        <file>slabResults_layout_copy.ui</file>
+        <file>slabLoads_layout.ui</file>
     </qresource>
 </RCC>

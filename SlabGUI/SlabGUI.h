@@ -48,7 +48,7 @@ protected:
 private slots:
     void on_editObjectButton_clicked();
 
-    void on_modelPhaseComboBox_currentIndexChanged(int index);
+    void onComboBoxIndexChanged(int index);
 
     void on_addSurfaceButton_clicked();
 
@@ -58,11 +58,20 @@ private slots:
 
     void on_addSupportConditionsButton_clicked();
 
+    void on_addMaterialButton_clicked();
+
+    void on_setPropertiesButton_clicked();
 private:
     Ui::SlabGUI *ui;
 
+    //to update leftverticallayout depending on the selected option
     void loadLayoutFromFile(const QString &fileName);
     void clearLayout(QLayout *layout);
+    void loadStaticSchemeLayout();
+    void loadPropertiesLayout();
+    void loadLoadsLayout();
+    void loadMeshLayout();
+    void loadResultsLayout();
 
     // Declare the missing member variables
     double scaleFactor;
@@ -71,6 +80,9 @@ private:
     QPointF translationOffset;
     int xCoordinate;
     int zCoordinate;
+
+    QPushButton *addMaterialButton;
+    QPushButton *setPropertiesButton;
 
     struct Point
     {
@@ -155,6 +167,9 @@ private:
     int getCircularLineRadius(int circularLineId);
     bool isPointInTriangle(const QPointF &pt, const QPointF &v1, const QPointF &v2, const QPointF &v3);
     float sign(const QPointF &p1, const QPointF &p2, const QPointF &p3);
+
+    QComboBox modelPhaseComboBox;
+
 };
 
 #endif // SLABGUI_H

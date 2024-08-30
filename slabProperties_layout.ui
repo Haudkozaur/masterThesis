@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>propertiesLayoutWidget</class>
+ <widget class="QWidget" name="propertiesLayoutWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Properties Layout</string>
+  </property>
+  <layout class="QVBoxLayout" name="propertiesVBoxLayout">
+   <item>
+    <widget class="QPushButton" name="addMaterialButton">
+     <property name="text">
+      <string>Add Material</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="openCrossSectionManagerButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Open Materials</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <property name="autoRepeat">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="setPropertiesButton">
+     <property name="text">
+      <string>Set Properties</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

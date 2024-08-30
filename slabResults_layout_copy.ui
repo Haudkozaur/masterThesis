@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>staticSchemeLayoutWidget</class>
+ <widget class="QWidget" name="staticSchemeLayoutWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>245</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Static Scheme Layout</string>
+  </property>
+  <layout class="QVBoxLayout" name="staticSchemeVBoxLayout">
+   <item>
+    <widget class="QPushButton" name="showResultsButton">
+     <property name="text">
+      <string>Show</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
