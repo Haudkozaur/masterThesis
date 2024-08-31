@@ -106,6 +106,7 @@ add_executable(masterThesis
     DataBaseManagers/DataBaseCircularLinesManager.h DataBaseManagers/DataBaseCircularLinesManager.cpp
     SlabGUI/AddSlabSupportsDialog.h SlabGUI/AddSlabSupportsDialog.cpp SlabGUI/AddSlabSupportsDialog.ui
     DataBaseManagers/DataBaseLineSupportsManager.h DataBaseManagers/DataBaseLineSupportsManager.cpp
+    SlabGUI/slabSetPropertiesDialog.h SlabGUI/slabSetPropertiesDialog.cpp SlabGUI/slabSetPropertiesDialog.ui
 
 
 

@@ -29,7 +29,7 @@
         <x>0</x>
         <y>0</y>
         <width>376</width>
-        <height>191</height>
+        <height>222</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="dynamicLayout"/>
@@ -40,13 +40,6 @@
     <widget class="QPushButton" name="applyButton">
      <property name="text">
       <string>Apply</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="showMeshButton">
-     <property name="text">
-      <string>Show Mesh</string>
      </property>
     </widget>
    </item>

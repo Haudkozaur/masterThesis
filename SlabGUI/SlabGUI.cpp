@@ -25,6 +25,7 @@
 #include "AddSurfaceDialog.h"
 #include "AddSlabSupportsDialog.h"
 #include "../GUI/AddMaterialDialog.h"
+#include "slabSetPropertiesDialog.h"
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
@@ -421,7 +422,26 @@ void SlabGUI::clearLayout(QLayout *layout)
 void SlabGUI::loadStaticSchemeLayout()
 {
     loadLayoutFromFile(":/ui/slabLinesDiagram.ui");
+
+    layoutAddSurfaceButton = findChild<QPushButton *>("layoutAddSurfaceButton");
+    if (layoutAddSurfaceButton) {
+        connect(layoutAddSurfaceButton, &QPushButton::clicked, this, &SlabGUI::on_addSurfaceButton_clicked);
+    } else {
+        qWarning() << "Button 'layoutAddSurfaceButton' not found!";
+    }
+    layoutAddSupportConditionsButton = findChild<QPushButton *>("layoutAddSupportConditionsButton");
+    if (layoutAddSupportConditionsButton) {
+        connect(layoutAddSupportConditionsButton,
+                &QPushButton::clicked,
+                this,
+                &SlabGUI::on_addSupportConditionsButton_clicked);
+    } else {
+        qWarning() << "Button 'layoutAddSupportConditionsButton' not found!";
+    }
+
 }
+
+
 
 
 void SlabGUI::loadPropertiesLayout()
@@ -450,7 +470,26 @@ void SlabGUI::loadPropertiesLayout()
 }
 void SlabGUI::on_setPropertiesButton_clicked()
 {
+    cout << "setPropertiesButton button clicked" << endl;
+    slabSetPropertiesDialog *dialog = new slabSetPropertiesDialog(this);
+    dataBaseMaterialsManager->iterateOverTable();
+    dialog->setMaterials(dataBaseMaterialsManager->getMaterialsMap());
+    dialog->updateMaterialsList();
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &slabSetPropertiesDialog::accepted, this, [this, dialog]() {
+        int materialId = dialog->getMaterialId();
+        int thickness = dialog->getThickness();
 
+        dataBaseSurfacesManager->updateObjectInDataBase(TableType::SURFACES, 1, "material_id", std::to_string(materialId));
+        dataBaseSurfacesManager->updateObjectInDataBase(TableType::SURFACES, 1, "thickness", std::to_string(thickness));
+
+        SlabGUI::on_setPropertiesButton_clicked();
+    });
+
+    connect(dialog, &slabSetPropertiesDialog::rejected, dialog, &slabSetPropertiesDialog::deleteLater);
+
+    dialog->show();
 }
 
 void SlabGUI::on_addMaterialButton_clicked()
@@ -520,8 +559,173 @@ void SlabGUI::loadLoadsLayout()
 
 void SlabGUI::loadMeshLayout()
 {
+    // Load the UI layout from the file
+    loadLayoutFromFile(":/ui/slabMesh_layout.ui");
 
+    // Find the main layout and widgets in the loaded UI
+    QVBoxLayout *mainLayout = findChild<QVBoxLayout*>("mainLayout");
+    QScrollArea *scrollArea = findChild<QScrollArea*>("scrollArea");
+    QWidget *scrollAreaWidgetContents = findChild<QWidget*>("scrollAreaWidgetContents");
+    QVBoxLayout *dynamicLayout = findChild<QVBoxLayout*>("dynamicLayout");
+    QLabel *numberOfFeLabel = findChild<QLabel*>("numberOfFeLabel");
+    QPushButton *applyButton = findChild<QPushButton*>("applyButton");
+    QPushButton *showMeshButton = findChild<QPushButton*>("showMeshButton");
+
+    if (!mainLayout || !scrollArea || !scrollAreaWidgetContents || !dynamicLayout || !numberOfFeLabel || !applyButton || !showMeshButton) {
+        qWarning() << "Layouts or widgets not found!";
+        return;
+    }
+
+    qDebug() << "Layouts and widgets found, clearing existing widgets";
+
+    // Clear any existing widgets in the dynamic layout
+    QLayoutItem *child;
+    while ((child = dynamicLayout->takeAt(0)) != nullptr) {
+        delete child->widget();
+        delete child;
+    }
+
+    qDebug() << "Populating dynamic layout with new content";
+
+    // Apply a consistent style to the horizontal sliders
+    QString sliderStyle = R"(
+        QSlider::groove:horizontal {
+            border: 1px solid #999999;
+            height: 8px; /* Adjust height for horizontal */
+            background: #b0b0b0;
+        }
+        QSlider::handle:horizontal {
+            background: #007bff;
+            border: 1px solid #5c5c5c;
+            width: 18px; /* Adjust width for horizontal */
+            margin: -5px 0; /* Move handle a bit */
+            border-radius: 9px; /* Rounded corners */
+        }
+    )";
+
+    // Populate the dynamic layout with QLabel and QSlider for each Line's id
+    for (const auto &line : lines) {
+        qDebug() << "Processing Line ID:" << line.id;
+
+        QHBoxLayout *hLayout = new QHBoxLayout();
+
+        QLabel *label = new QLabel(QString("Line ID %1:").arg(line.id), this);
+
+        hLayout->addWidget(label);
+        qDebug() << "Label created and added for Line ID:" << line.id;
+
+        QSlider *slider = new QSlider(Qt::Horizontal, this);
+        slider->setRange(1, 12); // Set the range of the slider (1-12)
+        slider->setValue(10);  // Set the default slider value to 10
+        slider->setStyleSheet(sliderStyle);  // Apply the same style to horizontal sliders
+        hLayout->addWidget(slider);
+        qDebug() << "Slider created and added for Line ID:" << line.id;
+
+        QLabel *valueLabel = new QLabel(QString::number(slider->value()), this);
+        hLayout->addWidget(valueLabel);
+        qDebug() << "Value label created and added for Line ID:" << line.id;
+
+        // Connect the slider's valueChanged signal to update the value label and call the slot
+        connect(slider, &QSlider::valueChanged, [this, line, valueLabel](int value) {
+            valueLabel->setText(QString::number(value));
+            handleSliderValueChanged(value, line.id);
+        });
+        qDebug() << "Slider valueChanged signal connected for Line ID:" << line.id;
+
+        // Add the horizontal layout to the dynamic layout
+        dynamicLayout->addLayout(hLayout);
+        qDebug() << "Horizontal layout added to dynamic layout for Line ID:" << line.id;
+
+        // Initially add the default value (10) to meshNodesVector
+        handleSliderValueChanged(10, line.id);
+    }
+
+    // Populate the dynamic layout with QLabel and QSlider for each Circular Line's id
+    for (const auto &circularLine : circularLines) {
+        qDebug() << "Processing Circular Line ID:" << circularLine.id;
+
+        QHBoxLayout *hLayout = new QHBoxLayout();
+
+        QLabel *label = new QLabel(QString("Circular Line ID %1:").arg(circularLine.id), this);
+
+        hLayout->addWidget(label);
+        qDebug() << "Label created and added for Circular Line ID:" << circularLine.id;
+
+        QSlider *slider = new QSlider(Qt::Horizontal, this);
+        slider->setRange(1, 12); // Set the range of the slider (1-12)
+        slider->setValue(10);  // Set the default slider value to 10
+        slider->setStyleSheet(sliderStyle);  // Apply the same style to horizontal sliders
+        hLayout->addWidget(slider);
+        qDebug() << "Slider created and added for Circular Line ID:" << circularLine.id;
+
+        QLabel *valueLabel = new QLabel(QString::number(slider->value()), this);
+        hLayout->addWidget(valueLabel);
+        qDebug() << "Value label created and added for Circular Line ID:" << circularLine.id;
+
+        // Connect the slider's valueChanged signal to update the value label and call the slot
+        connect(slider, &QSlider::valueChanged, [this, circularLine, valueLabel](int value) {
+            valueLabel->setText(QString::number(value));
+            handleSliderValueChanged(value, circularLine.id);
+        });
+        qDebug() << "Slider valueChanged signal connected for Circular Line ID:" << circularLine.id;
+
+        // Add the horizontal layout to the dynamic layout
+        dynamicLayout->addLayout(hLayout);
+        qDebug() << "Horizontal layout added to dynamic layout for Circular Line ID:" << circularLine.id;
+
+        // Initially add the default value (10) to meshNodesVector
+        handleSliderValueChanged(10, circularLine.id);
+    }
+
+    dynamicLayout->addStretch();  // Add stretch at the end for better layout
+    qDebug() << "Stretch added to dynamic layout";
+
+    // Set the Apply button behavior
+    connect(applyButton, &QPushButton::clicked, this, &SlabGUI::on_applyButton_clicked);
+    connect(showMeshButton, &QPushButton::clicked, this, &SlabGUI::on_showMeshButton_clicked);
+
+    qDebug() << "Load mesh layout complete.";
 }
+
+
+void SlabGUI::handleSliderValueChanged(int value, int lineId)
+{
+    qDebug() << "Slider value changed for Line ID" << lineId << ": " << value;
+
+    // Find the line with the given lineId
+    auto it = std::find_if(lines.begin(), lines.end(), [lineId](const Line &line) {
+        return line.id == lineId;
+    });
+
+    // if (it != lines.end()) {
+    //     // Clear existing nodes for this lineId
+    //     meshNodesVector.erase(std::remove_if(meshNodesVector.begin(), meshNodesVector.end(),
+    //                                          [lineId](const MeshNode &node) { return node.lineId == lineId; }),
+    //                           meshNodesVector.end());
+
+    //     // Calculate the length of the line
+    //     double length = sqrt(pow(it->endX - it->startX, 2) + pow(it->endZ - it->startZ, 2));
+
+    //     // Avoid division by zero by checking the length and value
+    //     if (length == 0 || value <= 1) {
+    //         qWarning() << "Invalid line length or number of elements.";
+    //         return;
+    //     }
+
+    //     // Generate new nodes and store them in the vector
+    //     for (int i = 1; i < value; ++i) { // We already have start and end points
+    //         double factor = static_cast<double>(i) / value;
+    //         double newX = it->startX + factor * (it->endX - it->startX);
+    //         double newZ = it->startZ + factor * (it->endZ - it->startZ);
+    //         meshNodesVector.push_back({lineId, newX, newZ});
+    //     }
+    // } else {
+    //     qWarning() << "Line ID " << lineId << " not found!";
+    // }
+}
+
+void SlabGUI::on_showMeshButton_clicked() {}
+void SlabGUI::on_applyButton_clicked() {}
 
 void SlabGUI::loadResultsLayout()
 {
@@ -534,8 +738,11 @@ void SlabGUI::on_editObjectButton_clicked()
 
 void SlabGUI::on_addPointAppliedForceButton_clicked(){}
 void SlabGUI::on_addLineLoadButton_clicked(){}
-void SlabGUI::on_openLoadsManagerButton_clicked(){}
+
 void SlabGUI::on_addSurfaceLoadButton_clicked(){}
+
+//TODO - implement loads manager
+void SlabGUI::on_openLoadsManagerButton_clicked(){}
 
 void SlabGUI::onComboBoxIndexChanged(int index)
 {
@@ -1012,7 +1219,7 @@ void SlabGUI::paintLineSupports(QPainter &painter)
     QPen supportPen(Qt::magenta, 8); // Set the pen to magenta color and 8 units thick
     painter.setPen(supportPen);
 
-    qDebug() << "Starting to paint line supports. Number of supports:" << lineSupports.size();
+
 
     for (const auto &support : lineSupports) {
         if (support.lineId != -1) { // This is a straight line support
@@ -1021,7 +1228,7 @@ void SlabGUI::paintLineSupports(QPainter &painter)
             auto lineEntry = std::find_if(lines.begin(), lines.end(),
                                           [&](const Line &line) { return line.id == support.lineId; });
             if (lineEntry != lines.end()) {
-                qDebug() << "Found line with ID:" << lineEntry->id;
+
 
                 QPointF startPoint(lineEntry->startX, -lineEntry->startZ);
                 QPointF endPoint(lineEntry->endX, -lineEntry->endZ);
@@ -1036,31 +1243,30 @@ void SlabGUI::paintLineSupports(QPainter &painter)
                 perpDirection /= perpLength;
                 perpDirection *= 160.0;  // Set the support line length to 160 units
 
-                qDebug() << "Line start:" << startPoint << " end:" << endPoint << " length:" << lineLength;
+
 
                 for (double i = 0; i < lineLength; i += 50.0) {
                     QPointF position = startPoint + i * direction;
                     QLineF supportLine(position - perpDirection, position + perpDirection);
                     painter.drawLine(supportLine);
-                    qDebug() << "Drew support line at position:" << position;
+
                 }
             } else {
                 qDebug() << "Line with ID" << support.lineId << "not found in lines vector.";
             }
         } else if (support.circularLineId != -1) { // This is a circular line support
-            qDebug() << "Processing circular line support with circularLineId:" << support.circularLineId;
+
 
             auto circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
                                                   [&](const CircularLine &circularLine) { return circularLine.id == support.circularLineId; });
             if (circularLineEntry != circularLines.end()) {
-                qDebug() << "Found circular line with ID:" << circularLineEntry->id;
+
 
                 QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
                 double radius = circularLineEntry->diameter / 2.0;
                 double circumference = 2.0 * M_PI * radius;
 
                 int numberOfSupports = static_cast<int>(circumference / 50.0);
-                qDebug() << "Circular line center:" << center << " radius:" << radius << " circumference:" << circumference;
 
                 for (int i = 0; i < numberOfSupports; ++i) {
                     double angle = 2.0 * M_PI * i / numberOfSupports;
@@ -1073,7 +1279,7 @@ void SlabGUI::paintLineSupports(QPainter &painter)
 
                     QLineF supportLine(supportPosition - tangentDirection, supportPosition + tangentDirection);
                     painter.drawLine(supportLine);
-                    qDebug() << "Drew support line at angle:" << angle << " position:" << supportPosition;
+
                 }
             } else {
                 qDebug() << "Circular line with ID" << support.circularLineId << "not found in circularLines vector.";

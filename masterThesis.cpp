@@ -122,7 +122,11 @@ int main(int argc, char *argv[])
 
         pointsManager = make_unique<DataBasePointsManager>(dataBaseName);
         linesManager = make_unique<DataBaseLinesManager>(dataBaseName);
+
         materialsManager = make_unique<DataBaseMaterialsManager>(dataBaseName);
+        materialsManager->addObjectToDataBase("Steel", 210.0 * pow(10, 9), 0.3, 7800.0);
+        materialsManager->addObjectToDataBase("Concrete C30/37", 32.0 * pow(10, 9), 0.2, 2400.0);
+
         surfacesManager = make_unique<DataBaseSurfacesManager>(dataBaseName);
         circularLinesManager = make_unique<DataBaseCircularLinesManager>(dataBaseName);
         lineSupportsManager = make_unique<DataBaseLineSupportsManager>(dataBaseName);

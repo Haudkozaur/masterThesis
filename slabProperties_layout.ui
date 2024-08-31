@@ -27,7 +27,7 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Open Materials</string>
+      <string>Open Materials Manager</string>
      </property>
      <property name="checkable">
       <bool>false</bool>

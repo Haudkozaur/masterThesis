@@ -66,6 +66,8 @@ private slots:
     void on_addLineLoadButton_clicked();
     void on_openLoadsManagerButton_clicked();
     void on_addSurfaceLoadButton_clicked();
+    void on_applyButton_clicked();
+    void on_showMeshButton_clicked();
 private:
     Ui::SlabGUI *ui;
 
@@ -93,6 +95,9 @@ private:
     QPushButton *addLineLoadButton;
     QPushButton *openLoadsManagerButton;
     QPushButton *addSurfaceLoadButton;
+
+    QPushButton *layoutAddSurfaceButton;
+    QPushButton *layoutAddSupportConditionsButton;
 
 
     struct Point
@@ -181,6 +186,7 @@ private:
 
     QComboBox modelPhaseComboBox;
 
+    void handleSliderValueChanged(int value, int lineId);
 };
 
 #endif // SLABGUI_H
