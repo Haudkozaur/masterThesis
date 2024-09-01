@@ -107,6 +107,9 @@ add_executable(masterThesis
     SlabGUI/AddSlabSupportsDialog.h SlabGUI/AddSlabSupportsDialog.cpp SlabGUI/AddSlabSupportsDialog.ui
     DataBaseManagers/DataBaseLineSupportsManager.h DataBaseManagers/DataBaseLineSupportsManager.cpp
     SlabGUI/slabSetPropertiesDialog.h SlabGUI/slabSetPropertiesDialog.cpp SlabGUI/slabSetPropertiesDialog.ui
+    SlabGUI/AddSurfaceSupportDialog.h SlabGUI/AddSurfaceSupportDialog.cpp SlabGUI/AddSurfaceSupportDialog.ui
+    DataBaseManagers/DataBaseSurfaceSupportManager.h DataBaseManagers/DataBaseSurfaceSupportManager.cpp
+
 
 
 

@@ -68,6 +68,10 @@ private slots:
     void on_addSurfaceLoadButton_clicked();
     void on_applyButton_clicked();
     void on_showMeshButton_clicked();
+
+
+    void on_addSurfaceSupportButton_clicked();
+
 private:
     Ui::SlabGUI *ui;
 

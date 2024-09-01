@@ -26,6 +26,7 @@
 #include "AddSlabSupportsDialog.h"
 #include "../GUI/AddMaterialDialog.h"
 #include "slabSetPropertiesDialog.h"
+#include "AddSurfaceSupportDialog.h"
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
@@ -1443,5 +1444,28 @@ void SlabGUI::on_addSupportConditionsButton_clicked()
         connect(dialog, &AddSlabSupportsDialog::rejected, dialog, &AddSlabSupportsDialog::deleteLater);
         dialog->show();
     }
+}
+
+
+void SlabGUI::on_addSurfaceSupportButton_clicked()
+{
+    AddSurfaceSupportDialog *dialog = new AddSurfaceSupportDialog(this);
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &AddSurfaceSupportDialog::accepted, this, [this, dialog]() {
+        int x1 = dialog->getX1();
+        int z1 = dialog->getZ1();
+        int x2 = dialog->getX2();
+        int z2 = dialog->getZ2();
+        dataBaseSurfaceSupportsManager->addObjectToDataBase(lineID);
+
+        SlabGUI::on_refreshButton_clicked();
+        SlabGUI::on_on_addSurfaceSupportButton_clicked();
+
+    });
+
+    connect(dialog, &AddSurfaceSupportDialog::rejected, dialog, &AddSurfaceSupportDialog::deleteLater);
+    dialog->show();
+}
 }
 
