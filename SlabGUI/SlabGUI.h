@@ -31,6 +31,9 @@ public:
                      DataBaseSurfacesManager *surfacesManager,
                      DataBaseCircularLinesManager *circularLinesManager,
                      DataBaseLineSupportsManager *lineSupportsManager,
+                     DataBaseSurfaceSupportsManager *surfaceSupportsManager,
+                     DataBaseSlabPointLoadManager *slabPointLoadsManager,
+                     DataBaseSlabLineLoadsManager *slabLineLoadsManager,
                      DataBaseStarter *starter,
                      QWidget *parent = nullptr);
     ~SlabGUI();
@@ -102,6 +105,7 @@ private:
 
     QPushButton *layoutAddSurfaceButton;
     QPushButton *layoutAddSupportConditionsButton;
+    QPushButton *layoutAddSurfaceSupportButton;
 
 
     struct Point
@@ -147,12 +151,38 @@ private:
         int lineId;
         int circularLineId;
     };
+    struct SurfaceSupport
+    {
+        int id;
+        int x1;
+        int z1;
+        int x2;
+        int z2;
+    };
+    struct PointLoad
+    {
+        int id;
+        int x;
+        int z;
+        double F;
+    };
+    struct LineLoad
+    {
+        int x1;
+        int z1;
+        int x2;
+        int z2;
+        double F;
+    };
 
     vector<Point> points;
     vector<Line> lines;
     vector<CircularLine> circularLines;
     vector<Surface> surfaces;
     vector<LineSupport> lineSupports;
+    vector<SurfaceSupport> surfaceSupports;
+    vector<PointLoad> pointLoads;
+    vector<LineLoad> lineLoads;
 
     QString surfaceLayoutType;
     void drawAxes(QPainter &painter);
@@ -165,6 +195,8 @@ private:
     void paintLinesLabels(QPainter &painter);
     void paintCircularLinesLabels(QPainter &painter);
     void paintLineSupports(QPainter &painter);
+    void paintSurfaceSupports(QPainter &painter);
+    void PaintPointLoads(QPainter &painter);
 
 
     DataBasePointsManager *dataBasePointsManager;
@@ -173,6 +205,9 @@ private:
     DataBaseSurfacesManager *dataBaseSurfacesManager;
     DataBaseCircularLinesManager *dataBaseCircularLinesManager;
     DataBaseLineSupportsManager *dataBaseLineSupportsManager;
+    DataBaseSurfaceSupportsManager *dataBaseSurfaceSupportsManager;
+    DataBaseSlabPointLoadManager *dataBaseSlabPointLoadManager;
+    DataBaseSlabLineLoadsManager *dataBaseSlabLineLoadsManager;
     DataBaseStarter *dataBaseStarter;
 
 
@@ -191,6 +226,7 @@ private:
     QComboBox modelPhaseComboBox;
 
     void handleSliderValueChanged(int value, int lineId);
+
 };
 
 #endif // SLABGUI_H

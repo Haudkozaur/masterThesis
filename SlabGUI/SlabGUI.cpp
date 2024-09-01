@@ -27,6 +27,9 @@
 #include "../GUI/AddMaterialDialog.h"
 #include "slabSetPropertiesDialog.h"
 #include "AddSurfaceSupportDialog.h"
+#include "AddSlabPointLoadDialog.h"
+#include "AddSlabLineLoadDialog.h"
+
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseLinesManager *linesManager,
@@ -34,6 +37,9 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseSurfacesManager *surfacesManager,
                  DataBaseCircularLinesManager *circularLinesManager,
                  DataBaseLineSupportsManager *lineSupportsManager,
+                 DataBaseSurfaceSupportsManager *surfaceSupportsManager,
+                 DataBaseSlabPointLoadManager *slabPointLoadsManager,
+                 DataBaseSlabLineLoadsManager *slabLineLoadsManager,
                  DataBaseStarter *starter,
                  QWidget *parent)
     : QMainWindow(parent)
@@ -44,6 +50,9 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
     , dataBaseSurfacesManager(surfacesManager)
     , dataBaseCircularLinesManager(circularLinesManager)
     , dataBaseLineSupportsManager(lineSupportsManager)
+    , dataBaseSurfaceSupportsManager(surfaceSupportsManager)
+    , dataBaseSlabPointLoadManager(slabPointLoadsManager)
+    , dataBaseSlabLineLoadsManager(slabLineLoadsManager)
     , dataBaseStarter(starter)
     , xCoordinate(0)
     , zCoordinate(0)
@@ -124,6 +133,8 @@ void SlabGUI::paintEvent(QPaintEvent *event)
     paintCircularLinesLabels(painter);
     paintSurfaces(painter);
     paintLineSupports(painter);
+    paintSurfaceSupports(painter);
+    PaintPointLoads(painter);
     // Uncomment and implement the drawing functions as needed
     // if (showLines){
     //     paintLines(painter);
@@ -344,7 +355,6 @@ void SlabGUI::paintSurfaces(QPainter &painter)
 
 
 
-
 void SlabGUI::loadLayoutFromFile(const QString &fileName)
 {
     QFile file(fileName);
@@ -438,6 +448,15 @@ void SlabGUI::loadStaticSchemeLayout()
                 &SlabGUI::on_addSupportConditionsButton_clicked);
     } else {
         qWarning() << "Button 'layoutAddSupportConditionsButton' not found!";
+    }
+    layoutAddSurfaceSupportButton = findChild<QPushButton *>("layoutAddSurfaceSupportButton");
+    if (layoutAddSurfaceSupportButton) {
+        connect(layoutAddSurfaceSupportButton,
+                &QPushButton::clicked,
+                this,
+                &SlabGUI::on_addSurfaceSupportButton_clicked);
+    } else {
+        qWarning() << "Button 'layoutAddSurfaceSupportButton' not found!";
     }
 
 }
@@ -737,8 +756,51 @@ void SlabGUI::on_editObjectButton_clicked()
 
 }
 
-void SlabGUI::on_addPointAppliedForceButton_clicked(){}
-void SlabGUI::on_addLineLoadButton_clicked(){}
+void SlabGUI::on_addPointAppliedForceButton_clicked()
+{
+    cout << "Add point load clicked" << std::endl;
+    AddSlabPointLoadDialog *dialog = new AddSlabPointLoadDialog(this);
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &AddSlabPointLoadDialog::accepted, this, [this, dialog]() {
+        int x = dialog->getX();
+        int z = dialog->getZ();
+        double force = dialog->getF();
+        dataBaseSlabPointLoadManager->addObjectToDataBase(force, x, z);
+
+        SlabGUI::on_refreshButton_clicked();
+        SlabGUI::on_addPointAppliedForceButton_clicked();
+
+    });
+
+    connect(dialog, &AddSlabPointLoadDialog::rejected, dialog, &AddSlabPointLoadDialog::deleteLater);
+    dialog->show();
+}
+
+
+void SlabGUI::on_addLineLoadButton_clicked()
+{
+    cout << "add line load button clicked"
+         << std::endl;
+    AddSlabLineLoadDialog *dialog = new AddSlabLineLoadDialog(this);
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &AddSlabLineLoadDialog::accepted, this, [this, dialog]() {
+        int x1 = dialog->getX1();
+        int z1 = dialog->getZ1();
+        int x2 = dialog->getX2();
+        int z2 = dialog->getZ2();
+        int force = dialog->getF();
+
+        dataBaseSlabLineLoadsManager->addObjectToDataBase(x1,z1,x2,z2,force);
+
+        SlabGUI::on_refreshButton_clicked();
+        SlabGUI::on_addLineLoadButton_clicked();
+    });
+    connect(dialog, &AddSlabLineLoadDialog::rejected, dialog, &AddSlabLineLoadDialog::deleteLater);
+    dialog->show();
+
+}
 
 void SlabGUI::on_addSurfaceLoadButton_clicked(){}
 
@@ -1293,6 +1355,79 @@ void SlabGUI::paintLineSupports(QPainter &painter)
     qDebug() << "Finished painting line supports.";
 }
 
+void SlabGUI::paintSurfaceSupports(QPainter &painter)
+{
+    QPen pen(Qt::magenta, 2); // Set the pen to magenta color and 2 units thick
+    QBrush brush(Qt::magenta, Qt::DiagCrossPattern); // Set the brush to magenta with diagonal hatching
+    painter.setPen(pen);
+    painter.setBrush(brush);
+
+    for (const auto &support : surfaceSupports) {
+        QRectF supportRect(QPointF(support.x1, -support.z1), QPointF(support.x2, -support.z2));
+        painter.drawRect(supportRect);
+    }
+}
+
+void SlabGUI::PaintPointLoads(QPainter &painter)
+{
+    QPen textPen(Qt::red); // Red color for the text
+    painter.setPen(textPen);
+
+    QBrush brush(Qt::NoBrush); // No fill for the circle by default
+    painter.setBrush(brush);
+
+    QFont font = painter.font();
+    font.setPointSize(150); // Adjust font size to match other labels
+    painter.setFont(font);
+
+    double circleRadius = 100.0;
+    double crossLength = circleRadius * std::sqrt(2); // Length of the cross arm to touch the circle
+
+    for (const auto &load : pointLoads) {
+        QPointF position(load.x, -load.z);
+
+        if (load.F > 0) {
+            // Thicker circle when F > 0
+            QPen thickCirclePen(Qt::red, 16); // Thicker red circle
+            painter.setPen(thickCirclePen);
+            painter.drawEllipse(position, circleRadius, circleRadius);
+
+            // Draw the dot if F is positive
+            QBrush dotBrush(Qt::red); // Red color for the dot
+            painter.setBrush(dotBrush);
+            painter.drawEllipse(position, 20, 20); // Dot with radius 20
+        } else if (load.F < 0) {
+            // Circle for negative F, but thinner than for positive F
+            QPen thinCirclePen(Qt::red, 16); // Thinner red circle
+            painter.setPen(thinCirclePen);
+            painter.drawEllipse(position, circleRadius, circleRadius);
+
+            // Draw the cross if F is negative
+            QPen crossPen(Qt::red, 16); // Pen for the cross
+            painter.setPen(crossPen);
+
+            // Calculate the endpoints of the cross arms
+            QPointF end1(position.x() - crossLength, position.y() - crossLength);
+            QPointF end2(position.x() + crossLength, position.y() + crossLength);
+            QPointF end3(position.x() - crossLength, position.y() + crossLength);
+            QPointF end4(position.x() + crossLength, position.y() - crossLength);
+
+            // Draw the cross
+            painter.drawLine(position, end1);
+            painter.drawLine(position, end2);
+            painter.drawLine(position, end3);
+            painter.drawLine(position, end4);
+        }
+
+        // Draw the F value label next to the circle
+        painter.setPen(textPen); // Set pen for text drawing
+        painter.drawText(position.x() + 120, position.y() - 120, QString::number(load.F, 'f', 2));
+    }
+}
+
+
+
+
 void SlabGUI::on_refreshButton_clicked()
 {
     // Fetch all data from DB managers
@@ -1300,7 +1435,9 @@ void SlabGUI::on_refreshButton_clicked()
     dataBaseLinesManager->iterateOverTable();
     dataBaseCircularLinesManager->iterateOverTable();
     dataBaseSurfacesManager->iterateOverTable();
-    dataBaseLineSupportsManager->iterateOverTable(); // New line supports fetch
+    dataBaseLineSupportsManager->iterateOverTable(); // Fetch line supports
+    dataBaseSurfaceSupportsManager->iterateOverTable(); // Fetch surface supports
+    dataBaseSlabPointLoadManager->iterateOverTable(); // Fetch slab point loads
 
     // Clear existing vectors
     points.clear();
@@ -1308,6 +1445,8 @@ void SlabGUI::on_refreshButton_clicked()
     circularLines.clear();
     surfaces.clear();
     lineSupports.clear(); // Clear the lineSupports vector
+    surfaceSupports.clear(); // Clear the surfaceSupports vector
+    pointLoads.clear(); // Clear the pointLoads vector
 
     qDebug() << "Cleared vectors, starting to populate them";
 
@@ -1383,8 +1522,33 @@ void SlabGUI::on_refreshButton_clicked()
     }
     qDebug() << "Line Supports populated, size:" << lineSupports.size();
 
+    // Populate surfaceSupports vector
+    for (const auto &supportEntry : dataBaseSurfaceSupportsManager->getSurfaceSupportsMap()) {
+        int supportId = supportEntry.first;
+        int x1 = std::get<0>(supportEntry.second);
+        int z1 = std::get<1>(supportEntry.second);
+        int x2 = std::get<2>(supportEntry.second);
+        int z2 = std::get<3>(supportEntry.second);
+
+        surfaceSupports.push_back({supportId, x1, z1, x2, z2});
+    }
+    qDebug() << "Surface Supports populated, size:" << surfaceSupports.size();
+
+    // Populate pointLoads vector
+    for (const auto &loadEntry : dataBaseSlabPointLoadManager->getNodalLoadsMap()) {
+        int loadId = loadEntry.first;
+        double Fz = std::get<0>(loadEntry.second);
+        int x = std::get<1>(loadEntry.second);
+        int z = std::get<2>(loadEntry.second);
+
+        pointLoads.push_back({loadId, x, z, Fz});
+    }
+    qDebug() << "Point Loads populated, size:" << pointLoads.size();
+
     update();
 }
+
+
 
 
 
@@ -1452,20 +1616,79 @@ void SlabGUI::on_addSurfaceSupportButton_clicked()
     AddSurfaceSupportDialog *dialog = new AddSurfaceSupportDialog(this);
     dialog->moveToBottomLeft();
     dialog->setAttribute(Qt::WA_DeleteOnClose);
+
     connect(dialog, &AddSurfaceSupportDialog::accepted, this, [this, dialog]() {
         int x1 = dialog->getX1();
         int z1 = dialog->getZ1();
         int x2 = dialog->getX2();
         int z2 = dialog->getZ2();
-        dataBaseSurfaceSupportsManager->addObjectToDataBase(lineID);
 
-        SlabGUI::on_refreshButton_clicked();
-        SlabGUI::on_on_addSurfaceSupportButton_clicked();
+        // Fetch the main surface
+        auto mainSurfaceTuple = dataBaseSurfacesManager->getMainSurface();
 
+        if (std::get<0>(mainSurfaceTuple) == "rectangle") {
+            Surface mainSurface;
+            mainSurface.surfaceType = std::get<0>(mainSurfaceTuple);
+            mainSurface.line1Id = std::get<1>(mainSurfaceTuple);
+            mainSurface.line2Id = std::get<2>(mainSurfaceTuple);
+            mainSurface.line3Id = std::get<3>(mainSurfaceTuple);
+            mainSurface.line4Id = std::get<4>(mainSurfaceTuple);
+            mainSurface.circularLineId = std::get<5>(mainSurfaceTuple);
+            mainSurface.materialId = std::get<6>(mainSurfaceTuple);
+            mainSurface.thickness = std::get<7>(mainSurfaceTuple);
+            mainSurface.isOpening = std::get<8>(mainSurfaceTuple);
+
+            // Check if the support is within the main surface
+            if (isRectangleWithin(mainSurface, x1, z1, x2, z2)) {
+                // Add the support to the database
+                dataBaseSurfaceSupportsManager->addObjectToDataBase(x1, z1, x2, z2);
+                SlabGUI::on_refreshButton_clicked();
+            } else {
+                QMessageBox::warning(this, "Invalid Operation", "The support must be within the area of the main surface.");
+            }
+        } else {
+            QMessageBox::warning(this, "Invalid Operation", "No valid rectangular main surface found.");
+        }
+
+        SlabGUI::on_addSurfaceSupportButton_clicked();
     });
 
     connect(dialog, &AddSurfaceSupportDialog::rejected, dialog, &AddSurfaceSupportDialog::deleteLater);
     dialog->show();
 }
-}
+// void SlabGUI::addLineToPolygon(int lineId, QPolygonF &polygon) {
+//     if (lineId == -1) return;
+
+//     const auto &lineEntry = std::find_if(lines.begin(), lines.end(),
+//                                          [&](const Line &line) { return line.id == lineId; });
+//     if (lineEntry != lines.end()) {
+//         // Check if the polygon already contains these points to avoid duplication
+//         QPointF startPoint(lineEntry->startX, -lineEntry->startZ);
+//         QPointF endPoint(lineEntry->endX, -lineEntry->endZ);
+
+//         if (!polygon.containsPoint(startPoint, Qt::OddEvenFill)) {
+//             polygon.append(startPoint);
+//         }
+//         if (!polygon.containsPoint(endPoint, Qt::OddEvenFill)) {
+//             polygon.append(endPoint);
+//         }
+//     }
+// }
+
+// // Adds a circle to the path
+// void SlabGUI::addCircleToPath(int circularLineId, QPainterPath &path) {
+//     if (circularLineId == -1) return;
+
+//     const auto &circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
+//                                                  [&](const CircularLine &circularLine) { return circularLine.id == circularLineId; });
+
+//     if (circularLineEntry != circularLines.end()) {
+//         QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
+//         QRectF boundingRect(center.x() - circularLineEntry->diameter / 2,
+//                             center.y() - circularLineEntry->diameter / 2,
+//                             circularLineEntry->diameter,
+//                             circularLineEntry->diameter);
+//         path.addEllipse(boundingRect);
+//     }
+// }
 

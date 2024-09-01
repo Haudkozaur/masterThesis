@@ -81,17 +81,17 @@ int main(int argc, char *argv[])
 
         //Creating GUI
         ::Gui mainWindow(pointsManager.get(),
-                       linesManager.get(),
-                       supportsManager.get(),
-                       materialsManager.get(),
-                       crossSectionsManager.get(),
-                       dataBaseStarter.get(),
-                       nodalLoadsManager.get(),
-                       lineLoadsManager.get(),
-                       meshManager.get(),
-                       crossSectionsAssistant.get(),
-                       solverPreparer.get(),
-                       resultsManager.get());
+                         linesManager.get(),
+                         supportsManager.get(),
+                         materialsManager.get(),
+                         crossSectionsManager.get(),
+                         dataBaseStarter.get(),
+                         nodalLoadsManager.get(),
+                         lineLoadsManager.get(),
+                         meshManager.get(),
+                         crossSectionsAssistant.get(),
+                         solverPreparer.get(),
+                         resultsManager.get());
         mainWindow.show();
 
         int result = app.exec();
@@ -107,6 +107,9 @@ int main(int argc, char *argv[])
         unique_ptr<DataBaseSurfacesManager> surfacesManager;
         unique_ptr<DataBaseCircularLinesManager> circularLinesManager;
         unique_ptr<DataBaseLineSupportsManager> lineSupportsManager;
+        unique_ptr<DataBaseSurfaceSupportsManager> surfaceSupportsManager;
+        unique_ptr<DataBaseSlabPointLoadManager> slabPointLoadsManager;
+        unique_ptr<DataBaseSlabLineLoadsManager> slabLineLoadsManager;
         dataBaseName = "mesosoic_slab_test";
         dataBaseName += ".db";
 
@@ -118,6 +121,9 @@ int main(int argc, char *argv[])
         dataBaseStarter->createSurfacesTable();
         dataBaseStarter->createMaterialsTable();
         dataBaseStarter->createLineSupportsTable();
+        dataBaseStarter->createSurfaceSupportsTable();
+        dataBaseStarter->createSlabPointLoadsTable();
+        dataBaseStarter->createSlabLineLoadsTable();
 
 
         pointsManager = make_unique<DataBasePointsManager>(dataBaseName);
@@ -130,8 +136,12 @@ int main(int argc, char *argv[])
         surfacesManager = make_unique<DataBaseSurfacesManager>(dataBaseName);
         circularLinesManager = make_unique<DataBaseCircularLinesManager>(dataBaseName);
         lineSupportsManager = make_unique<DataBaseLineSupportsManager>(dataBaseName);
+        surfaceSupportsManager = make_unique<DataBaseSurfaceSupportsManager>(dataBaseName);
+        slabPointLoadsManager = make_unique<DataBaseSlabPointLoadManager>(dataBaseName);
+        slabLineLoadsManager = make_unique<DataBaseSlabLineLoadsManager>(dataBaseName);
 
-        ::SlabGUI mainWindow(pointsManager.get(), linesManager.get(), materialsManager.get(), surfacesManager.get(), circularLinesManager.get(), lineSupportsManager.get(), dataBaseStarter.get());
+        ::SlabGUI mainWindow(pointsManager.get(), linesManager.get(), materialsManager.get(), surfacesManager.get(), circularLinesManager.get(),
+                             lineSupportsManager.get(),  surfaceSupportsManager.get(),slabPointLoadsManager.get(),slabLineLoadsManager.get(), dataBaseStarter.get());
         mainWindow.show();
         int result = app.exec();
         return result;

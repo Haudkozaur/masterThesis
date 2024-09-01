@@ -42,6 +42,12 @@ public:
 
     void createLineSupportsTable();
 
+    void createSurfaceSupportsTable();
+
+    void createSlabPointLoadsTable();
+
+    void createSlabLineLoadsTable();
+
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;
