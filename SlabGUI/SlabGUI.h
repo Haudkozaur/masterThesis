@@ -35,6 +35,8 @@ public:
                      DataBaseSlabPointLoadManager *slabPointLoadsManager,
                      DataBaseSlabLineLoadsManager *slabLineLoadsManager,
                      DataBaseSurfaceLoadsManager *surfaceLoadsManager,
+                     DataBaseSlabMeshManager *slabMeshManager,
+                     DataBaseFreeFEMPreparer *freeFEMPreparer,
                      DataBaseStarter *starter,
                      QWidget *parent = nullptr);
     ~SlabGUI();
@@ -70,11 +72,14 @@ private slots:
     void on_addLineLoadButton_clicked();
     void on_openLoadsManagerButton_clicked();
     void on_addSurfaceLoadButton_clicked();
-    void on_applyButton_clicked();
+
     void on_showMeshButton_clicked();
 
 
     void on_addSurfaceSupportButton_clicked();
+
+    void on_applyButton_clicked();
+    void on_calculateButton_clicked();
 
 private:
     Ui::SlabGUI *ui;
@@ -185,6 +190,11 @@ private:
         double F;
         int id;
     };
+    struct Mesh
+    {
+        int lineId;
+        int numberOfFE;
+    };
 
     vector<Point> points;
     vector<Line> lines;
@@ -195,6 +205,7 @@ private:
     vector<PointLoad> pointLoads;
     vector<LineLoad> lineLoads;
     vector<SurfaceLoad> surfaceLoads;
+    vector<Mesh> meshVector;
 
     QString surfaceLayoutType;
     void drawAxes(QPainter &painter);
@@ -224,6 +235,8 @@ private:
     DataBaseSlabPointLoadManager *dataBaseSlabPointLoadManager;
     DataBaseSlabLineLoadsManager *dataBaseSlabLineLoadsManager;
     DataBaseSurfaceLoadsManager *dataBaseSurfaceLoadsManager;
+    DataBaseSlabMeshManager *dataBaseSlabMeshManager;
+    DataBaseFreeFEMPreparer *dataBaseFreeFEMPreparer;
     DataBaseStarter *dataBaseStarter;
 
 
@@ -242,8 +255,15 @@ private:
     QComboBox modelPhaseComboBox;
 
     void handleSliderValueChanged(int value, int lineId);
+    QMap<int, int> lineSliderValues;          // Store slider values for each line by ID
+    QMap<int, int> circularLineSliderValues;  // Store slider values for each circular line by ID
 
 
+    void loadSliderValues();
+    void saveSliderValues();
+    bool isCircleWithinTriangle(const QPointF &v1, const QPointF &v2, const QPointF &v3, const QPointF &center, float radius);
+    float distanceToLine(const QPointF &v1, const QPointF &v2, const QPointF &p);
+    bool isPointInCircle(const QPointF &point, const QPointF &center, float radius);
 };
 
 #endif // SLABGUI_H

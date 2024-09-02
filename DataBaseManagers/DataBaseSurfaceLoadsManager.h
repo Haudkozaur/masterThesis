@@ -13,6 +13,7 @@ public:
     void iterateOverTable();
 
     std::map<int, std::tuple<int, int, int, int, double>> getSurfaceLoadsMap();
+
 private:
 
     std::map<int, std::tuple<int, int, int, int, double>> surfaceLoadsMap;

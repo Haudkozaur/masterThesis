@@ -115,6 +115,10 @@ add_executable(masterThesis
     DataBaseManagers/DataBaseSlabLineLoadsManager.h DataBaseManagers/DataBaseSlabLineLoadsManager.cpp
     DataBaseManagers/DataBaseSurfaceLoadsManager.h DataBaseManagers/DataBaseSurfaceLoadsManager.cpp
     SlabGUI/AddSurfaceLoadDialog.h SlabGUI/AddSurfaceLoadDialog.cpp SlabGUI/AddSurfaceLoadDialog.ui
+    DataBaseManagers/DataBaseSlabMeshManager.h DataBaseManagers/DataBaseSlabMeshManager.cpp
+    DataBaseManagers/DataBaseFreeFEMPreparer.h DataBaseManagers/DataBaseFreeFEMPreparer.cpp
+    FreeFemExecutor.h FreeFemExecutor.cpp
+
 
 
 

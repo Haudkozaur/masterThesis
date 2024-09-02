@@ -22,6 +22,7 @@
 #include <QSet>
 #include <QPainter>
 #include <QPointF>
+#include <QSettings>
 #include "AddSurfaceDialog.h"
 #include "AddSlabSupportsDialog.h"
 #include "../GUI/AddMaterialDialog.h"
@@ -30,6 +31,7 @@
 #include "AddSlabPointLoadDialog.h"
 #include "AddSlabLineLoadDialog.h"
 #include "AddSurfaceLoadDialog.h"
+#include "../FreeFemExecutor.h"
 
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
@@ -42,6 +44,8 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseSlabPointLoadManager *slabPointLoadsManager,
                  DataBaseSlabLineLoadsManager *slabLineLoadsManager,
                  DataBaseSurfaceLoadsManager *surfaceLoadsManager,
+                 DataBaseSlabMeshManager *slabMeshManager,
+                 DataBaseFreeFEMPreparer *freeFEMPreparer,
                  DataBaseStarter *starter,
                  QWidget *parent)
     : QMainWindow(parent)
@@ -56,6 +60,8 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
     , dataBaseSlabPointLoadManager(slabPointLoadsManager)
     , dataBaseSlabLineLoadsManager(slabLineLoadsManager)
     , dataBaseSurfaceLoadsManager(surfaceLoadsManager)
+    , dataBaseSlabMeshManager(slabMeshManager)
+    , dataBaseFreeFEMPreparer(freeFEMPreparer)
     , dataBaseStarter(starter)
     , xCoordinate(0)
     , zCoordinate(0)
@@ -689,8 +695,7 @@ void SlabGUI::loadLoadsLayout()
     }
 }
 
-void SlabGUI::loadMeshLayout()
-{
+void SlabGUI::loadMeshLayout() {
     // Load the UI layout from the file
     loadLayoutFromFile(":/ui/slabMesh_layout.ui");
 
@@ -742,13 +747,16 @@ void SlabGUI::loadMeshLayout()
         QHBoxLayout *hLayout = new QHBoxLayout();
 
         QLabel *label = new QLabel(QString("Line ID %1:").arg(line.id), this);
-
         hLayout->addWidget(label);
         qDebug() << "Label created and added for Line ID:" << line.id;
 
         QSlider *slider = new QSlider(Qt::Horizontal, this);
-        slider->setRange(1, 12); // Set the range of the slider (1-12)
-        slider->setValue(10);  // Set the default slider value to 10
+        slider->setRange(10, 200); // Set the range of the slider (10-200)
+
+        // Set the slider value to the previously stored value or the default (10)
+        int sliderValue = lineSliderValues.value(line.id, 10);
+        slider->setValue(sliderValue);
+
         slider->setStyleSheet(sliderStyle);  // Apply the same style to horizontal sliders
         hLayout->addWidget(slider);
         qDebug() << "Slider created and added for Line ID:" << line.id;
@@ -757,9 +765,10 @@ void SlabGUI::loadMeshLayout()
         hLayout->addWidget(valueLabel);
         qDebug() << "Value label created and added for Line ID:" << line.id;
 
-        // Connect the slider's valueChanged signal to update the value label and call the slot
+        // Connect the slider's valueChanged signal to update the value label and store the value
         connect(slider, &QSlider::valueChanged, [this, line, valueLabel](int value) {
             valueLabel->setText(QString::number(value));
+            lineSliderValues[line.id] = value;  // Store the value in the map
             handleSliderValueChanged(value, line.id);
         });
         qDebug() << "Slider valueChanged signal connected for Line ID:" << line.id;
@@ -768,8 +777,8 @@ void SlabGUI::loadMeshLayout()
         dynamicLayout->addLayout(hLayout);
         qDebug() << "Horizontal layout added to dynamic layout for Line ID:" << line.id;
 
-        // Initially add the default value (10) to meshNodesVector
-        handleSliderValueChanged(10, line.id);
+        // Optionally, call handleSliderValueChanged with the stored value
+        handleSliderValueChanged(sliderValue, line.id);
     }
 
     // Populate the dynamic layout with QLabel and QSlider for each Circular Line's id
@@ -779,13 +788,16 @@ void SlabGUI::loadMeshLayout()
         QHBoxLayout *hLayout = new QHBoxLayout();
 
         QLabel *label = new QLabel(QString("Circular Line ID %1:").arg(circularLine.id), this);
-
         hLayout->addWidget(label);
         qDebug() << "Label created and added for Circular Line ID:" << circularLine.id;
 
         QSlider *slider = new QSlider(Qt::Horizontal, this);
         slider->setRange(1, 12); // Set the range of the slider (1-12)
-        slider->setValue(10);  // Set the default slider value to 10
+
+        // Set the slider value to the previously stored value or the default (10)
+        int sliderValue = circularLineSliderValues.value(circularLine.id, 10);
+        slider->setValue(sliderValue);
+
         slider->setStyleSheet(sliderStyle);  // Apply the same style to horizontal sliders
         hLayout->addWidget(slider);
         qDebug() << "Slider created and added for Circular Line ID:" << circularLine.id;
@@ -794,9 +806,10 @@ void SlabGUI::loadMeshLayout()
         hLayout->addWidget(valueLabel);
         qDebug() << "Value label created and added for Circular Line ID:" << circularLine.id;
 
-        // Connect the slider's valueChanged signal to update the value label and call the slot
+        // Connect the slider's valueChanged signal to update the value label and store the value
         connect(slider, &QSlider::valueChanged, [this, circularLine, valueLabel](int value) {
             valueLabel->setText(QString::number(value));
+            circularLineSliderValues[circularLine.id] = value;  // Store the value in the map
             handleSliderValueChanged(value, circularLine.id);
         });
         qDebug() << "Slider valueChanged signal connected for Circular Line ID:" << circularLine.id;
@@ -805,8 +818,8 @@ void SlabGUI::loadMeshLayout()
         dynamicLayout->addLayout(hLayout);
         qDebug() << "Horizontal layout added to dynamic layout for Circular Line ID:" << circularLine.id;
 
-        // Initially add the default value (10) to meshNodesVector
-        handleSliderValueChanged(10, circularLine.id);
+        // Optionally, call handleSliderValueChanged with the stored value
+        handleSliderValueChanged(sliderValue, circularLine.id);
     }
 
     dynamicLayout->addStretch();  // Add stretch at the end for better layout
@@ -820,44 +833,94 @@ void SlabGUI::loadMeshLayout()
 }
 
 
+void SlabGUI::saveSliderValues() {
+    QSettings settings("MyCompany", "MyApp");
+
+    // Save line slider values
+    for (auto it = lineSliderValues.begin(); it != lineSliderValues.end(); ++it) {
+        settings.setValue(QString("lineSlider/%1").arg(it.key()), it.value());
+    }
+
+    // Save circular line slider values
+    for (auto it = circularLineSliderValues.begin(); it != circularLineSliderValues.end(); ++it) {
+        settings.setValue(QString("circularLineSlider/%1").arg(it.key()), it.value());
+    }
+}
+
+void SlabGUI::loadSliderValues() {
+    QSettings settings("MyCompany", "MyApp");
+
+    // Load line slider values
+    for (const auto &line : lines) {
+        int value = settings.value(QString("lineSlider/%1").arg(line.id), 10).toInt();
+        lineSliderValues[line.id] = value;
+    }
+
+    // Load circular line slider values
+    for (const auto &circularLine : circularLines) {
+        int value = settings.value(QString("circularLineSlider/%1").arg(circularLine.id), 10).toInt();
+        circularLineSliderValues[circularLine.id] = value;
+    }
+}
+
 void SlabGUI::handleSliderValueChanged(int value, int lineId)
 {
-    qDebug() << "Slider value changed for Line ID" << lineId << ": " << value;
+    qDebug() << "Slider value changed for Line ID (or Circular Line ID)" << lineId << ": " << value;
 
-    // Find the line with the given lineId
-    auto it = std::find_if(lines.begin(), lines.end(), [lineId](const Line &line) {
+    // Find the line or circular line with the given lineId
+    auto lineIt = std::find_if(lines.begin(), lines.end(), [lineId](const Line &line) {
         return line.id == lineId;
     });
 
-    // if (it != lines.end()) {
-    //     // Clear existing nodes for this lineId
-    //     meshNodesVector.erase(std::remove_if(meshNodesVector.begin(), meshNodesVector.end(),
-    //                                          [lineId](const MeshNode &node) { return node.lineId == lineId; }),
-    //                           meshNodesVector.end());
+    auto circularLineIt = std::find_if(circularLines.begin(), circularLines.end(), [lineId](const CircularLine &circularLine) {
+        return circularLine.id == lineId;
+    });
 
-    //     // Calculate the length of the line
-    //     double length = sqrt(pow(it->endX - it->startX, 2) + pow(it->endZ - it->startZ, 2));
+    if (lineIt != lines.end() || circularLineIt != circularLines.end()) {
+        // Find the existing Mesh entry in meshVector for this lineId
+        auto meshIt = std::find_if(meshVector.begin(), meshVector.end(), [lineId](const Mesh &mesh) {
+            return mesh.lineId == lineId;
+        });
 
-    //     // Avoid division by zero by checking the length and value
-    //     if (length == 0 || value <= 1) {
-    //         qWarning() << "Invalid line length or number of elements.";
-    //         return;
-    //     }
-
-    //     // Generate new nodes and store them in the vector
-    //     for (int i = 1; i < value; ++i) { // We already have start and end points
-    //         double factor = static_cast<double>(i) / value;
-    //         double newX = it->startX + factor * (it->endX - it->startX);
-    //         double newZ = it->startZ + factor * (it->endZ - it->startZ);
-    //         meshNodesVector.push_back({lineId, newX, newZ});
-    //     }
-    // } else {
-    //     qWarning() << "Line ID " << lineId << " not found!";
-    // }
+        if (meshIt != meshVector.end()) {
+            // Update the existing entry with the new number of finite elements (numberOfFE)
+            meshIt->numberOfFE = value;
+            qDebug() << "Updated Mesh entry for Line ID (or Circular Line ID)" << lineId << " with new numberOfFE: " << value;
+        } else {
+            // Add a new Mesh entry if it doesn't exist
+            meshVector.push_back({lineId, value});
+            qDebug() << "Added new Mesh entry for Line ID (or Circular Line ID)" << lineId << " with numberOfFE: " << value;
+        }
+    } else {
+        qWarning() << "Line ID (or Circular Line ID)" << lineId << " not found!";
+    }
 }
 
+
 void SlabGUI::on_showMeshButton_clicked() {}
-void SlabGUI::on_applyButton_clicked() {}
+
+void SlabGUI::on_applyButton_clicked()
+{
+    qDebug() << "Apply button clicked! Processing mesh nodes...";
+
+    // Step 1: Validate the database connection
+    if (!dataBaseSlabMeshManager) {
+        qWarning() << "Database connection is not initialized!";
+        return;
+    }
+
+    // Step 2: Clear the MESH table before populating it again
+    dataBaseSlabMeshManager->clearTable();
+
+    for (const auto &meshLine : meshVector) {
+
+        dataBaseSlabMeshManager->addObjectToDataBase(meshLine.lineId, meshLine.numberOfFE);
+    }
+
+    SlabGUI::on_refreshButton_clicked();
+}
+
+
 
 void SlabGUI::loadResultsLayout()
 {
@@ -1148,29 +1211,73 @@ void SlabGUI::on_addSurfaceButton_clicked()
 
 bool SlabGUI::isRectangleWithin(const Surface &mainSurface, int x1, int z1, int x2, int z2)
 {
-    // Fetch the main rectangle's points from the database
-    QPointF mainTopLeft = getCoordinatesFromLine(mainSurface.line1Id);   // Line1 corresponds to top-left to bottom-left
-    QPointF mainBottomRight = getCoordinatesFromLine(mainSurface.line3Id); // Line3 corresponds to bottom-right to top-right
-
-    // Ensure we are working with positive coordinate system without flipping
-    mainTopLeft.setY(-mainTopLeft.y());        // Convert to a positive coordinate system
-    mainBottomRight.setY(-mainBottomRight.y()); // Convert to a positive coordinate system
-
     // Calculate the actual top-left and bottom-right points for the new rectangle
     QPointF newTopLeft(std::min(x1, x2), std::min(z1, z2));
     QPointF newBottomRight(std::max(x1, x2), std::max(z1, z2));
 
-    // Debug output to check coordinates
-    cout << "Main Surface Top-Left: (" << mainTopLeft.x() << ", " << mainTopLeft.y() << ")" << endl;
-    cout << "Main Surface Bottom-Right: (" << mainBottomRight.x() << ", " << mainBottomRight.y() << ")" << endl;
-    cout << "New Surface Top-Left: (" << newTopLeft.x() << ", " << newTopLeft.y() << ")" << endl;
-    cout << "New Surface Bottom-Right: (" << newBottomRight.x() << ", " << newBottomRight.y() << ")" << endl;
+    // Handle different types of main surfaces
+    if (mainSurface.surfaceType == "rectangle") {
+        // Fetch the main rectangle's points from the database
+        QPointF mainTopLeft = getCoordinatesFromLine(mainSurface.line1Id);   // Line1 corresponds to top-left to bottom-left
+        QPointF mainBottomRight = getCoordinatesFromLine(mainSurface.line3Id); // Line3 corresponds to bottom-right to top-right
 
-    // Adjust the logic to compare the rectangles in the positive coordinate system
-    bool withinX = newTopLeft.x() >= mainTopLeft.x() && newBottomRight.x() <= mainBottomRight.x();
-    bool withinY = newTopLeft.y() >= mainTopLeft.y() && newBottomRight.y() <= mainBottomRight.y();
+        // Ensure we are working with a positive coordinate system without flipping
+        mainTopLeft.setY(-mainTopLeft.y());        // Convert to a positive coordinate system
+        mainBottomRight.setY(-mainBottomRight.y()); // Convert to a positive coordinate system
 
-    return withinX && withinY;
+        // Adjust the logic to compare the rectangles in the positive coordinate system
+        bool withinX = newTopLeft.x() >= mainTopLeft.x() && newBottomRight.x() <= mainBottomRight.x();
+        bool withinY = newTopLeft.y() >= mainTopLeft.y() && newBottomRight.y() <= mainBottomRight.y();
+
+        return withinX && withinY;
+
+    } else if (mainSurface.surfaceType == "triangle") {
+        // Fetch the main triangle's points from the database
+        QPointF mainP1 = getCoordinatesFromLine(mainSurface.line1Id);
+        QPointF mainP2 = getCoordinatesFromLine(mainSurface.line2Id);
+        QPointF mainP3 = getCoordinatesFromLine(mainSurface.line3Id);
+
+        mainP1.setY(-mainP1.y());
+        mainP2.setY(-mainP2.y());
+        mainP3.setY(-mainP3.y());
+
+        // Check if all four corners of the new rectangle are within the main triangle
+        QPointF newP1 = newTopLeft;
+        QPointF newP2(newTopLeft.x(), newBottomRight.y());
+        QPointF newP3(newBottomRight.x(), newBottomRight.y());
+        QPointF newP4(newBottomRight.x(), newTopLeft.y());
+
+        return isPointInTriangle(newP1, mainP1, mainP2, mainP3) &&
+               isPointInTriangle(newP2, mainP1, mainP2, mainP3) &&
+               isPointInTriangle(newP3, mainP1, mainP2, mainP3) &&
+               isPointInTriangle(newP4, mainP1, mainP2, mainP3);
+
+    } else if (mainSurface.surfaceType == "circle") {
+        // Fetch the main circle's center and radius from the database
+        QPointF mainCenter = getCoordinatesFromLine(mainSurface.circularLineId);
+        int mainRadius = getCircularLineRadius(mainSurface.circularLineId);
+
+        mainCenter.setY(-mainCenter.y());
+
+        // Check if all four corners of the new rectangle are within the main circle
+        QPointF newP1 = newTopLeft;
+        QPointF newP2(newTopLeft.x(), newBottomRight.y());
+        QPointF newP3(newBottomRight.x(), newBottomRight.y());
+        QPointF newP4(newBottomRight.x(), newTopLeft.y());
+
+        return isPointInCircle(newP1, mainCenter, mainRadius) &&
+               isPointInCircle(newP2, mainCenter, mainRadius) &&
+               isPointInCircle(newP3, mainCenter, mainRadius) &&
+               isPointInCircle(newP4, mainCenter, mainRadius);
+    }
+
+    return false; // In case the surface type is not recognized
+}
+
+bool SlabGUI::isPointInCircle(const QPointF &point, const QPointF &center, float radius)
+{
+    float distance = std::sqrt(std::pow(point.x() - center.x(), 2) + std::pow(point.y() - center.y(), 2));
+    return distance <= radius;
 }
 
 
@@ -1198,31 +1305,78 @@ QPointF SlabGUI::getCoordinatesFromLine(int lineId) {
 
 bool SlabGUI::isTriangleWithin(const Surface &mainSurface, int triX1, int triZ1, int triX2, int triZ2, int triX3, int triZ3)
 {
-    // Pobieranie punktów głównego trójkąta z bazy danych
-    QPointF mainP1 = getCoordinatesFromLine(mainSurface.line1Id);
-    QPointF mainP2 = getCoordinatesFromLine(mainSurface.line2Id);
-    QPointF mainP3 = getCoordinatesFromLine(mainSurface.line3Id);
+    if (mainSurface.surfaceType == "rectangle") {
+        // Get the bounding box of the rectangular main surface
+        QPointF mainTopLeft = getCoordinatesFromLine(mainSurface.line1Id);
+        QPointF mainBottomRight = getCoordinatesFromLine(mainSurface.line3Id);
 
-    // Dostosowanie współrzędnych osi Y (z) do poprawnego układu współrzędnych
-    mainP1.setY(-mainP1.y());
-    mainP2.setY(-mainP2.y());
-    mainP3.setY(-mainP3.y());
+        mainTopLeft.setY(-mainTopLeft.y());
+        mainBottomRight.setY(-mainBottomRight.y());
 
-    // Punkty nowego trójkąta
-    QPointF newP1(triX1, triZ1);
-    QPointF newP2(triX2, triZ2);
-    QPointF newP3(triX3, triZ3);
+        QPointF triP1(triX1, triZ1);
+        QPointF triP2(triX2, triZ2);
+        QPointF triP3(triX3, triZ3);
 
-    // Sprawdzenie, czy każdy punkt nowego trójkąta znajduje się wewnątrz głównego trójkąta
-    return isPointInTriangle(newP1, mainP1, mainP2, mainP3) &&
-           isPointInTriangle(newP2, mainP1, mainP2, mainP3) &&
-           isPointInTriangle(newP3, mainP1, mainP2, mainP3);
+        // Check if all points are within the rectangle bounds
+        bool withinP1 = (triP1.x() >= mainTopLeft.x() && triP1.x() <= mainBottomRight.x()) &&
+                        (triP1.y() >= mainTopLeft.y() && triP1.y() <= mainBottomRight.y());
+
+        bool withinP2 = (triP2.x() >= mainTopLeft.x() && triP2.x() <= mainBottomRight.x()) &&
+                        (triP2.y() >= mainTopLeft.y() && triP2.y() <= mainBottomRight.y());
+
+        bool withinP3 = (triP3.x() >= mainTopLeft.x() && triP3.x() <= mainBottomRight.x()) &&
+                        (triP3.y() >= mainTopLeft.y() && triP3.y() <= mainBottomRight.y());
+
+        return withinP1 && withinP2 && withinP3;
+
+    } else if (mainSurface.surfaceType == "circle") {
+        // Get the center and radius of the circular main surface
+        QPointF mainCenter = getCoordinatesFromLine(mainSurface.circularLineId);
+        int mainRadius = getCircularLineRadius(mainSurface.circularLineId);
+
+        mainCenter.setY(-mainCenter.y());
+
+        QPointF triP1(triX1, triZ1);
+        QPointF triP2(triX2, triZ2);
+        QPointF triP3(triX3, triZ3);
+
+        // Check if all points are within the circle bounds
+        bool withinP1 = (std::sqrt(std::pow(triP1.x() - mainCenter.x(), 2) + std::pow(triP1.y() - mainCenter.y(), 2)) <= mainRadius);
+        bool withinP2 = (std::sqrt(std::pow(triP2.x() - mainCenter.x(), 2) + std::pow(triP2.y() - mainCenter.y(), 2)) <= mainRadius);
+        bool withinP3 = (std::sqrt(std::pow(triP3.x() - mainCenter.x(), 2) + std::pow(triP3.y() - mainCenter.y(), 2)) <= mainRadius);
+
+        return withinP1 && withinP2 && withinP3;
+
+    } else if (mainSurface.surfaceType == "triangle") {
+        // Get the main triangle points
+        QPointF mainP1 = getCoordinatesFromLine(mainSurface.line1Id);
+        QPointF mainP2 = getCoordinatesFromLine(mainSurface.line2Id);
+        QPointF mainP3 = getCoordinatesFromLine(mainSurface.line3Id);
+
+        mainP1.setY(-mainP1.y());
+        mainP2.setY(-mainP2.y());
+        mainP3.setY(-mainP3.y());
+
+        QPointF newP1(triX1, triZ1);
+        QPointF newP2(triX2, triZ2);
+        QPointF newP3(triX3, triZ3);
+
+        // Use the point-in-triangle test for the triangular main surface
+        return isPointInTriangle(newP1, mainP1, mainP2, mainP3) &&
+               isPointInTriangle(newP2, mainP1, mainP2, mainP3) &&
+               isPointInTriangle(newP3, mainP1, mainP2, mainP3);
+    }
+
+    return false; // In case the surface type is not recognized
 }
+
 
 bool SlabGUI::isCircleWithin(const Surface &mainSurface, int centreX1, int centreZ1, int diameter)
 {
-    // If the main surface is not circular, handle it differently
-    if (mainSurface.surfaceType != "circle") {
+    QPointF newCenter(centreX1, centreZ1);
+    int newRadius = diameter / 2;
+
+    if (mainSurface.surfaceType == "rectangle") {
         // Treat the main surface as a rectangle and check if the circle is within it
         QPointF mainTopLeft = getCoordinatesFromLine(mainSurface.line1Id);
         QPointF mainBottomRight = getCoordinatesFromLine(mainSurface.line3Id);
@@ -1231,10 +1385,6 @@ bool SlabGUI::isCircleWithin(const Surface &mainSurface, int centreX1, int centr
         mainTopLeft.setY(-mainTopLeft.y());
         mainBottomRight.setY(-mainBottomRight.y());
 
-        // Coordinates and radius of the new circle
-        QPointF newCenter(centreX1, centreZ1);
-        int newRadius = diameter / 2;
-
         // Check if the circle is within the rectangle bounds
         bool withinX = (newCenter.x() - newRadius >= mainTopLeft.x()) &&
                        (newCenter.x() + newRadius <= mainBottomRight.x());
@@ -1242,20 +1392,56 @@ bool SlabGUI::isCircleWithin(const Surface &mainSurface, int centreX1, int centr
                        (newCenter.y() + newRadius <= mainBottomRight.y());
 
         return withinX && withinY;
+
+    } else if (mainSurface.surfaceType == "triangle") {
+        // Treat the main surface as a triangle and check if the circle is within it
+        QPointF mainP1 = getCoordinatesFromLine(mainSurface.line1Id);
+        QPointF mainP2 = getCoordinatesFromLine(mainSurface.line2Id);
+        QPointF mainP3 = getCoordinatesFromLine(mainSurface.line3Id);
+
+        mainP1.setY(-mainP1.y());
+        mainP2.setY(-mainP2.y());
+        mainP3.setY(-mainP3.y());
+
+        // For simplicity, we'll check if the circle's center is within the triangle
+        // and that the circle fits inside the triangle without intersecting its edges.
+
+        if (isPointInTriangle(newCenter, mainP1, mainP2, mainP3)) {
+            // Check if the circle's radius does not cause it to go outside the triangle
+            return isCircleWithinTriangle(mainP1, mainP2, mainP3, newCenter, newRadius);
+        }
+        return false;
+
+    } else if (mainSurface.surfaceType == "circle") {
+        // Handle the circle-within-circle check
+        QPointF mainCenter = getCoordinatesFromLine(mainSurface.circularLineId);
+        int mainRadius = getCircularLineRadius(mainSurface.circularLineId);
+
+        mainCenter.setY(-mainCenter.y());
+
+        float distance = std::sqrt(std::pow(newCenter.x() - mainCenter.x(), 2) + std::pow(newCenter.y() - mainCenter.y(), 2));
+
+        return (distance + newRadius) <= mainRadius;
     }
 
-    // If the main surface is circular, handle the circle-within-circle check
-    QPointF mainCenter = getCoordinatesFromLine(mainSurface.circularLineId);
-    int mainRadius = getCircularLineRadius(mainSurface.circularLineId);
+    return false; // In case the surface type is not recognized
+}
 
-    mainCenter.setY(-mainCenter.y());
+bool SlabGUI::isCircleWithinTriangle(const QPointF &v1, const QPointF &v2, const QPointF &v3, const QPointF &center, float radius)
+{
+    // Check if the circle fits inside the triangle by verifying the distance from the center to each side
+    // Ensure that the circle does not intersect the triangle's sides
 
-    QPointF newCenter(centreX1, centreZ1);
-    int newRadius = diameter / 2;
+    return (distanceToLine(v1, v2, center) >= radius) &&
+           (distanceToLine(v2, v3, center) >= radius) &&
+           (distanceToLine(v3, v1, center) >= radius);
+}
 
-    float distance = std::sqrt(std::pow(newCenter.x() - mainCenter.x(), 2) + std::pow(newCenter.y() - mainCenter.y(), 2));
-
-    return (distance + newRadius) <= mainRadius;
+float SlabGUI::distanceToLine(const QPointF &v1, const QPointF &v2, const QPointF &p)
+{
+    // Calculate the perpendicular distance from point p to the line defined by v1 and v2
+    return std::abs((v2.y() - v1.y()) * p.x() - (v2.x() - v1.x()) * p.y() + v2.x() * v1.y() - v2.y() * v1.x()) /
+           std::sqrt(std::pow(v2.y() - v1.y(), 2) + std::pow(v2.x() - v1.x(), 2));
 }
 
 
@@ -1819,39 +2005,12 @@ void SlabGUI::on_addSurfaceSupportButton_clicked()
     connect(dialog, &AddSurfaceSupportDialog::rejected, dialog, &AddSurfaceSupportDialog::deleteLater);
     dialog->show();
 }
-// void SlabGUI::addLineToPolygon(int lineId, QPolygonF &polygon) {
-//     if (lineId == -1) return;
 
-//     const auto &lineEntry = std::find_if(lines.begin(), lines.end(),
-//                                          [&](const Line &line) { return line.id == lineId; });
-//     if (lineEntry != lines.end()) {
-//         // Check if the polygon already contains these points to avoid duplication
-//         QPointF startPoint(lineEntry->startX, -lineEntry->startZ);
-//         QPointF endPoint(lineEntry->endX, -lineEntry->endZ);
 
-//         if (!polygon.containsPoint(startPoint, Qt::OddEvenFill)) {
-//             polygon.append(startPoint);
-//         }
-//         if (!polygon.containsPoint(endPoint, Qt::OddEvenFill)) {
-//             polygon.append(endPoint);
-//         }
-//     }
-// }
 
-// // Adds a circle to the path
-// void SlabGUI::addCircleToPath(int circularLineId, QPainterPath &path) {
-//     if (circularLineId == -1) return;
-
-//     const auto &circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
-//                                                  [&](const CircularLine &circularLine) { return circularLine.id == circularLineId; });
-
-//     if (circularLineEntry != circularLines.end()) {
-//         QPointF center(circularLineEntry->centreX, -circularLineEntry->centreZ);
-//         QRectF boundingRect(center.x() - circularLineEntry->diameter / 2,
-//                             center.y() - circularLineEntry->diameter / 2,
-//                             circularLineEntry->diameter,
-//                             circularLineEntry->diameter);
-//         path.addEllipse(boundingRect);
-//     }
-// }
-
+void SlabGUI::on_calculateButton_clicked()
+{
+    dataBaseFreeFEMPreparer->fetchAllData();
+    FreeFemExecutor executor(*dataBaseFreeFEMPreparer);
+    executor.runAnalysisAndDisplayResults();
+}

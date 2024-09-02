@@ -20,5 +20,7 @@
 #include "DataBaseSlabPointLoadManager.h"
 #include "DataBaseSlabLineLoadsManager.h"
 #include "DataBaseSurfaceLoadsManager.h"
+#include "DataBaseSlabMeshManager.h"
+#include "DataBaseFreeFEMPreparer.h"
 
 #endif // DATABASEMANAGERS_H

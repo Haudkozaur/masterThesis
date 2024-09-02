@@ -360,7 +360,31 @@ void DataBaseStarter::createSurfaceLoadsTable()
     sqlite3_close(DB);
 }
 
+void DataBaseStarter::createSlabMeshTable()
+{
+    sqlite3_open(dataBaseNameAsChar, &DB);
+    std::string queryToCreateSlabMeshTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::SLAB_MESH) +
+                                             "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                             "line_id INTEGER, "
+                                             "number_of_FE INTEGER)";
 
+    char* zErrMsg = nullptr;
+    int rc = sqlite3_exec(DB,
+                          queryToCreateSlabMeshTable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        if (zErrMsg) {
+            cout << "Error: " << zErrMsg << endl;
+            sqlite3_free(zErrMsg); // Free the error message memory
+        }
+    } else {
+        cout << "Slab Mesh Table created successfully" << endl;
+    }
+    cout << "\n";
+
+    sqlite3_close(DB);
+
+}
 }
 
 

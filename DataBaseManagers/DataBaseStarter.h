@@ -50,6 +50,7 @@ public:
 
     void createSurfaceLoadsTable();
 
+    void createSlabMeshTable();
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;
