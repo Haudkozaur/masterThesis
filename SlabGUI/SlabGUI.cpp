@@ -22,9 +22,6 @@
 #include <QSet>
 #include <QPainter>
 #include <QPointF>
-#include <QVector2D>
-#include <QVector3D>
-#include <QVector4D>
 #include "AddSurfaceDialog.h"
 #include "AddSlabSupportsDialog.h"
 #include "../GUI/AddMaterialDialog.h"
@@ -142,7 +139,7 @@ void SlabGUI::paintEvent(QPaintEvent *event)
     paintSurfaceSupports(painter);
     paintPointLoads(painter);
     paintLineLoads(painter);
-    paintSurfaceLoad(painter);
+    paintSurfaceLoads(painter);
     // Uncomment and implement the drawing functions as needed
     // if (showLines){
     //     paintLines(painter);
@@ -204,71 +201,74 @@ void SlabGUI::paintLineLoads(QPainter &painter)
             painter.drawLine(shortLine);
         }
 
-        // Draw the load label next to the line's midpoint
+        // Draw the load label next to the line's midpoint with the unit kN/m
         QPointF midPoint = (startPoint + endPoint) / 2;
-        QString label = QString::number(load.F, 'f', 2); // Format the force value
+        QString label = QString::number(load.F, 'f', 2) + " kN/m"; // Format the force value with unit
         painter.drawText(midPoint + QPointF(20, -20), label); // Adjust the offset as needed
     }
 }
 
+
 void SlabGUI::paintSurfaceLoads(QPainter &painter)
 {
-    QPen pen(Qt::red, 2); // Red pen for the rectangle outline
+    QPen pen(Qt::red, 8);
     painter.setPen(pen);
-
-    QBrush brush(Qt::NoBrush); // No brush fill for the rectangle
-    painter.setBrush(brush);
+    painter.setBrush(Qt::NoBrush);  // No brush for the rectangle itself
 
     for (const auto &load : surfaceLoads) {
-        // Extract coordinates and force value
-        int x1 = load.x1;
-        int z1 = load.z1;
-        int x2 = load.x2;
-        int z2 = load.z2;
-        double F = load.F;
+        QRectF loadRect(QPointF(load.x1, -load.z1), QPointF(load.x2, -load.z2));
+        painter.drawRect(loadRect);
 
-        // Draw the rectangle
-        QRectF rect(QPointF(x1, -z1), QPointF(x2, -z2));
-        painter.drawRect(rect);
+        int numArrowsX = 10;
+        int numArrowsZ = 10;
 
-        // Determine the direction of the arrows based on F
-        bool isUpwards = F > 0;
+        qreal arrowSpacingX = loadRect.width() / (numArrowsX + 1);
+        qreal arrowSpacingZ = loadRect.height() / (numArrowsZ + 1);
 
-        // Calculate arrow properties
-        int arrowCount = 5; // Number of arrows to draw inside the rectangle
-        double arrowSpacingX = rect.width() / (arrowCount + 1);
-        double arrowSpacingY = rect.height() / (arrowCount + 1);
-        double arrowLength = 50.0; // Length of each arrow
+        qreal arrowLength = 100;
+        qreal arrowHeadSize = 30; // Adjust arrow head size
 
-        QPen arrowPen(Qt::red, 2); // Red pen for arrows
-        painter.setPen(arrowPen);
+        // Adjust the grid to start slightly inside the rectangle
+        qreal startX = loadRect.left() + arrowSpacingX / 2;
+        qreal startZ = loadRect.top() + arrowSpacingZ / 2;
 
-        for (int i = 1; i <= arrowCount; ++i) {
-            for (int j = 1; j <= arrowCount; ++j) {
-                // Calculate the position for the arrow
-                QPointF arrowBase(rect.left() + i * arrowSpacingX, rect.top() + j * arrowSpacingY);
-                QPointF arrowTip = arrowBase + QPointF(0, isUpwards ? -arrowLength : arrowLength);
+        for (int i = 0; i <= numArrowsX; ++i) {
+            for (int j = 0; j <= numArrowsZ; ++j) {
+                qreal x = startX + i * arrowSpacingX;
+                qreal z = startZ + j * arrowSpacingZ;
 
-                // Draw the arrow shaft
-                painter.drawLine(arrowBase, arrowTip);
-
-                // Draw the arrowhead
-                QPointF leftWing = arrowTip + QPointF(-5, isUpwards ? 5 : -5);
-                QPointF rightWing = arrowTip + QPointF(5, isUpwards ? 5 : -5);
-                painter.drawLine(arrowTip, leftWing);
-                painter.drawLine(arrowTip, rightWing);
+                if (load.F < 0) {
+                    painter.drawLine(QPointF(x, z), QPointF(x, z + arrowLength));
+                    drawArrowHead(painter, QPointF(x, z + arrowLength), QPointF(x, z));
+                } else {
+                    painter.drawLine(QPointF(x, z), QPointF(x, z - arrowLength));
+                    drawArrowHead(painter, QPointF(x, z - arrowLength), QPointF(x, z));
+                }
             }
         }
 
-        // Draw the force value as a label in the center of the rectangle
-        QFont font = painter.font();
-        font.setPointSize(150); // Make the font size larger
-        painter.setFont(font);
-
-        QString label = QString::number(F, 'f', 2) + " N/m²";
-        painter.drawText(rect.center(), label);
+        // Draw labels with force value
+        QString forceText = QString::number(load.F, 'f', 2) + " kN/m²";
+        painter.drawText(QPointF(loadRect.center().x(), loadRect.center().y()), forceText);
     }
 }
+
+void SlabGUI::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end)
+{
+    QLineF line(start, end);
+    double angle = std::atan2(-line.dy(), line.dx());
+
+    double arrowSize = 60; // Adjusted arrow size (smaller)
+    QPointF arrowP1 = start + QPointF(sin(angle + M_PI / 3) * arrowSize,
+                                      cos(angle + M_PI / 3) * arrowSize);
+    QPointF arrowP2 = start + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
+                                      cos(angle + M_PI - M_PI / 3) * arrowSize);
+
+    painter.drawLine(start, arrowP1);
+    painter.drawLine(start, arrowP2);
+}
+
+
 
 
 
@@ -917,22 +917,22 @@ void SlabGUI::on_addLineLoadButton_clicked()
 void SlabGUI::on_addSurfaceLoadButton_clicked()
 {
     cout << "Add surface load clicked" << std::endl;
-    AddSlabSurfaceLoadDialog *dialog = new AddSlabSurfaceLoadDialog(this);
+    AddSurfaceLoadDialog *dialog = new AddSurfaceLoadDialog(this);
     dialog->moveToBottomLeft();
     dialog->setAttribute(Qt::WA_DeleteOnClose);
-    connect(dialog, &AddSlabSurfaceLoadDialog::accepted, this, [this, dialog]() {
+    connect(dialog, &AddSurfaceLoadDialog::accepted, this, [this, dialog]() {
         int x1 = dialog->getX1();
         int z1 = dialog->getZ1();
         int x2 = dialog->getX2();
         int z2 = dialog->getZ2();
         int force = dialog->getF();
 
-        dataBaseSlabSurfaceLoadsManager->addObjectToDataBase(x1,z1,x2,z2,force);
+        dataBaseSurfaceLoadsManager->addObjectToDataBase(x1,z1,x2,z2,force);
 
         SlabGUI::on_refreshButton_clicked();
         SlabGUI::on_addSurfaceLoadButton_clicked();
     });
-    connect(dialog, &AddSlabSurfaceLoadDialog::rejected, dialog, &AddSlabSurfaceLoadDialog::deleteLater);
+    connect(dialog, &AddSurfaceLoadDialog::rejected, dialog, &AddSurfaceLoadDialog::deleteLater);
     dialog->show();
 }
 
@@ -1552,13 +1552,11 @@ void SlabGUI::paintPointLoads(QPainter &painter)
             painter.drawLine(position, end4);
         }
 
-        // Draw the F value label next to the circle
+        // Draw the F value label next to the circle with the unit kN
         painter.setPen(textPen); // Set pen for text drawing
-        painter.drawText(position.x() + 120, position.y() - 120, QString::number(load.F, 'f', 2));
+        painter.drawText(position.x() + 120, position.y() - 120, QString::number(load.F, 'f', 2) + " kN");
     }
 }
-
-
 
 
 void SlabGUI::on_refreshButton_clicked()

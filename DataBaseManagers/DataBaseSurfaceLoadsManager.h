@@ -17,7 +17,7 @@ private:
 
     std::map<int, std::tuple<int, int, int, int, double>> surfaceLoadsMap;
 };
-
+}
 #endif // DATABASESURFACELOADSMANAGER_H
 
 

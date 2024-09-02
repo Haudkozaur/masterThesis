@@ -211,7 +211,7 @@ private:
     void paintPointLoads(QPainter &painter);
     void paintLineLoads(QPainter &painter);
     void paintSurfaceLoads(QPainter &painter);
-
+    void drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end);
 
 
     DataBasePointsManager *dataBasePointsManager;
@@ -242,6 +242,7 @@ private:
     QComboBox modelPhaseComboBox;
 
     void handleSliderValueChanged(int value, int lineId);
+
 
 };
 
