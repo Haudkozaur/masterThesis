@@ -48,6 +48,8 @@ public:
 
     void createSlabLineLoadsTable();
 
+    void createSurfaceLoadsTable();
+
     //Variables
     string dataBaseName;
     const char *dataBaseNameAsChar;

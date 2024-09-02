@@ -23,6 +23,7 @@ enum class TableType {
     SURFACE_SUPPORTS,
     SLAB_POINT_LOADS,
     SLAB_LINE_LOADS,
+    SURFACE_LOADS,
     ALL
 };
 
@@ -43,6 +44,7 @@ static map<TableType, string> tableTypesMap = {
     {TableType::SURFACE_SUPPORTS, "surface_supports"},
     {TableType::SLAB_POINT_LOADS, "slab_point_loads"},
     {TableType::SLAB_LINE_LOADS, "slab_line_loads"},
+    {TableType::SURFACE_LOADS, "surface_loads"},
     {TableType::ALL, "all tables"}
 };
 

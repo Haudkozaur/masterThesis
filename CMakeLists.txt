@@ -113,6 +113,8 @@ add_executable(masterThesis
     SlabGUI/AddSlabPointLoadDialog.h SlabGUI/AddSlabPointLoadDialog.cpp SlabGUI/AddSlabPointLoadDialog.ui
     SlabGUI/AddSlabLineLoadDialog.h SlabGUI/AddSlabLineLoadDialog.cpp SlabGUI/AddSlabLineLoadDialog.ui
     DataBaseManagers/DataBaseSlabLineLoadsManager.h DataBaseManagers/DataBaseSlabLineLoadsManager.cpp
+    DataBaseManagers/DataBaseSurfaceLoadsManager.h DataBaseManagers/DataBaseSurfaceLoadsManager.cpp
+    SlabGUI/AddSurfaceLoadDialog.h SlabGUI/AddSurfaceLoadDialog.cpp SlabGUI/AddSurfaceLoadDialog.ui
 
 
 

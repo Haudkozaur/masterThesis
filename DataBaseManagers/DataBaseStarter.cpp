@@ -319,7 +319,7 @@ void DataBaseStarter::createSlabLineLoadsTable()
     sqlite3_open(dataBaseNameAsChar, &DB);
     std::string queryToCreateSlabLineLoadsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::SLAB_LINE_LOADS) +
                                                    "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                                                   "x1 INTEGER, z1 INTEGER, x2 INTEGER, z2 INTEGER Fz REAL)";
+                                                   "x1 INTEGER, z1 INTEGER, x2 INTEGER, z2 INTEGER, Fz REAL)";
     char* zErrMsg = nullptr;
     int rc = sqlite3_exec(DB,
                           queryToCreateSlabLineLoadsTable.c_str(),
@@ -331,6 +331,29 @@ void DataBaseStarter::createSlabLineLoadsTable()
         }
     } else {
         cout << "Slab Line Loads Table created successfully" << endl;
+    }
+    cout << "\n";
+
+    sqlite3_close(DB);
+}
+
+void DataBaseStarter::createSurfaceLoadsTable()
+{
+    sqlite3_open(dataBaseNameAsChar, &DB);
+    std::string queryToCreateSurfaceLoadsTable = "CREATE TABLE IF NOT EXISTS " + tableTypesMap.at(TableType::SURFACE_LOADS) +
+                                                 "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                                 "x1 INTEGER, z1 INTEGER, x2 INTEGER, z2 INTEGER, F REAL)";
+    char* zErrMsg = nullptr;
+    int rc = sqlite3_exec(DB,
+                          queryToCreateSurfaceLoadsTable.c_str(),
+                          nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        if (zErrMsg) {
+            cout << "Error: " << zErrMsg << endl;
+            sqlite3_free(zErrMsg); // Free the error message memory
+        }
+    } else {
+        cout << "Surface Loads Table created successfully" << endl;
     }
     cout << "\n";
 

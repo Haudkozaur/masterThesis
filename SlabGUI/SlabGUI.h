@@ -34,6 +34,7 @@ public:
                      DataBaseSurfaceSupportsManager *surfaceSupportsManager,
                      DataBaseSlabPointLoadManager *slabPointLoadsManager,
                      DataBaseSlabLineLoadsManager *slabLineLoadsManager,
+                     DataBaseSurfaceLoadsManager *surfaceLoadsManager,
                      DataBaseStarter *starter,
                      QWidget *parent = nullptr);
     ~SlabGUI();
@@ -173,6 +174,16 @@ private:
         int x2;
         int z2;
         double F;
+        int id;
+    };
+    struct SurfaceLoad
+    {
+        int x1;
+        int z1;
+        int x2;
+        int z2;
+        double F;
+        int id;
     };
 
     vector<Point> points;
@@ -183,6 +194,7 @@ private:
     vector<SurfaceSupport> surfaceSupports;
     vector<PointLoad> pointLoads;
     vector<LineLoad> lineLoads;
+    vector<SurfaceLoad> surfaceLoads;
 
     QString surfaceLayoutType;
     void drawAxes(QPainter &painter);
@@ -196,7 +208,10 @@ private:
     void paintCircularLinesLabels(QPainter &painter);
     void paintLineSupports(QPainter &painter);
     void paintSurfaceSupports(QPainter &painter);
-    void PaintPointLoads(QPainter &painter);
+    void paintPointLoads(QPainter &painter);
+    void paintLineLoads(QPainter &painter);
+    void paintSurfaceLoads(QPainter &painter);
+
 
 
     DataBasePointsManager *dataBasePointsManager;
@@ -208,6 +223,7 @@ private:
     DataBaseSurfaceSupportsManager *dataBaseSurfaceSupportsManager;
     DataBaseSlabPointLoadManager *dataBaseSlabPointLoadManager;
     DataBaseSlabLineLoadsManager *dataBaseSlabLineLoadsManager;
+    DataBaseSurfaceLoadsManager *dataBaseSurfaceLoadsManager;
     DataBaseStarter *dataBaseStarter;
 
 

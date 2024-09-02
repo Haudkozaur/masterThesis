@@ -22,6 +22,9 @@
 #include <QSet>
 #include <QPainter>
 #include <QPointF>
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
 #include "AddSurfaceDialog.h"
 #include "AddSlabSupportsDialog.h"
 #include "../GUI/AddMaterialDialog.h"
@@ -29,6 +32,7 @@
 #include "AddSurfaceSupportDialog.h"
 #include "AddSlabPointLoadDialog.h"
 #include "AddSlabLineLoadDialog.h"
+#include "AddSurfaceLoadDialog.h"
 
 
 SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
@@ -40,6 +44,7 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
                  DataBaseSurfaceSupportsManager *surfaceSupportsManager,
                  DataBaseSlabPointLoadManager *slabPointLoadsManager,
                  DataBaseSlabLineLoadsManager *slabLineLoadsManager,
+                 DataBaseSurfaceLoadsManager *surfaceLoadsManager,
                  DataBaseStarter *starter,
                  QWidget *parent)
     : QMainWindow(parent)
@@ -53,6 +58,7 @@ SlabGUI::SlabGUI(DataBasePointsManager *pointsManager,
     , dataBaseSurfaceSupportsManager(surfaceSupportsManager)
     , dataBaseSlabPointLoadManager(slabPointLoadsManager)
     , dataBaseSlabLineLoadsManager(slabLineLoadsManager)
+    , dataBaseSurfaceLoadsManager(surfaceLoadsManager)
     , dataBaseStarter(starter)
     , xCoordinate(0)
     , zCoordinate(0)
@@ -134,7 +140,9 @@ void SlabGUI::paintEvent(QPaintEvent *event)
     paintSurfaces(painter);
     paintLineSupports(painter);
     paintSurfaceSupports(painter);
-    PaintPointLoads(painter);
+    paintPointLoads(painter);
+    paintLineLoads(painter);
+    paintSurfaceLoad(painter);
     // Uncomment and implement the drawing functions as needed
     // if (showLines){
     //     paintLines(painter);
@@ -159,6 +167,110 @@ void SlabGUI::paintEvent(QPaintEvent *event)
     // }
     // paintResults(painter);
 }
+
+void SlabGUI::paintLineLoads(QPainter &painter)
+{
+    QPen pen(Qt::red, 16, Qt::DashLine); // Red color, thickness 16, dashed line
+    painter.setPen(pen);
+
+    QFont font = painter.font();
+    font.setPointSize(150); // Set the font size similar to other labels
+    painter.setFont(font);
+
+    for (const auto &load : lineLoads) {
+        // Draw the main line between (x1, z1) and (x2, z2)
+        QPointF startPoint(load.x1, -load.z1);
+        QPointF endPoint(load.x2, -load.z2);
+        painter.drawLine(startPoint, endPoint);
+
+        // Calculate the direction vector of the line
+        QLineF line(startPoint, endPoint);
+        QPointF direction = (endPoint - startPoint) / line.length();
+
+        // Perpendicular direction vector for the short lines
+        QPointF perpDirection(-direction.y(), direction.x());
+
+        // Spacing of the short lines along the main line
+        double spacing = 200.0;
+
+        // Length of the perpendicular short lines
+        double shortLineLength = 100.0;
+
+        // Iterate along the line and draw short perpendicular lines
+        for (double i = 0; i <= line.length(); i += spacing) {
+            QPointF position = startPoint + i * direction;
+            QLineF shortLine(position - perpDirection * (shortLineLength / 2),
+                             position + perpDirection * (shortLineLength / 2));
+            painter.drawLine(shortLine);
+        }
+
+        // Draw the load label next to the line's midpoint
+        QPointF midPoint = (startPoint + endPoint) / 2;
+        QString label = QString::number(load.F, 'f', 2); // Format the force value
+        painter.drawText(midPoint + QPointF(20, -20), label); // Adjust the offset as needed
+    }
+}
+
+void SlabGUI::paintSurfaceLoads(QPainter &painter)
+{
+    QPen pen(Qt::red, 2); // Red pen for the rectangle outline
+    painter.setPen(pen);
+
+    QBrush brush(Qt::NoBrush); // No brush fill for the rectangle
+    painter.setBrush(brush);
+
+    for (const auto &load : surfaceLoads) {
+        // Extract coordinates and force value
+        int x1 = load.x1;
+        int z1 = load.z1;
+        int x2 = load.x2;
+        int z2 = load.z2;
+        double F = load.F;
+
+        // Draw the rectangle
+        QRectF rect(QPointF(x1, -z1), QPointF(x2, -z2));
+        painter.drawRect(rect);
+
+        // Determine the direction of the arrows based on F
+        bool isUpwards = F > 0;
+
+        // Calculate arrow properties
+        int arrowCount = 5; // Number of arrows to draw inside the rectangle
+        double arrowSpacingX = rect.width() / (arrowCount + 1);
+        double arrowSpacingY = rect.height() / (arrowCount + 1);
+        double arrowLength = 50.0; // Length of each arrow
+
+        QPen arrowPen(Qt::red, 2); // Red pen for arrows
+        painter.setPen(arrowPen);
+
+        for (int i = 1; i <= arrowCount; ++i) {
+            for (int j = 1; j <= arrowCount; ++j) {
+                // Calculate the position for the arrow
+                QPointF arrowBase(rect.left() + i * arrowSpacingX, rect.top() + j * arrowSpacingY);
+                QPointF arrowTip = arrowBase + QPointF(0, isUpwards ? -arrowLength : arrowLength);
+
+                // Draw the arrow shaft
+                painter.drawLine(arrowBase, arrowTip);
+
+                // Draw the arrowhead
+                QPointF leftWing = arrowTip + QPointF(-5, isUpwards ? 5 : -5);
+                QPointF rightWing = arrowTip + QPointF(5, isUpwards ? 5 : -5);
+                painter.drawLine(arrowTip, leftWing);
+                painter.drawLine(arrowTip, rightWing);
+            }
+        }
+
+        // Draw the force value as a label in the center of the rectangle
+        QFont font = painter.font();
+        font.setPointSize(150); // Make the font size larger
+        painter.setFont(font);
+
+        QString label = QString::number(F, 'f', 2) + " N/m²";
+        painter.drawText(rect.center(), label);
+    }
+}
+
+
 
 void SlabGUI::drawAxes(QPainter &painter)
 {
@@ -802,7 +914,28 @@ void SlabGUI::on_addLineLoadButton_clicked()
 
 }
 
-void SlabGUI::on_addSurfaceLoadButton_clicked(){}
+void SlabGUI::on_addSurfaceLoadButton_clicked()
+{
+    cout << "Add surface load clicked" << std::endl;
+    AddSlabSurfaceLoadDialog *dialog = new AddSlabSurfaceLoadDialog(this);
+    dialog->moveToBottomLeft();
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &AddSlabSurfaceLoadDialog::accepted, this, [this, dialog]() {
+        int x1 = dialog->getX1();
+        int z1 = dialog->getZ1();
+        int x2 = dialog->getX2();
+        int z2 = dialog->getZ2();
+        int force = dialog->getF();
+
+        dataBaseSlabSurfaceLoadsManager->addObjectToDataBase(x1,z1,x2,z2,force);
+
+        SlabGUI::on_refreshButton_clicked();
+        SlabGUI::on_addSurfaceLoadButton_clicked();
+    });
+    connect(dialog, &AddSlabSurfaceLoadDialog::rejected, dialog, &AddSlabSurfaceLoadDialog::deleteLater);
+    dialog->show();
+}
+
 
 //TODO - implement loads manager
 void SlabGUI::on_openLoadsManagerButton_clicked(){}
@@ -1368,7 +1501,7 @@ void SlabGUI::paintSurfaceSupports(QPainter &painter)
     }
 }
 
-void SlabGUI::PaintPointLoads(QPainter &painter)
+void SlabGUI::paintPointLoads(QPainter &painter)
 {
     QPen textPen(Qt::red); // Red color for the text
     painter.setPen(textPen);
@@ -1438,6 +1571,8 @@ void SlabGUI::on_refreshButton_clicked()
     dataBaseLineSupportsManager->iterateOverTable(); // Fetch line supports
     dataBaseSurfaceSupportsManager->iterateOverTable(); // Fetch surface supports
     dataBaseSlabPointLoadManager->iterateOverTable(); // Fetch slab point loads
+    dataBaseSlabLineLoadsManager->iterateOverTable(); // Fetch slab line loads
+    dataBaseSurfaceLoadsManager->iterateOverTable(); // Fetch surface loads
 
     // Clear existing vectors
     points.clear();
@@ -1447,6 +1582,8 @@ void SlabGUI::on_refreshButton_clicked()
     lineSupports.clear(); // Clear the lineSupports vector
     surfaceSupports.clear(); // Clear the surfaceSupports vector
     pointLoads.clear(); // Clear the pointLoads vector
+    lineLoads.clear(); // Clear the lineLoads vector
+    surfaceLoads.clear(); // Clear the surfaceLoads vector
 
     qDebug() << "Cleared vectors, starting to populate them";
 
@@ -1545,8 +1682,36 @@ void SlabGUI::on_refreshButton_clicked()
     }
     qDebug() << "Point Loads populated, size:" << pointLoads.size();
 
+    // Populate lineLoads vector
+    for (const auto &loadEntry : dataBaseSlabLineLoadsManager->getLineLoadsMap()) {
+        int loadId = loadEntry.first;
+        int x1 = std::get<0>(loadEntry.second);
+        int z1 = std::get<1>(loadEntry.second);
+        int x2 = std::get<2>(loadEntry.second);
+        int z2 = std::get<3>(loadEntry.second);
+        double Fz = std::get<4>(loadEntry.second);
+
+        lineLoads.push_back({x1, z1, x2, z2, Fz, loadId});
+    }
+    qDebug() << "Line Loads populated, size:" << lineLoads.size();
+
+    // Populate surfaceLoads vector
+    for (const auto &loadEntry : dataBaseSurfaceLoadsManager->getSurfaceLoadsMap()) {
+        int loadId = loadEntry.first;
+        int x1 = std::get<0>(loadEntry.second);
+        int z1 = std::get<1>(loadEntry.second);
+        int x2 = std::get<2>(loadEntry.second);
+        int z2 = std::get<3>(loadEntry.second);
+        double F = std::get<4>(loadEntry.second);
+
+        surfaceLoads.push_back({x1, z1, x2, z2, F, loadId});
+    }
+    qDebug() << "Surface Loads populated, size:" << surfaceLoads.size();
+
     update();
 }
+
+
 
 
 

@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
         unique_ptr<DataBaseSurfaceSupportsManager> surfaceSupportsManager;
         unique_ptr<DataBaseSlabPointLoadManager> slabPointLoadsManager;
         unique_ptr<DataBaseSlabLineLoadsManager> slabLineLoadsManager;
+        unique_ptr<DataBaseSurfaceLoadsManager> surfaceLoadsManager;
         dataBaseName = "mesosoic_slab_test";
         dataBaseName += ".db";
 
@@ -124,6 +125,7 @@ int main(int argc, char *argv[])
         dataBaseStarter->createSurfaceSupportsTable();
         dataBaseStarter->createSlabPointLoadsTable();
         dataBaseStarter->createSlabLineLoadsTable();
+        dataBaseStarter->createSurfaceLoadsTable();
 
 
         pointsManager = make_unique<DataBasePointsManager>(dataBaseName);
@@ -139,9 +141,11 @@ int main(int argc, char *argv[])
         surfaceSupportsManager = make_unique<DataBaseSurfaceSupportsManager>(dataBaseName);
         slabPointLoadsManager = make_unique<DataBaseSlabPointLoadManager>(dataBaseName);
         slabLineLoadsManager = make_unique<DataBaseSlabLineLoadsManager>(dataBaseName);
+        surfaceLoadsManager = make_unique<DataBaseSurfaceLoadsManager>(dataBaseName);
 
         ::SlabGUI mainWindow(pointsManager.get(), linesManager.get(), materialsManager.get(), surfacesManager.get(), circularLinesManager.get(),
-                             lineSupportsManager.get(),  surfaceSupportsManager.get(),slabPointLoadsManager.get(),slabLineLoadsManager.get(), dataBaseStarter.get());
+                             lineSupportsManager.get(),  surfaceSupportsManager.get(),slabPointLoadsManager.get(),slabLineLoadsManager.get(),
+                             surfaceLoadsManager.get(), dataBaseStarter.get());
         mainWindow.show();
         int result = app.exec();
         return result;

@@ -19,5 +19,6 @@
 #include "DataBaseSurfaceSupportsManager.h"
 #include "DataBaseSlabPointLoadManager.h"
 #include "DataBaseSlabLineLoadsManager.h"
+#include "DataBaseSurfaceLoadsManager.h"
 
 #endif // DATABASEMANAGERS_H
