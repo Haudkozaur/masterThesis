@@ -18,13 +18,14 @@ void FreeFemExecutor::generateFreeFemScript(const std::string &scriptPath) {
 
     // Write the FreeFEM++ script sections
     writeMaterialProperties(script);
-    writeGeometry(script);  // This includes defining points, borders, and surfaces
+    writeGeometry(script);  // This includes defining points, borders, and mesh
     writeFiniteElementSpace(script);  // Define w and v here
     writeLoads(script);  // Define loads here
     writeSolveSection(script);  // Solve and apply boundary conditions
 
     script.close();
 }
+
 
 // Define the finite element space
 void FreeFemExecutor::writeFiniteElementSpace(std::ofstream &script) {
@@ -83,13 +84,10 @@ void FreeFemExecutor::writeMaterialProperties(std::ofstream &script) {
 }
 
 // Write geometry based on points, lines, and surfaces
+// Write geometry based on points, lines, and surfaces
+// Write geometry based on points, lines, and surfaces
 void FreeFemExecutor::writeGeometry(std::ofstream &script) {
     const auto &points = dataPreparer.getPoints();
-    const auto &lines = dataPreparer.getLines();
-    const auto &mainSurface = dataPreparer.getMainSurface();
-    const auto &openings = dataPreparer.getOpenings();
-    const auto &circularLines = dataPreparer.getCircularLines();
-    const auto &meshMap = dataPreparer.getMesh();
 
     // Writing points
     script << "// Geometry: Points\n";
@@ -99,80 +97,185 @@ void FreeFemExecutor::writeGeometry(std::ofstream &script) {
     }
     script << "\n";
 
-    // Writing lines and circular lines
+    // Writing lines and circular lines (just the borders, no mesh)
+    writeMeshBorders(script);
+
+    // Now, write the mesh section directly here
     writeMesh(script);
-
-    // Writing surfaces
-    script << "// Geometry: Surfaces\n";
-    script << "mesh Th = buildmesh(\n";
-
-    // Add each line with its number of finite elements
-    for (const auto &line : lines) {
-        int lineId = line.first;
-        auto meshIt = meshMap.find(lineId);
-        int numberOfFE = (meshIt != meshMap.end()) ? std::get<1>(meshIt->second) : 20;  // Default value 20
-        script << "line" << lineId << "(" << numberOfFE << ") + ";
-    }
-
-    // Add each circular line with its number of finite elements
-    for (const auto &circularLine : circularLines) {
-        int circularLineId = circularLine.first;
-        auto meshIt = meshMap.find(circularLineId);
-        int numberOfFE = (meshIt != meshMap.end()) ? std::get<1>(meshIt->second) : 20;  // Default value 20
-        script << "circularLine" << circularLineId << "(" << numberOfFE << ") - ";
-    }
-
-    // Remove the last ' + ' or ' - '
-    script.seekp(-3, script.cur);
-    script << ");\n";
-
-    script << "\n";
 }
 
-// Write mesh generation script section
+
+// Write mesh generation script section (the logic for mesh generation only)
 void FreeFemExecutor::writeMesh(std::ofstream &script) {
     const auto &lines = dataPreparer.getLines();
     const auto &circularLines = dataPreparer.getCircularLines();
     const auto &meshMap = dataPreparer.getMesh();
+    const auto &openings = dataPreparer.getOpenings();
 
-    script << "\n// Geometry: Lines\n";
+    script << "\n// Geometry: Surfaces\n";
+    script << "mesh Th = buildmesh(\n";
+
+    bool isFirst = true;
+
+    // Adding lines to the mesh
     for (const auto &line : lines) {
-        int startPoint = std::get<0>(line.second);
-        int endPoint = std::get<1>(line.second);
         int lineId = line.first;
+        if (lineId == -1) continue; // Skip invalid lines
 
-        // Find the number of finite elements for this line from the meshMap
-        int numberOfFE = 20;  // Default value
+        int numberOfFE = 20;
         auto meshIt = meshMap.find(lineId);
         if (meshIt != meshMap.end()) {
             numberOfFE = std::get<1>(meshIt->second);
         }
 
-        // Define the border without specifying the number of elements again in buildmesh
-        script << "border line" << lineId << "(t=0, 1) { x = p" << startPoint << "x * (1-t) + p" << endPoint << "x * t; "
-               << "y = p" << startPoint << "z * (1-t) + p" << endPoint << "z * t; }(" << numberOfFE << ");\n";
+        // Check if this line is part of an opening
+        bool isOpeningLine = false;
+        for (const auto &opening : openings) {
+            if (lineId == std::get<0>(opening.second) ||
+                lineId == std::get<1>(opening.second) ||
+                lineId == std::get<2>(opening.second) ||
+                lineId == std::get<3>(opening.second)) {
+                isOpeningLine = true;
+                break;
+            }
+        }
+
+        // If it's not the first line, add a '+' between the lines
+        if (!isFirst) {
+            script << " + ";
+        }
+        isFirst = false;
+
+        // Add the line with a negative or positive FE number based on whether it's an opening
+        if (isOpeningLine) {
+            script << "line" << lineId << "(-" << numberOfFE << ")";
+        } else {
+            script << "line" << lineId << "(" << numberOfFE << ")";
+        }
     }
 
-    script << "\n// Geometry: Circular Lines\n";
+    // Adding circular lines to the mesh
     for (const auto &circularLine : circularLines) {
-        int centerX = std::get<0>(circularLine.second) / 1000.0;  // Convert from mm to m
-        int centerZ = std::get<1>(circularLine.second) / 1000.0;  // Convert from mm to m
-        int diameter = std::get<2>(circularLine.second) / 1000.0;  // Convert from mm to m
         int circularLineId = circularLine.first;
+        if (circularLineId == -1) continue; // Skip invalid circular lines
 
-        // Find the number of finite elements for this circular line
-        int numberOfFE = 20;  // Default value
+        int numberOfFE = 20;
         auto meshIt = meshMap.find(circularLineId);
         if (meshIt != meshMap.end()) {
             numberOfFE = std::get<1>(meshIt->second);
         }
 
-        script << "border circularLine" << circularLineId << "(t=0, 2*pi) { x = " << centerX << " + " << diameter / 2
-               << "*cos(t); y = " << centerZ << " + " << diameter / 2 << "*sin(t); }(" << numberOfFE << ");\n";
+        // Check if this circular line is part of an opening
+        bool isOpeningCircularLine = false;
+        for (const auto &opening : openings) {
+            if (circularLineId == std::get<4>(opening.second)) {
+                isOpeningCircularLine = true;
+                break;
+            }
+        }
+
+        // If there were previous lines, add a '+' between the lines
+        if (!isFirst) {
+            script << " + ";
+        }
+        isFirst = false;
+
+        // Add the circular line with a negative or positive FE number based on whether it's an opening
+        if (isOpeningCircularLine) {
+            script << "circularLine" << circularLineId << "(-" << numberOfFE << ")";
+        } else {
+            script << "circularLine" << circularLineId << "(" << numberOfFE << ")";
+        }
     }
 
-    script << "\n";
+    script << "\n);\n"; // Close the buildmesh command
 }
+
+
+
+// Helper method to write the borders (lines and circular lines)
+void FreeFemExecutor::writeMeshBorders(std::ofstream &script) {
+    const auto &lines = dataPreparer.getLines();
+    const auto &circularLines = dataPreparer.getCircularLines();
+    const auto &meshMap = dataPreparer.getMesh();
+    const auto &openings = dataPreparer.getOpenings();
+
+    script << "\n// Geometry: Lines\n";
+
+    // Create a vector of lines and reverse the order for the main surface
+    std::vector<std::pair<int, std::tuple<int, int, double, double>>> reversedLines(lines.begin(), lines.end());
+    std::reverse(reversedLines.begin(), reversedLines.end());
+
+    // Iterate over the reversed lines vector and write them to the script
+    for (const auto &line : reversedLines) {
+        int lineId = line.first;
+        if (lineId == -1) continue; // Skip invalid lines
+
+        int startPoint = std::get<0>(line.second);
+        int endPoint = std::get<1>(line.second);
+        int numberOfFE = 20;
+
+        auto meshIt = meshMap.find(lineId);
+        if (meshIt != meshMap.end()) {
+            numberOfFE = std::get<1>(meshIt->second);
+        }
+
+        // Check if this line is part of an opening
+        bool isOpeningLine = false;
+        for (const auto &opening : openings) {
+            if (lineId == std::get<0>(opening.second) ||
+                lineId == std::get<1>(opening.second) ||
+                lineId == std::get<2>(opening.second) ||
+                lineId == std::get<3>(opening.second)) {
+                isOpeningLine = true;
+                break;
+            }
+        }
+
+        if (isOpeningLine) {
+            script << "border line" << lineId << "(t=0, 1) { x = p" << endPoint << "x * (1-t) + p" << startPoint << "x * t; "
+                   << "y = p" << endPoint << "z * (1-t) + p" << startPoint << "z * t; }(-" << numberOfFE << ");\n";
+        } else {
+            script << "border line" << lineId << "(t=0, 1) { x = p" << endPoint << "x * (1-t) + p" << startPoint << "x * t; "
+                   << "y = p" << endPoint << "z * (1-t) + p" << startPoint << "z * t; }(" << numberOfFE << ");\n";
+        }
+    }
+
+    script << "\n// Geometry: Circular Lines\n";
+
+    for (const auto &circularLine : circularLines) {
+        int circularLineId = circularLine.first;
+        if (circularLineId == -1) continue; // Skip invalid circular lines
+
+        int centerX = std::get<0>(circularLine.second) / 1000.0;
+        int centerZ = std::get<1>(circularLine.second) / 1000.0;
+        int diameter = std::get<2>(circularLine.second) / 1000.0;
+        int numberOfFE = 20;
+
+        auto meshIt = meshMap.find(circularLineId);
+        if (meshIt != meshMap.end()) {
+            numberOfFE = std::get<1>(meshIt->second);
+        }
+
+        // Check if this circular line is part of an opening
+        bool isOpeningCircularLine = false;
+        for (const auto &opening : openings) {
+            if (circularLineId == std::get<4>(opening.second)) {
+                isOpeningCircularLine = true;
+                break;
+            }
+        }
+
+        if (isOpeningCircularLine) {
+            script << "border circularLine" << circularLineId << "(t=0, 2*pi) { x = " << centerX << " + " << diameter / 2
+                   << "*cos(t); y = " << centerZ << " + " << diameter / 2 << "*sin(t); }(-" << numberOfFE << ");\n";
+        } else {
+            script << "border circularLine" << circularLineId << "(t=0, 2*pi) { x = " << centerX << " + " << diameter / 2
+                   << "*cos(t); y = " << centerZ << " + " << diameter / 2 << "*sin(t); }(" << numberOfFE << ");\n";
+        }
+    }
+}
+
 
 // Write loads script section
 void FreeFemExecutor::writeLoads(std::ofstream &script) {

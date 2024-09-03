@@ -2149,7 +2149,7 @@ void Gui::on_calculateButton_clicked()
         }
 
     }
-    prepareResults();  // Apply sign inversion if needed
+    prepareResults();
 }
 
 

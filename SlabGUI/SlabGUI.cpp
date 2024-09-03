@@ -792,7 +792,7 @@ void SlabGUI::loadMeshLayout() {
         qDebug() << "Label created and added for Circular Line ID:" << circularLine.id;
 
         QSlider *slider = new QSlider(Qt::Horizontal, this);
-        slider->setRange(1, 12); // Set the range of the slider (1-12)
+        slider->setRange(10, 200); // Set the range of the slider (1-12)
 
         // Set the slider value to the previously stored value or the default (10)
         int sliderValue = circularLineSliderValues.value(circularLine.id, 10);
@@ -2012,5 +2012,7 @@ void SlabGUI::on_calculateButton_clicked()
 {
     dataBaseFreeFEMPreparer->fetchAllData();
     FreeFemExecutor executor(*dataBaseFreeFEMPreparer);
+    //executor.displayMeshedGeometry();
     executor.runAnalysisAndDisplayResults();
+
 }

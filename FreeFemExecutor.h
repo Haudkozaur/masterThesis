@@ -26,4 +26,5 @@ private:
     void writeMesh(std::ofstream &script);
     void writeSolveSection(std::ofstream &script);
     void writeFiniteElementSpace(std::ofstream &script);
+    void writeMeshBorders(std::ofstream &script);
 };
