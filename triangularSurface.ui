@@ -18,8 +18,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>202</width>
-     <height>141</height>
+     <width>205</width>
+     <height>161</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -28,7 +28,14 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Enter the coordinates of the corners:</string>
+         <string>Enter the coordinates of the corners in</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>counter clockwise order:</string>
         </property>
        </widget>
       </item>

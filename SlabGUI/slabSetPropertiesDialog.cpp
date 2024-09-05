@@ -16,8 +16,8 @@ slabSetPropertiesDialog::slabSetPropertiesDialog(QWidget *parent)
             this,
             &slabSetPropertiesDialog::onMaterialIndexChanged);
 
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    // connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    // connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 void slabSetPropertiesDialog::onMaterialChanged(const QString &materialName)

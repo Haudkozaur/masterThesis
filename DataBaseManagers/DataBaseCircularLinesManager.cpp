@@ -7,22 +7,34 @@ DataBaseCircularLinesManager::DataBaseCircularLinesManager(const string &dateBas
 
 void DataBaseCircularLinesManager::addObjectToDataBase(int centreX, int centreZ, int diameter)
 {
-    //  get the last ID from the lines table
+    // Get the last ID from the lines table
     std::string querySelectLastLineId = "SELECT MAX(id) FROM " + tableTypesMap.at(TableType::LINES) + ";";
-    std::vector<std::vector<std::string>> results = executeQuery(querySelectLastLineId);
+    std::vector<std::vector<std::string>> resultsLines = executeQuery(querySelectLastLineId);
 
     int lastLinesId = 0;
-    if (!results.empty() && !results[0].empty()) {
-        lastLinesId = results[0][0].empty() ? 0 : std::stoi(results[0][0]);
+    if (!resultsLines.empty() && !resultsLines[0].empty()) {
+        lastLinesId = resultsLines[0][0].empty() ? 0 : std::stoi(resultsLines[0][0]);
     }
 
-    // Now, insert the circular line with the ID as lastLinesId + 1
-    int newCircularLineId = lastLinesId + 1;
+    // Get the last ID from the circular_lines table
+    std::string querySelectLastCircularLineId = "SELECT MAX(id) FROM " + tableTypesMap.at(TableType::CIRCULAR_LINES) + ";";
+    std::vector<std::vector<std::string>> resultsCircularLines = executeQuery(querySelectLastCircularLineId);
+
+    int lastCircularLinesId = 0;
+    if (!resultsCircularLines.empty() && !resultsCircularLines[0].empty()) {
+        lastCircularLinesId = resultsCircularLines[0][0].empty() ? 0 : std::stoi(resultsCircularLines[0][0]);
+    }
+
+    // Get the maximum of the two IDs to ensure unique IDs across both tables
+    int newId = std::max(lastLinesId, lastCircularLinesId) + 1;
+
+    // Insert the new circular line with the new unique ID
     std::string queryInsertCircularLine = "INSERT INTO " + tableTypesMap.at(TableType::CIRCULAR_LINES) +
-                                          " (id, centre_x, centre_z, diameter) VALUES ('" + std::to_string(newCircularLineId) + "', '" +
+                                          " (id, centre_x, centre_z, diameter) VALUES ('" + std::to_string(newId) + "', '" +
                                           std::to_string(centreX) + "', '" + std::to_string(centreZ) + "', '" + std::to_string(diameter) + "');";
     executeAndCheckIfSQLOk(queryInsertCircularLine, TableType::CIRCULAR_LINES);
 }
+
 
 
 void DataBaseCircularLinesManager::deleteObjectFromDataBase()

@@ -20,7 +20,11 @@ void FreeFemExecutor::generateFreeFemScript(const std::string &scriptPath) {
     writeMaterialProperties(script);
     writeGeometry(script);  // This includes defining points, borders, and mesh
     writeFiniteElementSpace(script);  // Define w and v here
-    writeLoads(script);  // Define loads here
+    //writeLoads(script);  // Define loads here
+    defineLineLoads(script);
+    defineSurfaceLoads(script);
+    definePointLoads(script);
+    defineSurfaceSupports(script);
     writeSolveSection(script);  // Solve and apply boundary conditions
 
     script.close();
@@ -34,23 +38,169 @@ void FreeFemExecutor::writeFiniteElementSpace(std::ofstream &script) {
     script << "Vh w, v; // w is the displacement in the z direction, v is the test function\n\n";
 }
 
-// Solve section, integrating boundary conditions dynamically
+
+// Definiowanie zmiennych dla sił punktowych przed solve
+// Definiowanie zmiennych dla sił punktowych przed solve
+// Definiowanie zmiennych dla sił punktowych i ich współrzędnych przed solve
+void FreeFemExecutor::definePointLoads(std::ofstream &script) {
+    const auto &pointLoads = dataPreparer.getSlabPointLoads();
+    int pointLoadIndex = 1;  // Number each point load
+
+    script << "// Point Loads\n";
+    for (const auto &load : pointLoads) {
+        double x1 = std::get<0>(load.second) / 1000.0;  // Convert mm to meters
+        double z1 = std::get<1>(load.second) / 1000.0;  // Convert mm to meters
+        double Fz = std::get<2>(load.second) * 1000.0;  // Convert kN to N
+
+        // Define point load variables and mask for small area
+        script << "real qPoint" << pointLoadIndex << " = " << Fz << ";\n";
+        script << "real xLoad" << pointLoadIndex << " = " << x1 << ";\n";
+        script << "real yLoad" << pointLoadIndex << " = " << z1 << ";\n";
+
+        // Define the load mask
+        script << "func pointLoadMask" << pointLoadIndex << " = (abs(x - xLoad" << pointLoadIndex << ") < h/2) * (abs(y - yLoad" << pointLoadIndex << ") < h/2);\n";
+        // Convert point load into equivalent surface load
+        script << "real surfaceLoad" << pointLoadIndex << " = qPoint" << pointLoadIndex << " / ((h/2) * (h/2));\n";
+
+        pointLoadIndex++;
+    }
+}
+
+void FreeFemExecutor::applyPointLoads(std::ofstream &script) {
+    const auto &pointLoads = dataPreparer.getSlabPointLoads();
+    int pointLoadIndex = 1;  // Number each point load
+
+    for (const auto &load : pointLoads) {
+        // Apply the surface load equivalent to the point load
+        script << "    - int2d(Th)((surfaceLoad" << pointLoadIndex << " * v) * pointLoadMask" << pointLoadIndex << ")\n";
+        pointLoadIndex++;
+    }
+}
+void FreeFemExecutor::defineLineLoads(std::ofstream &script) {
+    const auto &lineLoads = dataPreparer.getSlabLineLoads();
+    int lineLoadIndex = 1;  // Number each line load
+
+    script << "// Line Loads\n";
+    for (const auto &load : lineLoads) {
+        double x1 = std::get<0>(load.second) / 1000.0;  // Convert mm to meters
+        double z1 = std::get<1>(load.second) / 1000.0;  // Convert mm to meters
+        double x2 = std::get<2>(load.second) / 1000.0;  // Convert mm to meters
+        double z2 = std::get<3>(load.second) / 1000.0;  // Convert mm to meters
+        double Fz = std::get<4>(load.second) * 1000.0;  // Force in N/m
+
+        // Define line load variables and the load mask for inclined lines
+        script << "real qLine" << lineLoadIndex << " = " << Fz << " / (h / 2);\n";  // Convert to N/m²
+
+        // Calculate the length of the inclined line
+        script << "real length" << lineLoadIndex << " = sqrt((" << x2 << " - " << x1
+               << ")^2 + (" << z2 << " - " << z1 << ")^2);\n";
+
+        // Define the mask for the inclined line load
+        script << "func lineLoadMask" << lineLoadIndex << " = (abs((" << z2 << " - " << z1
+               << ") * x - (" << x2 << " - " << x1
+               << ") * y + " << x2 << " * " << z1
+               << " - " << z2 << " * " << x1
+               << ") / length" << lineLoadIndex << " < h / 2);\n";
+
+        lineLoadIndex++;
+    }
+}
+
+
+void FreeFemExecutor::applyLineLoads(std::ofstream &script) {
+    const auto &lineLoads = dataPreparer.getSlabLineLoads();
+    int lineLoadIndex = 1;  // Number each line load
+
+    for (const auto &load : lineLoads) {
+        // Apply the line load as a surface load over a narrow band
+        script << "    - int2d(Th)((qLine" << lineLoadIndex << " * v) * lineLoadMask" << lineLoadIndex << ")\n";
+        lineLoadIndex++;
+    }
+}
+
+
+
+// Główna metoda writeSolveSection, gdzie najpierw definiujemy, a potem aplikujemy siły punktowe
+// Define the penalty value and surface support regions
+void FreeFemExecutor::defineSurfaceSupports(std::ofstream &script) {
+    const auto &surfaceSupports = dataPreparer.getSurfaceSupports();
+    script << "// Surface Supports\n";
+
+    // Set a large penalty value to enforce boundary conditions
+    script << "real penalty = 1e20;\n";
+
+    int supportIndex = 1;
+    for (const auto &support : surfaceSupports) {
+        double x1 = std::get<0>(support.second) / 1000.0;  // Convert mm to meters
+        double z1 = std::get<1>(support.second) / 1000.0;
+        double x2 = std::get<2>(support.second) / 1000.0;
+        double z2 = std::get<3>(support.second) / 1000.0;
+
+        // Define characteristic function for the supported area
+        script << "func supportMask" << supportIndex << " = (x >= " << x1 << " && x <= " << x2
+               << ") * (y >= " << z1 << " && y <= " << z2 << ");\n";
+        supportIndex++;
+    }
+}
+
+// Apply the penalty for surface supports in the solve section
+void FreeFemExecutor::applySurfaceSupports(std::ofstream &script) {
+    const auto &surfaceSupports = dataPreparer.getSurfaceSupports();
+
+    int supportIndex = 1;
+    for (const auto &support : surfaceSupports) {
+        // Apply the penalty over the supported areas
+        script << "    + int2d(Th)(penalty * supportMask" << supportIndex << " * w * v)\n";
+        supportIndex++;
+    }
+}
+
+// Update the solve section to include surface supports
 void FreeFemExecutor::writeSolveSection(std::ofstream &script) {
     const auto &lineSupports = dataPreparer.getLineSupports();
+    const auto &surfaceLoads = dataPreparer.getSurfaceLoads();
+
+    // Define variables for line, surface, point loads, and surface supports
+
 
     script << "\n// Solve the problem\n";
     script << "solve plate(w, v) = int2d(Th)(D * (dx(w) * dx(v) + dy(w) * dy(v)))\n";
-    script << "    - int2d(Th)(surfaceLoadMask * qSurface * v)\n";
 
-    // Dynamically add boundary conditions based on lineSupports map
+    // Apply line loads
+    applyLineLoads(script);
+
+    // Apply surface loads
+    if (!surfaceLoads.empty()) {
+        applySurfaceLoads(script);
+    }
+
+    // Apply point loads
+    applyPointLoads(script);
+
+    // Apply surface supports
+    applySurfaceSupports(script);
+
+    // Apply boundary conditions for both line and circular line supports
     for (const auto &support : lineSupports) {
-        int lineId = std::get<0>(support.second);
-        script << "    + on(line" << lineId << ", w = 0)\n";
+        int lineId = std::get<0>(support.second);  // Line ID
+        int circularLineId = std::get<1>(support.second);  // Circular Line ID
+
+        // Apply condition on line supports
+        if (lineId != -1) {
+            script << "    + on(line" << lineId << ", w = 0)\n";
+        }
+
+        // Apply condition on circular line supports
+        if (circularLineId != -1) {
+            script << "    + on(circularLine" << circularLineId << ", w = 0)\n";
+        }
     }
 
     script << ";\n";
     script << "plot(w, wait = 1, fill = 1, value = 1, cmm = \"Deflection of the slab\", nbiso = 10);\n";
 }
+
+
 
 // Write material properties
 void FreeFemExecutor::writeMaterialProperties(std::ofstream &script) {
@@ -106,6 +256,7 @@ void FreeFemExecutor::writeGeometry(std::ofstream &script) {
 
 
 // Write mesh generation script section (the logic for mesh generation only)
+// Write mesh generation script section (the logic for mesh generation only)
 void FreeFemExecutor::writeMesh(std::ofstream &script) {
     const auto &lines = dataPreparer.getLines();
     const auto &circularLines = dataPreparer.getCircularLines();
@@ -123,9 +274,12 @@ void FreeFemExecutor::writeMesh(std::ofstream &script) {
         if (lineId == -1) continue; // Skip invalid lines
 
         int numberOfFE = 20;
-        auto meshIt = meshMap.find(lineId);
-        if (meshIt != meshMap.end()) {
-            numberOfFE = std::get<1>(meshIt->second);
+        // Search for lineId in meshMap (manual iteration)
+        for (const auto& meshEntry : meshMap) {
+            if (std::get<0>(meshEntry.second) == lineId) {
+                numberOfFE = std::get<1>(meshEntry.second);
+                break;
+            }
         }
 
         // Check if this line is part of an opening
@@ -160,9 +314,12 @@ void FreeFemExecutor::writeMesh(std::ofstream &script) {
         if (circularLineId == -1) continue; // Skip invalid circular lines
 
         int numberOfFE = 20;
-        auto meshIt = meshMap.find(circularLineId);
-        if (meshIt != meshMap.end()) {
-            numberOfFE = std::get<1>(meshIt->second);
+        // Search for circularLineId in meshMap (manual iteration)
+        for (const auto& meshEntry : meshMap) {
+            if (std::get<0>(meshEntry.second) == circularLineId) {
+                numberOfFE = std::get<1>(meshEntry.second);
+                break;
+            }
         }
 
         // Check if this circular line is part of an opening
@@ -192,7 +349,6 @@ void FreeFemExecutor::writeMesh(std::ofstream &script) {
 }
 
 
-
 // Helper method to write the borders (lines and circular lines)
 void FreeFemExecutor::writeMeshBorders(std::ofstream &script) {
     const auto &lines = dataPreparer.getLines();
@@ -215,9 +371,12 @@ void FreeFemExecutor::writeMeshBorders(std::ofstream &script) {
         int endPoint = std::get<1>(line.second);
         int numberOfFE = 20;
 
-        auto meshIt = meshMap.find(lineId);
-        if (meshIt != meshMap.end()) {
-            numberOfFE = std::get<1>(meshIt->second);
+        // Search for lineId in meshMap (manual iteration)
+        for (const auto& meshEntry : meshMap) {
+            if (std::get<0>(meshEntry.second) == lineId) {
+                numberOfFE = std::get<1>(meshEntry.second);
+                break;
+            }
         }
 
         // Check if this line is part of an opening
@@ -247,14 +406,17 @@ void FreeFemExecutor::writeMeshBorders(std::ofstream &script) {
         int circularLineId = circularLine.first;
         if (circularLineId == -1) continue; // Skip invalid circular lines
 
-        int centerX = std::get<0>(circularLine.second) / 1000.0;
-        int centerZ = std::get<1>(circularLine.second) / 1000.0;
-        int diameter = std::get<2>(circularLine.second) / 1000.0;
+        double centerX = std::get<0>(circularLine.second) / 1000.0;
+        double centerZ = std::get<1>(circularLine.second) / 1000.0;
+        double diameter = std::get<2>(circularLine.second) / 1000.0;
         int numberOfFE = 20;
 
-        auto meshIt = meshMap.find(circularLineId);
-        if (meshIt != meshMap.end()) {
-            numberOfFE = std::get<1>(meshIt->second);
+        // Search for circularLineId in meshMap (manual iteration)
+        for (const auto& meshEntry : meshMap) {
+            if (std::get<0>(meshEntry.second) == circularLineId) {
+                numberOfFE = std::get<1>(meshEntry.second);
+                break;
+            }
         }
 
         // Check if this circular line is part of an opening
@@ -277,20 +439,35 @@ void FreeFemExecutor::writeMeshBorders(std::ofstream &script) {
 }
 
 
-// Write loads script section
-void FreeFemExecutor::writeLoads(std::ofstream &script) {
-    const auto &surfaceLoads = dataPreparer.getSurfaceLoads();
 
-    script << "// Loads\n";
+// Write loads script section
+void FreeFemExecutor::defineSurfaceLoads(std::ofstream &script) {
+    const auto &surfaceLoads = dataPreparer.getSurfaceLoads();
+    int surfaceLoadIndex = 1;  // Numbering each surface load
+
+    script << "// Surface Loads\n";
+    for (const auto &load : surfaceLoads) {
+        double x1 = std::get<0>(load.second) / 1000.0;  // Convert mm to meters
+        double z1 = std::get<1>(load.second) / 1000.0;  // Convert mm to meters
+        double x2 = std::get<2>(load.second) / 1000.0;  // Convert mm to meters
+        double z2 = std::get<3>(load.second) / 1000.0;  // Convert mm to meters
+        double F = std::get<4>(load.second);  // Force value
+
+        // Define variables for each surface load
+        script << "real qSurface" << surfaceLoadIndex << " = " << F << ";\n";
+        script << "func surfaceLoadMask" << surfaceLoadIndex << " = (x >= " << x1 << " && x <= " << x2 << " && y >= " << z1 << " && y <= " << z2 << ");\n";
+        surfaceLoadIndex++;
+    }
+}
+
+void FreeFemExecutor::applySurfaceLoads(std::ofstream &script) {
+    const auto &surfaceLoads = dataPreparer.getSurfaceLoads();
+    int surfaceLoadIndex = 1;  // Numbering each surface load
 
     for (const auto &load : surfaceLoads) {
-        int x1 = std::get<0>(load.second) / 1000.0;  // Convert from mm to m
-        int z1 = std::get<1>(load.second) / 1000.0;  // Convert from mm to m
-        int x2 = std::get<2>(load.second) / 1000.0;  // Convert from mm to m
-        int z2 = std::get<3>(load.second) / 1000.0;  // Convert from mm to m
-        double F = std::get<4>(load.second);
-        script << "real qSurface = " << F << ";\n";
-        script << "func surfaceLoadMask = (x >= " << x1 << " && x <= " << x2 << " && y >= " << z1 << " && y <= " << z2 << ");\n";
+        // Apply each surface load with its mask
+        script << "    - int2d(Th)(surfaceLoadMask" << surfaceLoadIndex << " * qSurface" << surfaceLoadIndex << " * v)\n";
+        surfaceLoadIndex++;
     }
 }
 

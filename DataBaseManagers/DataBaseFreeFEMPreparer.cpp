@@ -10,16 +10,27 @@ DataBaseFreeFEMPreparer::DataBaseFreeFEMPreparer(const std::string &dataBaseName
 
 void DataBaseFreeFEMPreparer::fetchAllData() {
     fetchPoints();
+    cout << "Points fetched" << endl;
     fetchLines();
+    cout << "Lines fetched" << endl;
     fetchSurfaces();
+    cout << "Surfaces fetched" << endl;
     fetchCircularLines();
+    cout << "CircularLines fetched" << endl;
     fetchMaterials();
+    cout << "Materials fetched" << endl;
     fetchLineSupports();
+    cout << "line supports fetched" << endl;
     fetchSurfaceSupports();
+    cout << "SurfaceSupports fetched" << endl;
     fetchSlabPointLoads();
+    cout << "SlabPointLoads fetched" << endl;
     fetchSlabLineLoads();
+    cout << "SlabLineLoads fetched" << endl;
     fetchSurfaceLoads();
+    cout << "SurfaceLoads fetched" << endl;
     fetchMesh();
+    cout << "Mesh fetched" << endl;
 }
 
 void DataBaseFreeFEMPreparer::fetchPoints() {
@@ -81,12 +92,14 @@ void DataBaseFreeFEMPreparer::fetchSurfaces() {
             }
         }
     }
+
 }
 
 
 
 
 void DataBaseFreeFEMPreparer::fetchCircularLines() {
+
     std::string querySelectAllCircularLines = "SELECT id, centre_x, centre_z, diameter FROM circular_lines";
     std::vector<std::vector<std::string>> results = executeQuery(querySelectAllCircularLines);
 
@@ -127,7 +140,7 @@ void DataBaseFreeFEMPreparer::fetchLineSupports() {
     for (const auto &row : results) {
         if (row.size() == 3) {
             int id = std::stoi(row[0]);
-            int lineId = std::stoi(row[1]);
+            int lineId = row[1].empty() ? -1 : std::stoi(row[1]);
             int circularLineId = row[2].empty() ? -1 : std::stoi(row[2]);
             lineSupportsMap[id] = std::make_tuple(lineId, circularLineId);
         }
@@ -197,9 +210,25 @@ void DataBaseFreeFEMPreparer::fetchSurfaceLoads() {
             int z1 = std::stoi(row[2]);
             int x2 = std::stoi(row[3]);
             int z2 = std::stoi(row[4]);
-            double F = std::stod(row[5]);
+            double F = std::stod(row[5]) * 1000;  // Convert force to correct units
+
             surfaceLoadsMap[id] = std::make_tuple(x1, z1, x2, z2, F);
         }
+    }
+
+    // Print the content of the surfaceLoadsMap for debugging
+    std::cout << "Surface Loads Map Content:" << std::endl;
+    for (const auto &entry : surfaceLoadsMap) {
+        int id = entry.first;
+        int x1 = std::get<0>(entry.second);
+        int z1 = std::get<1>(entry.second);
+        int x2 = std::get<2>(entry.second);
+        int z2 = std::get<3>(entry.second);
+        double F = std::get<4>(entry.second);
+
+        std::cout << "ID: " << id << ", x1: " << x1 << ", z1: " << z1
+                  << ", x2: " << x2 << ", z2: " << z2
+                  << ", F: " << F << std::endl;
     }
 }
 

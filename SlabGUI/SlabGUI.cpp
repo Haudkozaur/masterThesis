@@ -1166,8 +1166,6 @@ void SlabGUI::on_addSurfaceButton_clicked()
             std::cout << "Circular surface added." << std::endl;
 
         } else if (selectedType == "Triangle") {
-            std::cout << "Adding a triangle." << std::endl;
-
             dataBasePointsManager->addObjectToDataBase(triX1, triZ1);
             int id1 = dataBasePointsManager->getLastInsertedRowID();
             std::cout << "Point 1 ID: " << id1 << std::endl;
@@ -1176,9 +1174,11 @@ void SlabGUI::on_addSurfaceButton_clicked()
             int id2 = dataBasePointsManager->getLastInsertedRowID();
             std::cout << "Point 2 ID: " << id2 << std::endl;
 
+            std::cout << "Adding a triangle." << std::endl;
             dataBasePointsManager->addObjectToDataBase(triX3, triZ3);
             int id3 = dataBasePointsManager->getLastInsertedRowID();
             std::cout << "Point 3 ID: " << id3 << std::endl;
+
 
             dataBaseLinesManager->addObjectToDataBaseConsideringCircularLines(id1, id2);
             int line1 = dataBaseLinesManager->getLastInsertedRowID();
@@ -1916,14 +1916,26 @@ void SlabGUI::on_clearButton_clicked()
             dataBaseLinesManager->dropTable(TableType::LINES);
             dataBaseSurfacesManager->dropTable(TableType::SURFACES);
             dataBaseCircularLinesManager->dropTable(TableType::CIRCULAR_LINES);
+            dataBaseLineSupportsManager->dropTable(TableType::LINE_SUPPORTS);
+            dataBaseSurfaceSupportsManager->dropTable(TableType::SURFACE_SUPPORTS);
+            dataBaseSlabLineLoadsManager->dropTable(TableType::SLAB_LINE_LOADS);
+            dataBaseSlabPointLoadManager->dropTable(TableType::SLAB_POINT_LOADS);
+            dataBaseSurfaceLoadsManager->dropTable(TableType::SURFACE_LOADS);
+            dataBaseSlabMeshManager->dropTable(TableType::SLAB_MESH);
             // dataBaseMaterialsManager->dropTable(TableType::MATERIALS);
 
 
-
-            dataBaseStarter->createPointsTable();
-            dataBaseStarter->createLinesTable();
             dataBaseStarter->createSurfacesTable();
+            dataBaseStarter->createLineSupportsTable();
+            dataBaseStarter->createLinesTable();
+            dataBaseStarter->createPointsTable();
+            dataBaseStarter->createSlabMeshTable();
             dataBaseStarter->createCircularLinesTable();
+            dataBaseStarter->createSurfaceSupportsTable();
+            dataBaseStarter->createSlabLineLoadsTable();
+            dataBaseStarter->createSlabPointLoadsTable();
+            dataBaseStarter->createSurfaceLoadsTable();
+
 
 
             // Refresh the UI to reflect changes

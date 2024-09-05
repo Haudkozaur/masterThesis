@@ -1830,7 +1830,7 @@ void Gui::paintResults(QPainter &painter) {
                 QPointF endPoint = QPointF(endX, -endZ);
                 myEndPointsMap[result.lineId].append(endPoint);
 
-                painter.setPen(QPen(Qt::green, 16));
+                painter.setPen(QPen(Qt::darkGreen, 16));
                 painter.drawLine(QPointF(resultPoint.x(), -resultPoint.y()), endPoint);
 
                 // Always consider small values as 0 when determining the minimum
@@ -1939,7 +1939,7 @@ void Gui::paintResults(QPainter &painter) {
     };
 
     // Draw connecting lines for My, Vz, Nx with their respective colors
-    drawConnectingLines(myEndPointsMap, Qt::green);
+    drawConnectingLines(myEndPointsMap, Qt::darkGreen);
     drawConnectingLines(vzEndPointsMap, Qt::red);
     drawConnectingLines(nxEndPointsMap, Qt::blue);
 
@@ -1969,10 +1969,10 @@ void Gui::paintResults(QPainter &painter) {
     };
 
     for (auto it = maxMyPosMap.begin(); it != maxMyPosMap.end(); ++it) {
-        drawLabelIfSignificant(it.value(), maxMyMap[it.key()], Qt::green, true);
+        drawLabelIfSignificant(it.value(), maxMyMap[it.key()], Qt::darkGreen, true);
     }
     for (auto it = minMyPosMap.begin(); it != minMyPosMap.end(); ++it) {
-        drawLabelIfSignificant(it.value(), minMyMap[it.key()], Qt::green, true);
+        drawLabelIfSignificant(it.value(), minMyMap[it.key()], Qt::darkGreen, true);
     }
 
     for (auto it = maxVzPosMap.begin(); it != maxVzPosMap.end(); ++it) {
