@@ -207,57 +207,68 @@ void SlabGUI::paintLineLoads(QPainter &painter)
             painter.drawLine(shortLine);
         }
 
-        // Draw the load label next to the line's midpoint with the unit kN/m
+        // Draw the load label next to the line's midpoint with the unit kN/m and LL[id] format
         QPointF midPoint = (startPoint + endPoint) / 2;
-        QString label = QString::number(load.F, 'f', 2) + " kN/m"; // Format the force value with unit
-        painter.drawText(midPoint + QPointF(20, -20), label); // Adjust the offset as needed
+        QString label = QString("LL%1 %2 kN/m").arg(load.id).arg(load.F, 0, 'f', 2); // Format "LL[id] F kN/m"
+        painter.drawText(midPoint + QPointF(80, -20), label); // Adjust the offset as needed
     }
 }
 
 
 void SlabGUI::paintSurfaceLoads(QPainter &painter)
 {
-    QPen pen(Qt::red, 8);
+    QPen pen(Qt::red, 8);  // Czerwony kolor dla linii i strzałek
     painter.setPen(pen);
-    painter.setBrush(Qt::NoBrush);  // No brush for the rectangle itself
+    painter.setBrush(Qt::NoBrush);  // Brak wypełnienia dla prostokątów
+
+    QFont font = painter.font();
+    font.setPointSize(150);  // Ustawienie rozmiaru czcionki dla tekstu
+    painter.setFont(font);
 
     for (const auto &load : surfaceLoads) {
+        // Rysowanie prostokąta reprezentującego obciążenie powierzchniowe
         QRectF loadRect(QPointF(load.x1, -load.z1), QPointF(load.x2, -load.z2));
         painter.drawRect(loadRect);
 
+        // Liczba strzałek w kierunku X i Z
         int numArrowsX = 10;
         int numArrowsZ = 10;
 
+        // Obliczanie odstępów między strzałkami w obu kierunkach
         qreal arrowSpacingX = loadRect.width() / (numArrowsX + 1);
         qreal arrowSpacingZ = loadRect.height() / (numArrowsZ + 1);
 
-        qreal arrowLength = 100;
-        qreal arrowHeadSize = 30; // Adjust arrow head size
+        qreal arrowLength = 100;  // Długość strzałki
+        qreal arrowHeadSize = 30; // Rozmiar główki strzałki
 
-        // Adjust the grid to start slightly inside the rectangle
+        // Pozycjonowanie pierwszej strzałki odrobinę wewnątrz prostokąta
         qreal startX = loadRect.left() + arrowSpacingX / 2;
         qreal startZ = loadRect.top() + arrowSpacingZ / 2;
 
+        // Pętla rysująca strzałki w siatce
         for (int i = 0; i <= numArrowsX; ++i) {
             for (int j = 0; j <= numArrowsZ; ++j) {
                 qreal x = startX + i * arrowSpacingX;
                 qreal z = startZ + j * arrowSpacingZ;
 
                 if (load.F < 0) {
+                    // Rysowanie strzałki skierowanej w dół
                     painter.drawLine(QPointF(x, z), QPointF(x, z + arrowLength));
                     drawArrowHead(painter, QPointF(x, z + arrowLength), QPointF(x, z));
                 } else {
+                    // Rysowanie strzałki skierowanej w górę
                     painter.drawLine(QPointF(x, z), QPointF(x, z - arrowLength));
                     drawArrowHead(painter, QPointF(x, z - arrowLength), QPointF(x, z));
                 }
             }
         }
 
-        // Draw labels with force value
-        QString forceText = QString::number(load.F, 'f', 2) + " kN/m²";
-        painter.drawText(QPointF(loadRect.center().x(), loadRect.center().y()), forceText);
+        // Rysowanie etykiet (SL[id] [wartość]kN/m²)
+        QString label = QString("SL%1 %2 kN/m²").arg(load.id).arg(load.F, 0, 'f', 2);
+        painter.drawText(QPointF(loadRect.center().x(), loadRect.center().y()), label);  // Etykieta na środku prostokąta
     }
 }
+
 
 void SlabGUI::drawArrowHead(QPainter &painter, const QPointF &start, const QPointF &end)
 {
@@ -418,7 +429,9 @@ void SlabGUI::paintSurfaces(QPainter &painter)
     for (const auto &surface : surfaces) {
         if (surface.isOpening) {
             const std::string &surfaceType = surface.surfaceType;
+            QPointF labelPos;
 
+            // Handle rectangles and triangles
             if (surfaceType == "rectangle" || surfaceType == "triangle") {
                 QPolygonF polygon;
                 auto addPointToPolygon = [&](int lineId) {
@@ -442,7 +455,19 @@ void SlabGUI::paintSurfaces(QPainter &painter)
 
                 if (polygon.size() >= 3) {
                     openingsPath.addPolygon(polygon);
+
+                    // Calculate the center for the polygon based on vertex coordinates (geometric center)
+                    qreal centerX = 0;
+                    qreal centerY = 0;
+                    for (const QPointF &point : polygon) {
+                        centerX += point.x();
+                        centerY += point.y();
+                    }
+                    centerX /= polygon.size();  // Average x coordinate
+                    centerY /= polygon.size();  // Average y coordinate
+                    labelPos = QPointF(centerX, centerY);  // Geometric center for rectangles/triangles
                 }
+
             } else if (surfaceType == "circle") {
                 if (surface.circularLineId != -1) {
                     const auto &circularLineEntry = std::find_if(circularLines.begin(), circularLines.end(),
@@ -455,9 +480,28 @@ void SlabGUI::paintSurfaces(QPainter &painter)
                                             circularLineEntry->diameter,
                                             circularLineEntry->diameter);
                         openingsPath.addEllipse(boundingRect);
+                        labelPos = center;  // Center for circles
                     }
                 }
             }
+
+            // Add labels for openings (O[id-1])
+
+            painter.setPen(Qt::black);  // Black color for text
+            QFont font = painter.font();
+            font.setPointSize(150);  // Set the font size
+            painter.setFont(font);
+            if (surfaceType=="circle"){
+                painter.drawText(labelPos, QString("O%1").arg(surface.id - 1));
+            }
+            else if (surfaceType=="rectangle"){
+
+                painter.drawText(labelPos, QString("O%1").arg(surface.id - 1));
+            } else if (surfaceType=="triangle"){
+
+                painter.drawText(labelPos, QString("O%1").arg(surface.id - 1));
+            }
+            painter.drawText(labelPos, QString("O%1").arg(surface.id - 1));
         }
     }
 
@@ -468,9 +512,8 @@ void SlabGUI::paintSurfaces(QPainter &painter)
     // Fill the main surface without the openings
     QColor fillColor(128, 128, 128, 128); // Semi-transparent grey for main surfaces
     painter.fillPath(mainSurfacePath, fillColor);
+    painter.restore();
 }
-
-
 
 
 void SlabGUI::loadLayoutFromFile(const QString &fileName)
@@ -1676,16 +1719,27 @@ void SlabGUI::paintLineSupports(QPainter &painter)
 
 void SlabGUI::paintSurfaceSupports(QPainter &painter)
 {
-    QPen pen(Qt::magenta, 2); // Set the pen to magenta color and 2 units thick
-    QBrush brush(Qt::magenta, Qt::DiagCrossPattern); // Set the brush to magenta with diagonal hatching
+    QPen pen(Qt::magenta, 2);  // Kolor magenta dla obwodu prostokąta
     painter.setPen(pen);
+
+    // Pędzel z wypełnieniem magentowym i wzorem zakreskowanym
+    QBrush brush(Qt::magenta, Qt::DiagCrossPattern);
     painter.setBrush(brush);
 
     for (const auto &support : surfaceSupports) {
         QRectF supportRect(QPointF(support.x1, -support.z1), QPointF(support.x2, -support.z2));
         painter.drawRect(supportRect);
+
+        // Dodanie etykiet dla podpór (SS[id])
+        QPointF center = supportRect.center();
+        painter.setPen(pen.color());  // Kolor etykiety taki jak kolor podpory
+        QFont font = painter.font();
+        font.setPointSize(150);  // Rozmiar czcionki jak w innych metodach
+        painter.setFont(font);
+        painter.drawText(center, QString("SS%1").arg(support.id));
     }
 }
+
 
 void SlabGUI::paintPointLoads(QPainter &painter)
 {
@@ -1738,9 +1792,10 @@ void SlabGUI::paintPointLoads(QPainter &painter)
             painter.drawLine(position, end4);
         }
 
-        // Draw the F value label next to the circle with the unit kN
+        // Draw the label with F value and numeration "PL[id]"
         painter.setPen(textPen); // Set pen for text drawing
-        painter.drawText(position.x() + 120, position.y() - 120, QString::number(load.F, 'f', 2) + " kN");
+        QString loadLabel = QString("PL%1 %2 kN").arg(load.id).arg(load.F, 0, 'f', 2); // Format "PL[id] F kN"
+        painter.drawText(position.x() + 120, position.y() - 120, loadLabel);
     }
 }
 

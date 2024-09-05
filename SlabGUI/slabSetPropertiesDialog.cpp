@@ -2,7 +2,7 @@
 #include "ui_slabSetPropertiesDialog.h"
 
 slabSetPropertiesDialog::slabSetPropertiesDialog(QWidget *parent)
-    : QDialog(parent)
+    : SlabBaseDialog(parent)
     , ui(new Ui::slabSetPropertiesDialog)
     , materialComboBox(nullptr)
 {
@@ -63,12 +63,4 @@ void slabSetPropertiesDialog::onMaterialIndexChanged(int index)
 {
     materialId = index + 1;
 }
-void slabSetPropertiesDialog::moveToBottomLeft() {
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+

@@ -118,6 +118,8 @@ add_executable(masterThesis
     DataBaseManagers/DataBaseSlabMeshManager.h DataBaseManagers/DataBaseSlabMeshManager.cpp
     DataBaseManagers/DataBaseFreeFEMPreparer.h DataBaseManagers/DataBaseFreeFEMPreparer.cpp
     FreeFemExecutor.h FreeFemExecutor.cpp
+    SlabGUI/SlabDeleteObjectDialog.h SlabGUI/SlabDeleteObjectDialog.cpp SlabGUI/SlabDeleteObjectDialog.ui
+    SlabGUI/SlabBaseDialog.h SlabGUI/SlabBaseDialog.cpp SlabGUI/SlabBaseDialog.ui
 
 
 

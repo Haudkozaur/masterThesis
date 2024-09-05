@@ -2,7 +2,7 @@
 #include "ui_AddSurfaceSupportDialog.h"
 
 AddSurfaceSupportDialog::AddSurfaceSupportDialog(QWidget *parent)
-    : QDialog(parent)
+    : SlabBaseDialog(parent)
     , ui(new Ui::AddSurfaceSupportDialog)
 {
     ui->setupUi(this);
@@ -13,15 +13,7 @@ AddSurfaceSupportDialog::~AddSurfaceSupportDialog()
     delete ui;
 }
 
-void AddSurfaceSupportDialog::moveToBottomLeft() {
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+
 
 int AddSurfaceSupportDialog::getX1() const
 {

@@ -1,6 +1,6 @@
 #ifndef SLABSETPROPERTIESDIALOG_H
 #define SLABSETPROPERTIESDIALOG_H
-
+#include "SlabBaseDialog.h"
 #include <QComboBox>
 #include <QDialog>
 
@@ -8,7 +8,7 @@ namespace Ui {
 class slabSetPropertiesDialog;
 }
 
-class slabSetPropertiesDialog : public QDialog
+class slabSetPropertiesDialog : public SlabBaseDialog
 {
     Q_OBJECT
 
@@ -26,7 +26,6 @@ public:
 
     void onMaterialChanged(const QString &materialName);
     void onMaterialIndexChanged(int index);
-    void moveToBottomLeft();
 
     int getMaterialId() const;
     int getThickness() const;

@@ -1,6 +1,6 @@
 #ifndef ADDSURFACEDIALOG_H
 #define ADDSURFACEDIALOG_H
-
+#include "SlabBaseDialog.h"
 #include <QDialog>
 #include <QUiLoader>
 #include <QLineEdit>
@@ -9,7 +9,7 @@ namespace Ui {
 class AddSurfaceDialog;
 }
 
-class AddSurfaceDialog : public QDialog
+class AddSurfaceDialog : public SlabBaseDialog
 {
     Q_OBJECT
 
@@ -35,7 +35,7 @@ public:
 
     bool getIsOpening();
 
-    void moveToBottomLeft();
+
     void initializeWithType(const QString &selectedType);
     QString getSelectedObjectType() const;
 

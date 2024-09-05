@@ -2,7 +2,7 @@
 #include "ui_AddSlabLineLoadDialog.h"
 
 AddSlabLineLoadDialog::AddSlabLineLoadDialog(QWidget *parent)
-    : QDialog(parent)
+    : SlabBaseDialog(parent)
     , ui(new Ui::AddSlabLineLoadDialog)
 {
     ui->setupUi(this);
@@ -13,16 +13,7 @@ AddSlabLineLoadDialog::~AddSlabLineLoadDialog()
     delete ui;
 }
 
-void AddSlabLineLoadDialog::moveToBottomLeft()
-{
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+
 
 int AddSlabLineLoadDialog::getX1()
 {

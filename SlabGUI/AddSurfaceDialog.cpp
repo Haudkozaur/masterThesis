@@ -4,7 +4,7 @@
 #include <QFile>
 
 AddSurfaceDialog::AddSurfaceDialog(QWidget *parent)
-    : QDialog(parent)
+    : SlabBaseDialog(parent)
     , ui(new Ui::AddSurfaceDialog)
     , uiLoader(new QUiLoader(this))
     , currentOptionsWidget(nullptr)
@@ -240,15 +240,7 @@ void AddSurfaceDialog::updateLayoutForType(const QString &type)
     onObjectTypeChanged(type);
 }
 
-void AddSurfaceDialog::moveToBottomLeft() {
-    if (parentWidget()) {
-        auto host = parentWidget();
-        auto hostRect = host->geometry();
-        int x = hostRect.left();
-        int y = hostRect.top() + 250;
-        move(x + 5, y);
-    }
-}
+
 
 void AddSurfaceDialog::on_openingCheckBox_toggled(bool checked)
 {

@@ -1,13 +1,13 @@
 #ifndef ADDSURFACESUPPORTDIALOG_H
 #define ADDSURFACESUPPORTDIALOG_H
-
+#include "SlabBaseDialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddSurfaceSupportDialog;
 }
 
-class AddSurfaceSupportDialog : public QDialog
+class AddSurfaceSupportDialog : public SlabBaseDialog
 {
     Q_OBJECT
 
@@ -15,7 +15,6 @@ public:
     explicit AddSurfaceSupportDialog(QWidget *parent = nullptr);
     ~AddSurfaceSupportDialog();
 
-    void moveToBottomLeft();
     int getX1() const;
     int getZ1() const;
     int getX2() const;

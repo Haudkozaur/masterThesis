@@ -1,20 +1,20 @@
 #ifndef ADDSLABSUPPORTSDIALOG_H
 #define ADDSLABSUPPORTSDIALOG_H
-
+#include "SlabBaseDialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddSlabSupportsDialog;
 }
 
-class AddSlabSupportsDialog : public QDialog
+class AddSlabSupportsDialog : public SlabBaseDialog
 {
     Q_OBJECT
 
 public:
     explicit AddSlabSupportsDialog(QWidget *parent = nullptr);
     ~AddSlabSupportsDialog();
-    void moveToBottomLeft();
+
 
 
 

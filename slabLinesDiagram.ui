@@ -31,7 +31,7 @@
    <item>
     <widget class="QPushButton" name="layoutAddSupportConditionsButton">
      <property name="text">
-      <string>Add Support Conditions</string>
+      <string>Add Line Support</string>
      </property>
     </widget>
    </item>

@@ -1,13 +1,13 @@
 #ifndef ADDSLABPOINTLOADDIALOG_H
 #define ADDSLABPOINTLOADDIALOG_H
-
+#include "SlabBaseDialog.h"
 #include <QDialog>
 
 namespace Ui {
 class AddSlabPointLoadDialog;
 }
 
-class AddSlabPointLoadDialog : public QDialog
+class AddSlabPointLoadDialog : public SlabBaseDialog
 {
     Q_OBJECT
 
@@ -15,7 +15,6 @@ public:
     explicit AddSlabPointLoadDialog(QWidget *parent = nullptr);
     ~AddSlabPointLoadDialog();
 
-    void moveToBottomLeft();
     int getX();
     int getZ();
     double getF();

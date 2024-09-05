@@ -28,5 +28,11 @@
         <file>slabMesh_layout.ui</file>
         <file>slabResults_layout_copy.ui</file>
         <file>slabLoads_layout.ui</file>
+        <file>SlabDeleteSurfaceLayout.ui</file>
+        <file>SlabDeleteLineSupportLayout.ui</file>
+        <file>SlabDeleteSurfaceSupportLayout.ui</file>
+        <file>SlabDeletePointLoadLayout.ui</file>
+        <file>SlabDeleteLineLoadLayout.ui</file>
+        <file>SlabDeleteSurfaceLoadLayout.ui</file>
     </qresource>
 </RCC>
